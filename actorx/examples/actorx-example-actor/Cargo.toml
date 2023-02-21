@@ -1,0 +1,18 @@
+[package]
+name = "actorx-example-actor"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+tea-codec = { path = "../../../codecs/tea-codec" }
+tea-actorx-runtime = { path = "../../actorx-runtime" }
+actorx-example-codec = { path = "../actorx-example-codec" }
+
+[dev-dependencies]
+tea-actorx-runtime = { path = "../../actorx-runtime", features = ["mock"] }
+tokio = { workspace = true, features = ["full"] }
+tracing-subscriber = { workspace = true }
+actorx-example-host = { path = "../actorx-example-host" }

@@ -1,0 +1,29 @@
+[package]
+name = "tea-actorx-signer"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "tas"
+path = "src/main.rs"
+required-features = ["cli"]
+
+[features]
+default = ["cli"]
+cli = ["clap"]
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec" }
+tea-actorx-core = { path = "../actorx-core" }
+
+tokio = { workspace = true, features = ["full"] }
+leb128 = "0.2.5"
+base64 = "0.13.1"
+zstd = "0.11.2"
+serde = { workspace = true }
+bincode = { workspace = true }
+openssl = { workspace = true }
+thiserror = { workspace = true }
+primitive-types = { workspace = true }
+rustc-hex = "*"
+clap = { version = "4.0.8", features = ["derive"], optional = true }

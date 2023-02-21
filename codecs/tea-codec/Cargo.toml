@@ -1,0 +1,55 @@
+[package]
+name = "tea-codec"
+version = "0.1.1"
+authors = ["Kevin Zhang <kevin.zhang.canada@gmail.com>"]
+edition = "2021"
+description = "Encoding and decoding primitives for TeaRust Project"
+license = "Apache-2.0"
+readme = "README.md"
+keywords = ["webassembly", "wasm", "codec", "tea", "wascc"]
+categories = ["wasm", "data-structures", "encoding"]
+[badges]
+maintenance = { status = "actively-developed" }
+
+
+[dependencies]
+crossbeam-channel = { workspace = true }
+crossbeam = { workspace = true }
+num-traits = { workspace = true }
+num-derive = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+bincode = { workspace = true }
+serde_derive = { workspace = true }
+serde_bytes = { workspace = true }
+prost = { workspace = true }
+base64 = { workspace = true }
+hex = { workspace = true }
+log = { workspace = true }
+thiserror = { workspace = true }
+futures = { workspace = true }
+smallvec = { workspace = true }
+tracing = { workspace = true }
+regex = { workspace = true }
+impl-trait-for-tuples = { workspace = true }
+
+tea-codec-macros = { path = "macros" }
+
+[dependencies.tokio]
+version = "1"
+features = ["full"]
+optional = true
+
+[dependencies.lazy_static]
+version = "1.4"
+optional = true
+
+[dev-dependencies]
+structopt = "0.3.12"
+serde_json = "1.0.50"
+
+[features]
+default = []
+runtime = ["tokio", "lazy_static"]
+backtrace = []
+checked = []

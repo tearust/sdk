@@ -1,0 +1,25 @@
+[package]
+name = "tea-actorx-runtime"
+version = "0.1.0"
+edition = "2021"
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec" }
+tea-actorx-core = { path = "../actorx-core" }
+tea-actorx-host = { path = "../actorx-host", optional = true }
+
+serde = { workspace = true }
+bincode = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros"] }
+thiserror = { workspace = true }
+# TODO: replace lazy_static with once_cell
+lazy_static = "1.4.0"
+once_cell = { workspace = true }
+
+
+[features]
+mock = ["tea-actorx-host"]
+no-mock = []
+analyzer = ["no-mock"]
+checked = ["tea-codec/checked"]

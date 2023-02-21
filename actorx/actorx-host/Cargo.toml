@@ -1,0 +1,25 @@
+[package]
+name = "tea-actorx-host"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec", features = ["runtime"] }
+tea-actorx-core = { path = "../actorx-core", features = ["host"] }
+tea-actorx-signer = { path = "../actorx-signer" }
+
+tokio = { workspace = true, features = ["full"] }
+futures = { workspace = true }
+thiserror = { workspace = true }
+parking_lot = { workspace = true }
+serde = { workspace = true }
+bincode = { workspace = true }
+dashmap = { workspace = true }
+wasmer = { workspace = true }
+wasmer-middlewares = { workspace = true }
+tracing = { workspace = true }
+smallvec = { workspace = true }
+primitive-types = { workspace = true }
+crossbeam = { workspace = true }
