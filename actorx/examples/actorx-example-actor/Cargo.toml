@@ -7,12 +7,11 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-tea-codec = { path = "../../../codecs/tea-codec" }
-tea-actorx-runtime = { path = "../../actorx-runtime" }
+tea-sdk = { path = "../../..", features = ["wasm"] }
 actorx-example-codec = { path = "../actorx-example-codec" }
 
 [dev-dependencies]
-tea-actorx-runtime = { path = "../../actorx-runtime", features = ["mock"] }
+tea-sdk = { path = "../../..", features = ["mock"] }
 tokio = { workspace = true, features = ["full"] }
 tracing-subscriber = { workspace = true }
 actorx-example-host = { path = "../actorx-example-host" }

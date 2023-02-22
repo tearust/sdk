@@ -18,3 +18,5 @@ pub mod error;
 mod host;
 mod registry;
 pub use host::*;
+
+extern crate tea_codec as tea_sdk;

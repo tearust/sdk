@@ -6,9 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-tea-codec = { path = "../../../codecs/tea-codec" }
-tea-actorx-core = { path = "../../actorx-core" }
-tea-actorx-host = { path = "../../actorx-host" }
+tea-sdk = { path = "../../..", features = ["host"] }
 actorx-example-codec = { path = "../actorx-example-codec" }
 
 tokio = { version = "1.21.2", features = ["full"] }

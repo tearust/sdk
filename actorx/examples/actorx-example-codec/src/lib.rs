@@ -1,7 +1,7 @@
 #![feature(min_specialization)]
 
 use serde::{Deserialize, Serialize};
-use tea_codec::{pricing::Priced, serde::TypeId};
+use tea_sdk::{pricing::Priced, serde::TypeId};
 
 pub mod error;
 

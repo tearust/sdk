@@ -21,5 +21,4 @@ wasmer = { workspace = true }
 wasmer-middlewares = { workspace = true }
 tracing = { workspace = true }
 smallvec = { workspace = true }
-primitive-types = { workspace = true }
 crossbeam = { workspace = true }

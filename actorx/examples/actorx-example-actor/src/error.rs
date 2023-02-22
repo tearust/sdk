@@ -1,7 +1,7 @@
 use actorx_example_codec::error::ExampleCodec;
-use tea_codec::define_scope;
+use tea_sdk::define_scope;
 
 define_scope! {
-	ExampleActor: ExampleCodec {
-	}
+    ExampleActor: ExampleCodec {
+    }
 }

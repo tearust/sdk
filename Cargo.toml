@@ -1,6 +1,30 @@
+[package]
+name = "tea-sdk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tea-codec = { path = "codecs/tea-codec" }
+tea-actorx-core = { path = "actorx/actorx-core" }
+tea-actorx-host = { path = "actorx/actorx-host", optional = true }
+tea-actorx-runtime = { path = "actorx/actorx-runtime", optional = true }
+tea-actorx-signer = { path = "actorx/actorx-signer", optional = true }
+
 [workspace]
 resolver = "2"
-members = ["codecs/*", "actorx/actorx-*", "actorx/examples/*"]
+members = [
+    "codecs/*",
+    "codecs/tea-codec/macros",
+    "actorx/actorx-*",
+    "actorx/examples/*",
+]
+
+[features]
+default = ["wasm"]
+wasm = ["tea-actorx-runtime"]
+host = ["tea-actorx-host"]
+signer = ["tea-actorx-signer"]
+mock = ["wasm", "tea-actorx-runtime/mock"]
 
 [workspace.dependencies]
 base64 = "0.13.0"

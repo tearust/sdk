@@ -6,6 +6,8 @@
 #![allow(incomplete_features)]
 #![feature(return_position_impl_trait_in_trait)]
 
+extern crate tea_codec as tea_sdk;
+
 pub mod actor;
 mod actor_id;
 pub mod error;
