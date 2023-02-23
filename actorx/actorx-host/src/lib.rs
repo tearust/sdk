@@ -8,6 +8,8 @@
 #![feature(iterator_try_collect)]
 #![feature(auto_traits)]
 #![feature(negative_impls)]
+#![cfg_attr(feature = "unlimited", allow(unused_imports))]
+#![cfg_attr(feature = "unlimited", allow(unused_variables))]
 
 #[macro_use]
 extern crate tracing;

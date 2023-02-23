@@ -25,6 +25,7 @@ wasm = ["tea-actorx-runtime"]
 host = ["tea-actorx-host"]
 signer = ["tea-actorx-signer"]
 mock = ["wasm", "tea-actorx-runtime/mock"]
+unlimited = ["tea-actorx-host/unlimited"]
 
 [workspace.dependencies]
 base64 = "0.13.0"
