@@ -6,10 +6,7 @@ use std::env::current_exe;
 
 use actorx_example_codec::{AddRequest, AddResponse, HelloWorldRequest, WASM_ACTOR_NAME};
 use actorx_example_host::{error::Result, time_actor::TimeActor};
-use tea_sdk::actorx::{
-    host::{billing::with_gas_limit, ActorHost},
-    InstanceId,
-};
+use tea_sdk::actorx::{host::ActorHost, InstanceId};
 
 use wasmer::wasmparser::Operator;
 
@@ -29,22 +26,19 @@ async fn main() -> Result<()> {
     })?;
     host.register_native(|context| Ok(TimeActor::new(context)))?;
 
-    with_gas_limit(200000, async {
-        host.multicast_0().await?.activate().await?;
+    host.multicast_0().await?.activate().await?;
 
-        let example = host
-            .registry(WASM_ACTOR_NAME)?
-            .actor(&InstanceId::ZERO)
-            .await?;
-        let r1 = example.call(HelloWorldRequest("Alice".to_string())).await?;
+    let example = host
+        .registry(WASM_ACTOR_NAME)?
+        .actor(&InstanceId::ZERO)
+        .await?;
+    let r1 = example.call(HelloWorldRequest("Alice".to_string())).await?;
 
-        println!("Result: {r1:?}");
+    println!("Result: {r1:?}");
 
-        let AddResponse(r2, test) = example.call(AddRequest(1, 2)).await?;
+    let AddResponse(r2, test) = example.call(AddRequest(1, 2)).await?;
 
-        println!("Result: {:?}, {}", r2, test.len());
+    println!("Result: {:?}, {}", r2, test.len());
 
-        Ok(())
-    })
-    .await
+    Ok(())
 }

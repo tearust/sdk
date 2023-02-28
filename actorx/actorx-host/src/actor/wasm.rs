@@ -1,13 +1,5 @@
-use std::{
-    any::type_name,
-    fmt::Debug,
-    mem::size_of,
-    ops::{Deref, DerefMut},
-    sync::Arc,
-};
+use std::{fmt::Debug, mem::size_of, sync::Arc};
 
-use crossbeam::atomic::AtomicCell;
-use futures::Future;
 use tea_actorx_core::{
     actor::{decode_invoke, decode_output, encode_input, InputMessageKind, OutputMessageKind},
     billing::{self, GasFeeCostRequest},
@@ -15,15 +7,8 @@ use tea_actorx_core::{
     ActorId, InstanceId,
 };
 use tea_actorx_signer::{verify, Claim, Metadata};
-use tea_codec::{
-    pricing::PricedOrDefault,
-    serde::{get_type_id, FromBytes, ToBytes, TypeId},
-    OptionExt,
-};
-use tokio::{
-    sync::{Mutex, OwnedMutexGuard},
-    task_local,
-};
+use tea_codec::serde::{get_type_id, FromBytes, ToBytes, TypeId};
+use tokio::sync::Mutex;
 use wasmer::{
     imports, wasmparser::Operator, CompilerConfig, Cranelift, EngineBuilder, Extern, Function,
     FunctionEnv, FunctionEnvMut, Imports, Instance, Memory, Module, ModuleMiddleware, Store,
@@ -36,70 +21,13 @@ use wasmer_middlewares::{
 
 use crate::{
     actor::{looped::ActorFactory, ActorAgent, ActorContext, DynFuture},
-    billing::{get_gas_limit, with_gas_limit},
-    error::{AccessNotPermitted, Error, PriceUndefined},
+    error::{AccessNotPermitted, Error},
     error::{GasFeeExhausted, Result},
 };
 
 use super::shared;
 
-#[derive(Debug, Clone, Default)]
-pub(crate) struct NativeBudget(Option<u64>);
-
-impl NativeBudget {
-    pub fn take() -> Self {
-        Self(if let Ok(budget) = NATIVE_BUDGET.try_with(|x| x.clone()) {
-            budget.take()
-        } else {
-            None
-        })
-    }
-
-    pub async fn provide<O>(self, f: impl Future<Output = O>) -> O {
-        NATIVE_BUDGET
-            .scope(Arc::new(AtomicCell::new(self.0)), f)
-            .await
-    }
-
-    pub fn check<Req>(self, req: &Req) -> Result<()> {
-        #[cfg(not(feature = "unlimited"))]
-        if let Self(Some(budget)) = self {
-            if budget
-                < req
-                    .price()
-                    .ok_or_else(|| PriceUndefined(type_name::<Req>()))?
-            {
-                return Err(GasFeeExhausted::NativeCheck.into());
-            }
-        }
-
-        Ok(())
-    }
-
-    pub fn extract(&mut self, amount: u64) -> Result<Self> {
-        #[cfg(not(feature = "unlimited"))]
-        if let Self(Some(budget)) = self {
-            if amount <= *budget {
-                *budget -= amount;
-                Ok(Self(Some(amount)))
-            } else {
-                Err(GasFeeExhausted::NativeCheck.into())
-            }
-        } else {
-            Ok(Self(None))
-        }
-        #[cfg(feature = "unlimited")]
-        Ok(Self(Some(u64::MAX)))
-    }
-}
-task_local! {
-    static GAS_BALANCE: Option<Arc<Mutex<u64>>>;
-    static NATIVE_BUDGET: Arc<AtomicCell<Option<u64>>>;
-}
-
-fn balance() -> Option<Arc<Mutex<u64>>> {
-    GAS_BALANCE.try_with(|x| x.clone()).ok().flatten()
-}
+pub const FUSE_GAS: u64 = u64::MAX;
 
 pub struct WasmActorFactory {
     metadata: Arc<Metadata>,
@@ -277,19 +205,21 @@ impl WasmActor {
         msg: Vec<u8>,
         kind: InputMessageKind,
         caller: Option<ActorId>,
+        mut local_gas: Option<&mut u64>,
     ) -> Result<Vec<u8>> {
-        let disable_gas = get_type_id(&msg) == Ok(Deactivate::TYPE_ID);
-
         let mut result = unsafe {
             unlock_lifetime(self)
-                .inner_invoke(encode_input(kind, None, caller, &msg)?, disable_gas)
+                .inner_invoke(
+                    encode_input(kind, None, caller, &msg)?,
+                    local_gas.as_deref_mut(),
+                )
                 .await
         }?;
         loop {
             let (kind, quote_id, payload) = decode_output(&result)?;
             match kind {
                 OutputMessageKind::HostCall | OutputMessageKind::HostPost => {
-                    let (target_id, budget, msg) = decode_invoke(payload)?;
+                    let (target_id, msg) = decode_invoke(payload)?;
 
                     if !self.metadata.claims.iter().any(|x| {
                         if let Claim::ActorAccess(id) = x {
@@ -301,16 +231,6 @@ impl WasmActor {
                         return Err(AccessNotPermitted(target_id.reg.to_owned()).into());
                     }
 
-                    #[cfg(not(feature = "unlimited"))]
-                    {
-                        let mut balance = balance().ok_or_err("balance")?.lock_owned().await;
-                        if *balance < budget {
-                            return Err(GasFeeExhausted::Wasm(self.context.id.clone()).into());
-                        }
-                        *balance -= budget;
-                        drop(balance);
-                    }
-
                     let msg = async {
                         let actor = self
                             .context
@@ -320,28 +240,13 @@ impl WasmActor {
                             .await?;
 
                         if let OutputMessageKind::HostCall = kind {
-                            NativeBudget(Some(budget))
-                                .provide(GAS_BALANCE.scope(
-                                    None,
-                                    actor.call_with_caller_raw(
-                                        msg.to_vec(),
-                                        Some(self.context.id.clone()),
-                                    ),
-                                ))
+                            actor
+                                .call_with_caller_raw(msg.to_vec(), Some(self.context.id.clone()))
                                 .await
                         } else {
-                            with_gas_limit(
-                                budget,
-                                GAS_BALANCE.scope(None, async {
-                                    actor
-                                        .post_with_caller_raw(
-                                            msg.to_vec(),
-                                            Some(self.context.id.clone()),
-                                        )
-                                        .map(|_| Vec::new())
-                                }),
-                            )
-                            .await
+                            actor
+                                .post_with_caller_raw(msg.to_vec(), Some(self.context.id.clone()))
+                                .map(|_| Vec::new())
                         }
                     }
                     .await;
@@ -358,7 +263,7 @@ impl WasmActor {
                         )?,
                     };
 
-                    result = unsafe { self.inner_invoke(msg, disable_gas).await }?;
+                    result = unsafe { self.inner_invoke(msg, local_gas.as_deref_mut()).await }?;
                 }
 
                 OutputMessageKind::GuestReturn => return Ok(payload.to_vec()),
@@ -367,51 +272,31 @@ impl WasmActor {
         }
     }
 
-    async unsafe fn inner_invoke(&self, msg: Vec<u8>, disable_gas: bool) -> Result<Vec<u8>> {
-        #[cfg(unlimited)]
-        let disable_gas = true;
-
+    async unsafe fn inner_invoke(
+        &self,
+        msg: Vec<u8>,
+        local_gas: Option<&mut u64>,
+    ) -> Result<Vec<u8>> {
         let mut store = self.store.lock().await;
         let store = &mut *store;
 
-        enum MutexGuardOrValue<T> {
-            MutexGuard(OwnedMutexGuard<T>),
-            Value(T),
-        }
-
-        impl<T> Deref for MutexGuardOrValue<T> {
-            type Target = T;
-            fn deref(&self) -> &Self::Target {
-                match self {
-                    MutexGuardOrValue::MutexGuard(g) => g,
-                    MutexGuardOrValue::Value(v) => v,
-                }
-            }
-        }
-
-        impl<T> DerefMut for MutexGuardOrValue<T> {
-            fn deref_mut(&mut self) -> &mut Self::Target {
-                match self {
-                    MutexGuardOrValue::MutexGuard(g) => g,
-                    MutexGuardOrValue::Value(v) => v,
-                }
-            }
-        }
-
-        let mut balance = if disable_gas {
-            MutexGuardOrValue::Value(u64::MAX)
-        } else {
-            MutexGuardOrValue::MutexGuard(balance().unwrap().lock_owned().await)
-        };
-
-        set_remaining_points(store, &self.instance, *balance);
+        set_remaining_points(
+            store,
+            &self.instance,
+            local_gas.as_deref().copied().unwrap_or(u64::MAX),
+        );
         let result = self.do_inner_invoke(store, msg);
         match get_remaining_points(store, &self.instance) {
             wasmer_middlewares::metering::MeteringPoints::Remaining(g) => {
-                *balance = g;
+                if let Some(local_gas) = local_gas {
+                    *local_gas = g;
+                }
                 result
             }
             wasmer_middlewares::metering::MeteringPoints::Exhausted => {
+                if let Some(local_gas) = local_gas {
+                    *local_gas = 0;
+                }
                 Err(GasFeeExhausted::Wasm(self.context.id.clone()).into())
             }
         }
@@ -451,28 +336,44 @@ impl shared::Actor for Box<WasmActor> {
 
     fn invoke(&self, msg: Vec<u8>, caller: Option<ActorId>) -> DynFuture<Result<Vec<u8>, Error>> {
         Box::pin(async move {
-            let invoking = WasmActor::invoke(self, msg, InputMessageKind::GuestCall, caller);
-            if balance().is_some() {
-                invoking.await
+            let mut local_gas = if get_type_id(&msg) == Ok(Deactivate::TYPE_ID) {
+                None
             } else {
-                let gas_limit = get_gas_limit();
-                let balance = Arc::new(Mutex::new(gas_limit));
-                let result = GAS_BALANCE.scope(Some(balance.clone()), invoking).await;
-                send_cost(&self.context, gas_limit - *balance.lock().await).await?;
-                result
+                Some(FUSE_GAS)
+            };
+
+            let result = WasmActor::invoke(
+                self,
+                msg,
+                InputMessageKind::GuestCall,
+                caller,
+                local_gas.as_mut(),
+            )
+            .await;
+
+            if let Some(local_gas) = local_gas {
+                let usage = FUSE_GAS - local_gas;
+                if usage > 0 {
+                    send_cost(&self.context, usage).await?;
+                }
             }
+
+            result
         })
     }
 }
 
-async fn send_cost(context: &ActorContext, cost: u64) -> Result<()> {
+pub(crate) async fn send_cost(context: &ActorContext, cost: u64) -> Result<()> {
     if let Ok(registry) = context.host.registry(billing::NAME) {
         registry
             .actor(&InstanceId::ZERO)
             .await?
             .post_with_caller(GasFeeCostRequest(cost), Some(context.id.clone()))?;
     } else {
-        warn!("No billing actor registered, gas fee ignored.");
+        warn!(
+            "No billing actor registered, gas fee {cost} from {} ignored.",
+            context.id
+        );
     }
 
     Ok(())

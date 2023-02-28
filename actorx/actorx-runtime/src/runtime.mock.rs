@@ -56,24 +56,6 @@ where
         .err_into()
 }
 
-pub async fn post_with_budget<C, S>(
-    actor_id: impl Into<ActorId>,
-    arg: C,
-    #[allow(unused_variables)] budget: u64,
-) -> Result<(), Error<S>>
-where
-    C: Request<Response = ()> + ToBytes,
-    S: Scope,
-{
-    let actor_id = actor_id.into();
-    host()
-        .registry(&actor_id.reg)?
-        .actor(&actor_id.inst)
-        .await?
-        .post(arg)
-        .err_into()
-}
-
 pub trait MockedActorName {
     const NAME: &'static [u8];
 }

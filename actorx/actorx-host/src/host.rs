@@ -15,11 +15,8 @@ use tokio::{sync::RwLock, task::JoinHandle};
 use wasmer::wasmparser::Operator;
 
 use crate::{
-    actor::{looped::ActorFactory, ActorAgent, NativeActorFactory, WasmActorFactory},
-    billing::{
-        get_billing_account_raw, get_gas_limit, with_billing_account, with_billing_account_raw,
-        with_gas_limit, AccountId,
-    },
+    actor::{looped::ActorFactory, ActorAgent, ActorKind, NativeActorFactory, WasmActorFactory},
+    billing::{get_billing_account_raw, with_billing_account_raw},
     error::{NativeActorNotExists, Result},
     registry,
 };
@@ -192,6 +189,10 @@ impl Actor {
         self.actor.id()
     }
 
+    pub fn kind(&self) -> ActorKind {
+        self.actor.kind()
+    }
+
     pub async fn call_with_caller_raw(
         &self,
         msg: Vec<u8>,
@@ -296,31 +297,5 @@ where
         tea_codec::runtime::spawn(with_billing_account_raw(billing, future))
     } else {
         tea_codec::runtime::spawn(future)
-    }
-}
-
-#[deprecated]
-pub fn gas_spawn<T>(
-    gas_limit: Option<u64>,
-    backup_acct: Option<impl AccountId>,
-    future: T,
-) -> JoinHandle<T::Output>
-where
-    T: Future + Send + 'static,
-    T::Output: Send + 'static,
-{
-    let mut limit = get_gas_limit();
-    if limit == 0 {
-        limit = gas_limit.unwrap_or(0_u64)
-    }
-    if let Some(billing) = get_billing_account_raw() {
-        tea_codec::runtime::spawn(with_billing_account_raw(
-            billing,
-            with_gas_limit(limit, future),
-        ))
-    } else if let Some(acct) = backup_acct {
-        tea_codec::runtime::spawn(with_billing_account(acct, with_gas_limit(limit, future)))
-    } else {
-        tea_codec::runtime::spawn(with_gas_limit(limit, future))
     }
 }
