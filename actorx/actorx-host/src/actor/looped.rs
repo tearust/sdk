@@ -119,9 +119,9 @@ impl Looped {
 
                         if let Some(quote) = quote {
                             _ = quote.send(result.err_into());
-                        } else if let Err(_e) = result {
-                            // let id = &context_clone.id;
-                            // warn!("Actor {id} throws an error during post: {e}");
+                        } else if let Err(e) = result {
+                            let id = &context_clone.id;
+                            warn!("Actor {id} throws an error during post: {e}");
                         }
                     }
 
