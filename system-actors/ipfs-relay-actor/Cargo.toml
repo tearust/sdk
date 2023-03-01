@@ -1,0 +1,10 @@
+[package]
+name = "ipfs-relay-actor-codec"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec" }
+tea-actorx-core = { path = "../../actorx/actorx-core" }
+
+serde = { workspace = true }

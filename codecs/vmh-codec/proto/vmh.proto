@@ -1,0 +1,12 @@
+syntax = "proto3";
+package vmh;
+
+message ProviderOperationRequest {
+    string actor = 1;
+    string operation = 2;
+    bytes msg = 3;
+}
+
+message RegisterHttpDispatcherRequest {
+    repeated string actions = 1;
+}

@@ -5,10 +5,42 @@ edition = "2021"
 
 [dependencies]
 tea-codec = { path = "codecs/tea-codec" }
+
 tea-actorx-core = { path = "actorx/actorx-core" }
 tea-actorx-host = { path = "actorx/actorx-host", optional = true }
 tea-actorx-runtime = { path = "actorx/actorx-runtime", optional = true }
 tea-actorx-signer = { path = "actorx/actorx-signer", optional = true }
+
+actor-txns = { path = "codecs/actor-txns" }
+runtime-codec = { path = "codecs/runtime-codec" }
+solc-codec = { path = "codecs/solc-codec" }
+tapp-common = { path = "codecs/tapp-common" }
+vmh-codec = { path = "codecs/vmh-codec" }
+
+adapter-actor-codec = { path = "system-actors/adapter-actor" }
+billing-actor-codec = { path = "system-actors/billing-actor" }
+console-actor-codec = { path = "system-actors/console-actor" }
+crypto-actor-codec = { path = "system-actors/crypto-actor" }
+env-actor-codec = { path = "system-actors/env-actor" }
+http-actor-codec = { path = "system-actors/http-actor" }
+ipfs-relay-actor-codec = { path = "system-actors/ipfs-relay-actor" }
+keyvalue-actor-codec = { path = "system-actors/keyvalue-actor" }
+layer1-actor-codec = { path = "system-actors/layer1-actor" }
+layer1-service-actor-codec = { path = "system-actors/layer1-service-actor" }
+libp2p-actor-codec = { path = "system-actors/libp2p-actor" }
+nitro-actor-codec = { path = "system-actors/nitro-actor" }
+orbitdb-actor-codec = { path = "system-actors/orbitdb-actor" }
+persist-actor-codec = { path = "system-actors/persist-actor" }
+ra-actor-codec = { path = "system-actors/ra-actor" }
+replica-actor-codec = { path = "system-actors/replica-actor" }
+replica-service-actor-codec = { path = "system-actors/replica-service-actor" }
+state-receiver-codec = { path = "system-actors/state-receiver" }
+tappstore-actor-codec = { path = "system-actors/tappstore-actor" }
+tokenstate-actor-codec = { path = "system-actors/tokenstate-actor" }
+tokenstate-service-actor-codec = { path = "system-actors/tokenstate-service-actor" }
+
+wasm-actor-utils = { path = "utils/wasm-actor-utils", optional = true }
+wasm-client-actor-utils = { path = "utils/wasm-client-actor-utils", optional = true }
 
 [workspace]
 resolver = "2"
@@ -17,11 +49,13 @@ members = [
     "codecs/tea-codec/macros",
     "actorx/actorx-*",
     "actorx/examples/*",
+    "system-actors/*",
+    "utils/*",
 ]
 
 [features]
-default = ["wasm"]
-wasm = ["tea-actorx-runtime"]
+default = []
+wasm = ["tea-actorx-runtime", "wasm-actor-utils", "wasm-client-actor-utils"]
 host = ["tea-actorx-host"]
 signer = ["tea-actorx-signer"]
 mock = ["wasm", "tea-actorx-runtime/mock"]
@@ -30,12 +64,25 @@ unlimited = ["tea-actorx-host/unlimited"]
 [workspace.dependencies]
 base64 = "0.13.0"
 bincode = "1.2.0"
+bytes = "1.4.0"
+chrono = { version = "0.4.22", features = ["serde"] }
 crossbeam = "0.8.2"
 crossbeam-channel = "0.5.6"
 dashmap = "5.4"
+ed25519-dalek = "1.0.0"
 futures = "0.3.25"
+gluesql-core = { git = "https://github.com/gluesql/gluesql", rev = "4c08ba59", features = [
+    "metadata",
+    "transaction",
+    "index",
+] }
 hex = "0.4.0"
+http = "0.2.8"
+http-body = "0.4.5"
+httparse = "1.8.0"
+hyper = "0.14.23"
 impl-trait-for-tuples = "0.2.2"
+lazy_static = "1.4.0"
 log = { version = "0.4.17", features = ["std", "serde"] }
 num-derive = "0.3.3"
 num-traits = "0.2.15"
@@ -47,6 +94,9 @@ serde = { version = "1.0.147", features = ["derive", "rc"] }
 serde_bytes = "0.11.3"
 serde_derive = "1.0.147"
 serde_json = "1.0.87"
+sha2 = "0.10.0"
+strum = "0.24.1"
+strum_macros = "0.24.3"
 smallvec = { version = "1.9.0", features = [
     "serde",
     "write",

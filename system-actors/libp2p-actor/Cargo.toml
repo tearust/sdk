@@ -1,0 +1,19 @@
+[package]
+name = "libp2p-actor-codec"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec" }
+tea-actorx-core = { path = "../../actorx/actorx-core" }
+vmh-codec = { path = "../../codecs/vmh-codec" }
+
+serde = { workspace = true }
+
+[features]
+default = []
+nitro = ["vmh-codec/nitro"]
+simulator = ["vmh-codec/simulator"]
+__test = ["vmh-codec/__test"]

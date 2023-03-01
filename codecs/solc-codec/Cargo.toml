@@ -1,0 +1,19 @@
+[package]
+name = "solc-codec"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+log = "0.4.8"
+serde = { version = "1.0.106", features = ["derive"] }
+serde_derive = "1.0.106"
+ethereum-types = "0.14.1"
+primitive-types = { workspace = true }
+
+tea-codec = { path = "../tea-codec" }
+runtime-codec = { path = "../runtime-codec" }
+
+[features]
+__test = []

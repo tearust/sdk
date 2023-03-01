@@ -1,0 +1,20 @@
+[package]
+name = "actor-txns"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+serde = { workspace = true }
+serde_derive = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }
+hex = { workspace = true }
+thiserror = { workspace = true }
+prost = { workspace = true }
+sha2 = { workspace = true }
+
+runtime-codec = { path = "../runtime-codec" }
+tea-codec = { path = "../tea-codec" }
+tapp-common = { path = "../tapp-common" }

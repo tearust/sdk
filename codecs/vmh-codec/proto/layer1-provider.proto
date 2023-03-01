@@ -1,0 +1,41 @@
+syntax = "proto3";
+package layer1;
+
+message RegisterLayer1EventRequest {}
+
+message Layer1Inbound {
+    oneof msg {
+        TappTopupEvent TappTopupEvent = 101;
+        TappWithdrawEvent TappWithdrawEvent = 102;
+        ValidatorChangedEvents ValidatorChangedEvents = 103;
+        TransferCmlEvent TransferCmlEvent = 104;
+    }
+}
+
+message TappTopupEvent {
+    bytes tokenAddress = 2;
+    bytes sender = 3;
+    bytes amount = 4;
+    uint64 height = 5;
+}
+
+message TappWithdrawEvent {
+    bytes tokenAddress = 1;
+    bytes recipient = 2;
+    bytes amount = 4;
+    uint64 height = 5;
+    repeated uint32 signerIndices = 6;
+}
+
+message ValidatorChangedEvents {
+    repeated bytes validators = 1;
+    bytes multisigThreshold = 2;
+    uint64 height = 3;
+}
+
+message TransferCmlEvent {
+    bytes from = 1;
+    bytes to = 2;
+    uint64 cml_id = 3;
+    uint64 height = 4;
+}

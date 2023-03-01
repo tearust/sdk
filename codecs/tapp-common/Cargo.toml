@@ -1,0 +1,25 @@
+[package]
+name = "tapp-common"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+serde = { version = "1.0.106", features = ["derive"] }
+base64 = "0.13.0"
+u256-literal = "1.2.0"
+serde_derive = "1.0.106"
+serde_json = "1.0.55"
+strum = { workspace = true }
+strum_macros = { workspace = true }
+primitive-types = { workspace = true }
+hex = { workspace = true }
+
+runtime-codec = { path = "../../codecs/runtime-codec" }
+tea-codec = { path = "../tea-codec" }
+thiserror = "1"
+
+[features]
+__test = []

@@ -1,0 +1,17 @@
+[package]
+name = "tappstore-actor-codec"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec" }
+tea-actorx-core = { path = "../../actorx/actorx-core" }
+tapp-common = { path = "../../codecs/tapp-common" }
+actor-txns = { path = "../../codecs/actor-txns" }
+solc-codec = { path = "../../codecs/solc-codec" }
+
+serde = { workspace = true }
+strum = { workspace = true }
+strum_macros = { workspace = true }

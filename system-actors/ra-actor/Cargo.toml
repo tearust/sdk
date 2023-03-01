@@ -1,0 +1,13 @@
+[package]
+name = "ra-actor-codec"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec" }
+tea-actorx-core = { path = "../../actorx/actorx-core" }
+nitro-actor-codec = { path = "../nitro-actor" }
+
+serde = { workspace = true }

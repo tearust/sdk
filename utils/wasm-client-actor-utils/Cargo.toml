@@ -1,0 +1,57 @@
+[package]
+name = "wasm-client-actor-utils"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tea-codec = { path = "../../codecs/tea-codec" }
+tea-actorx-core = { path = "../../actorx/actorx-core" }
+tea-actorx-runtime = { path = "../../actorx/actorx-runtime" }
+tapp-common = { path = "../../codecs/tapp-common" }
+actor-txns = { path = "../../codecs/actor-txns" }
+solc-codec = { path = "../../codecs/solc-codec" }
+vmh-codec = { path = "../../codecs/vmh-codec" }
+runtime-codec = { path = "../../codecs/runtime-codec" }
+
+wasm-actor-utils = { path = "../wasm-actor-utils", features = ["http"] }
+
+adapter-actor-codec = { path = "../../system-actors/adapter-actor" }
+crypto-actor-codec = { path = "../../system-actors/crypto-actor" }
+env-actor-codec = { path = "../../system-actors/env-actor" }
+http-actor-codec = { path = "../../system-actors/http-actor" }
+keyvalue-actor-codec = { path = "../../system-actors/keyvalue-actor" }
+layer1-actor-codec = { path = "../../system-actors/layer1-actor" }
+layer1-service-actor-codec = { path = "../../system-actors/layer1-service-actor" }
+libp2p-actor-codec = { path = "../../system-actors/libp2p-actor" }
+nitro-actor-codec = { path = "../../system-actors/nitro-actor" }
+ra-actor-codec = { path = "../../system-actors/ra-actor" }
+replica-actor-codec = { path = "../../system-actors/replica-actor" }
+replica-service-actor-codec = { path = "../../system-actors/replica-service-actor" }
+state-receiver-codec = { path = "../../system-actors/state-receiver" }
+tappstore-actor-codec = { path = "../../system-actors/tappstore-actor" }
+tokenstate-actor-codec = { path = "../../system-actors/tokenstate-actor" }
+tokenstate-service-actor-codec = { path = "../../system-actors/tokenstate-service-actor" }
+
+serde = { workspace = true }
+base64 = { workspace = true }
+bincode = { workspace = true }
+serde_derive = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+ed25519-dalek = { workspace = true }
+log = { workspace = true }
+futures = { workspace = true }
+hex = { workspace = true }
+prost = { workspace = true }
+primitive-types = { workspace = true }
+gluesql-core = { workspace = true }
+hyper = { workspace = true }
+
+mocktopus = { version = "0.7.0", optional = true }
+
+[features]
+nitro = []
+simulator = []
+__test = ["vmh-codec/__test", "mocktopus"]
