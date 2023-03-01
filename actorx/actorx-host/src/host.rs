@@ -34,6 +34,7 @@ struct State {
 }
 
 impl ActorHost {
+    #[inline(always)]
     pub fn new() -> Self {
         let registries = DashMap::new();
         Self {
@@ -44,6 +45,7 @@ impl ActorHost {
         }
     }
 
+    #[inline(always)]
     pub async fn set_wasm_print_handler<T>(&self, new_handler: T)
     where
         T: Fn(&str) + Send + Sync + 'static,
@@ -52,22 +54,38 @@ impl ActorHost {
         *handler = Arc::new(new_handler);
     }
 
+    #[inline(always)]
     pub(crate) async fn wasm_print_handler(&self) -> Arc<dyn Fn(&str) + Send + Sync> {
         let handler = self.state.wasm_print_handler.read().await;
         handler.clone()
     }
 
+    #[inline(always)]
     pub fn downgrade(&self) -> ActorHostRef {
         ActorHostRef {
             state: Arc::downgrade(&self.state),
         }
     }
 
+    #[inline(always)]
     pub fn register_wasm<C>(&self, wasm: Vec<u8>, cost: C) -> Result<()>
     where
         C: Fn(&Operator) -> u64 + Clone + Send + Sync + 'static,
     {
-        let (factory, metadata) = WasmActorFactory::new(cost, wasm)?;
+        self.register_wasm_with_memory_limit(wasm, cost, None)
+    }
+
+    #[inline(always)]
+    pub fn register_wasm_with_memory_limit<C>(
+        &self,
+        wasm: Vec<u8>,
+        cost: C,
+        memory_limit: Option<u64>,
+    ) -> Result<()>
+    where
+        C: Fn(&Operator) -> u64 + Clone + Send + Sync + 'static,
+    {
+        let (factory, metadata) = WasmActorFactory::new(cost, wasm, memory_limit)?;
         self.state.registries.insert(
             metadata.id.clone().into(),
             registry::Registry::new(Box::new(factory), metadata.id.clone().into()),
@@ -75,6 +93,7 @@ impl ActorHost {
         Ok(())
     }
 
+    #[inline(always)]
     pub fn register_native<F>(&self, factory: F) -> Result<()>
     where
         F: NativeActorFactory,
@@ -86,6 +105,7 @@ impl ActorHost {
         Ok(())
     }
 
+    #[inline(always)]
     pub fn register_custom<F>(&self, id: impl Into<RegId>, factory: F) -> Result<()>
     where
         F: ActorFactory,
@@ -97,6 +117,7 @@ impl ActorHost {
         Ok(())
     }
 
+    #[inline(always)]
     pub fn registry_inner(&self, reg: &[u8]) -> Result<registry::Registry> {
         self.state
             .registries
@@ -105,6 +126,7 @@ impl ActorHost {
             .map(|x| x.clone())
     }
 
+    #[inline(always)]
     pub fn registry(&self, reg: &[u8]) -> Result<Registry> {
         self.registry_inner(reg).map(|registry| Registry {
             host: self.downgrade(),
@@ -112,6 +134,7 @@ impl ActorHost {
         })
     }
 
+    #[inline(always)]
     pub fn registries(&self) -> impl Iterator<Item = Registry> + Send + Sync {
         let host = self.downgrade();
         self.state
@@ -122,10 +145,12 @@ impl ActorHost {
             })
     }
 
+    #[inline(always)]
     pub fn actors(&self) -> impl Iterator<Item = Actor> + Send + Sync {
         self.registries().flat_map(|x| x.actors())
     }
 
+    #[inline(always)]
     pub async fn multicast_0(&self) -> Result<Actor> {
         let mut agents = Vec::new();
         for reg in &self.state.registries {
@@ -138,12 +163,14 @@ impl ActorHost {
 }
 
 impl Debug for State {
+    #[inline(always)]
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         Debug::fmt(&self.registries, f)
     }
 }
 
 impl Default for ActorHost {
+    #[inline(always)]
     fn default() -> Self {
         Self::new()
     }

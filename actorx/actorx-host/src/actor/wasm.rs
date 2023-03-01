@@ -25,18 +25,30 @@ use crate::{
     error::{GasFeeExhausted, Result},
 };
 
+use self::memory::MemoryLimit;
+
 use super::shared;
 
+mod memory;
+
 pub const FUSE_GAS: u64 = u64::MAX;
+
+const PAGE_BYTES: u32 = 64 * 1024;
+const MAX_PAGES: u32 = 65536;
 
 pub struct WasmActorFactory {
     metadata: Arc<Metadata>,
     metering: Box<dyn Fn() -> Arc<dyn ModuleMiddleware> + Send + Sync>,
     wasm: Vec<u8>,
+    memory_limit: Option<u64>,
 }
 
 impl WasmActorFactory {
-    pub fn new<C>(cost: C, wasm: Vec<u8>) -> Result<(Self, Arc<Metadata>)>
+    pub fn new<C>(
+        cost: C,
+        wasm: Vec<u8>,
+        memory_limit: Option<u64>,
+    ) -> Result<(Self, Arc<Metadata>)>
     where
         C: Fn(&Operator) -> u64 + Clone + Send + Sync + 'static,
     {
@@ -47,6 +59,7 @@ impl WasmActorFactory {
                 metering,
                 wasm,
                 metadata: metadata.clone(),
+                memory_limit,
             },
             metadata,
         ))
@@ -64,7 +77,14 @@ impl ActorFactory for WasmActorFactory {
             let mut compiler_config = Cranelift::default();
             compiler_config.push_middleware(metering);
 
-            let mut store = Store::new(EngineBuilder::new(compiler_config));
+            let memory_limit = MemoryLimit::new(
+                self.memory_limit
+                    .map(|x| (x / PAGE_BYTES as u64).max(MAX_PAGES as _) as u32)
+                    .unwrap_or(MAX_PAGES),
+            );
+
+            let mut store =
+                Store::new_with_tunables(EngineBuilder::new(compiler_config), memory_limit);
             let module = Module::new(&store, &self.wasm)?;
             let mut actor = Box::<WasmActor>::new_uninit();
             let print = Self::create_print(&mut store, unsafe {

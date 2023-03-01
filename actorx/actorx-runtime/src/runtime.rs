@@ -15,7 +15,6 @@ use tea_actorx_core::{
 };
 use tea_codec::{
     errorx::Scope,
-    pricing::PricedOrDefault,
     serde::{handle::Request, FromBytes, ToBytes},
     ResultExt,
 };
