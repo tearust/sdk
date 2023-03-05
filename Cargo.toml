@@ -39,7 +39,9 @@ tappstore-actor-codec = { path = "system-actors/tappstore-actor", optional = tru
 tokenstate-actor-codec = { path = "system-actors/tokenstate-actor", optional = true }
 tokenstate-service-actor-codec = { path = "system-actors/tokenstate-service-actor", optional = true }
 
-wasm-actor-utils = { path = "utils/wasm-actor-utils", optional = true }
+wasm-actor-utils = { path = "utils/wasm-actor-utils", features = [
+    "http",
+], optional = true }
 wasm-client-actor-utils = { path = "utils/wasm-client-actor-utils", optional = true }
 
 [workspace]
