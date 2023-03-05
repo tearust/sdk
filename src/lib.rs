@@ -19,6 +19,7 @@ pub mod actorx {
     pub use tea_actorx_signer as signer;
 }
 
+#[cfg(feature = "system-actors")]
 pub mod actors {
     pub use adapter_actor_codec as adapter;
     pub use billing_actor_codec as billing;
