@@ -4,7 +4,7 @@
 #![feature(async_fn_in_trait)]
 
 pub mod prelude {
-    pub use gluesql_core::prelude::{DataType, Key, Payload, Value};
+	pub use gluesql_core::prelude::{DataType, Key, Payload, Value};
 }
 
 #[macro_use]

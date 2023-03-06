@@ -12,33 +12,33 @@ use wasmer::wasmparser::Operator;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    tracing_subscriber::fmt().init();
-    let mut path = current_exe()?;
-    path.pop();
-    path.push("actorx_example_actor.wasm");
-    let wasm = std::fs::read(path)?;
+	tracing_subscriber::fmt().init();
+	let mut path = current_exe()?;
+	path.pop();
+	path.push("actorx_example_actor.wasm");
+	let wasm = std::fs::read(path)?;
 
-    let host = ActorHost::new();
+	let host = ActorHost::new();
 
-    host.register_wasm(wasm, |op| match op {
-        Operator::Call { function_index: _ } => 2,
-        _ => 1,
-    })?;
-    host.register_native(|context| Ok(TimeActor::new(context)))?;
+	host.register_wasm(wasm, |op| match op {
+		Operator::Call { function_index: _ } => 2,
+		_ => 1,
+	})?;
+	host.register_native(|context| Ok(TimeActor::new(context)))?;
 
-    host.multicast_0().await?.activate().await?;
+	host.multicast_0().await?.activate().await?;
 
-    let example = host
-        .registry(WASM_ACTOR_NAME)?
-        .actor(&InstanceId::ZERO)
-        .await?;
-    let r1 = example.call(HelloWorldRequest("Alice".to_string())).await?;
+	let example = host
+		.registry(WASM_ACTOR_NAME)?
+		.actor(&InstanceId::ZERO)
+		.await?;
+	let r1 = example.call(HelloWorldRequest("Alice".to_string())).await?;
 
-    println!("Result: {r1:?}");
+	println!("Result: {r1:?}");
 
-    let AddResponse(r2, test) = example.call(AddRequest(1, 2)).await?;
+	let AddResponse(r2, test) = example.call(AddRequest(1, 2)).await?;
 
-    println!("Result: {:?}, {}", r2, test.len());
+	println!("Result: {:?}, {}", r2, test.len());
 
-    Ok(())
+	Ok(())
 }

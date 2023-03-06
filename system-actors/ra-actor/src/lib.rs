@@ -13,10 +13,10 @@ pub const NAME: &[u8] = b"com.tea.ra-actor";
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct VerifyPeer {
-    pub data: RaPeerRequest,
-    pub seq_number: u64,
-    pub source: RegId,
-    pub is_seat: bool,
+	pub data: RaPeerRequest,
+	pub seq_number: u64,
+	pub source: RegId,
+	pub is_seat: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]

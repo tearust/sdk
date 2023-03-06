@@ -84,10 +84,10 @@ pub struct NextSeqNumberResponse(pub u64);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct BoundState {
-    pub conn_id: String,
-    pub port: u32,
-    pub host: HostType,
-    pub caller: ActorId,
+	pub conn_id: String,
+	pub port: u32,
+	pub host: HostType,
+	pub caller: ActorId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
@@ -104,30 +104,30 @@ pub struct Libp2pReply(pub u64, pub Vec<u8>);
 #[price(10000)]
 #[response(Vec<u8>)]
 pub struct DecryptDataRequest {
-    pub conn_id: String,
-    pub encryted_data: Vec<u8>,
+	pub conn_id: String,
+	pub encryted_data: Vec<u8>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct HandshakeRequest {
-    pub conn_id: String,
+	pub conn_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct RecordEncryptKeyRequest {
-    pub conn_id: String,
-    pub ciphertext: String,
+	pub conn_id: String,
+	pub ciphertext: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct ActivateEncryptKeyRequest {
-    pub conn_id: String,
+	pub conn_id: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]

@@ -4,7 +4,7 @@ use tea_codec::define_scope;
 use vmh_codec::error::VmhCodec;
 
 define_scope! {
-    EnvActor: pub ActorX, VmhCodec, SolcCodec {
-        RoundingError;
-    }
+	EnvActor: pub ActorX, VmhCodec, SolcCodec {
+		RoundingError;
+	}
 }

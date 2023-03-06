@@ -1,4 +1,4 @@
-use crate::{TokenId, Account, Balance};
+use crate::{Account, Balance, TokenId};
 use serde::{Deserialize, Serialize};
 
 pub type CmlId = u64;

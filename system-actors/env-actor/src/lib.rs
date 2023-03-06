@@ -37,16 +37,16 @@ pub struct GetCurrentTimestampResponse(pub i64);
 #[price(10000)]
 #[response(())]
 pub struct PprofProfileRequest {
-    pub sec: u64, // Profile Second
-    pub seq: u64, // Sequence Number
+	pub sec: u64, // Profile Second
+	pub seq: u64, // Sequence Number
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct JemallocProfileRequest {
-    pub sec: u64, // Profile Second
-    pub seq: u64, // Sequence Number
+	pub sec: u64, // Profile Second
+	pub seq: u64, // Sequence Number
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
@@ -117,18 +117,18 @@ pub struct InitialLatestTopupHeightResponse(pub BlockNumber);
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub enum Precision {
-    Second,
-    Minute,
-    Hour,
-    Day,
+	Second,
+	Minute,
+	Hour,
+	Day,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct ProfileCast {
-    pub profile: Vec<u8>,
-    pub seq_num: u64,
+	pub profile: Vec<u8>,
+	pub seq_num: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]

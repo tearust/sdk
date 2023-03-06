@@ -48,9 +48,9 @@ pub struct VerifyResponse(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct EtherVerifyRequest {
-    pub data: String,
-    pub signature: String,
-    pub account: Account,
+	pub data: String,
+	pub signature: String,
+	pub account: Account,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct EtherVerifyResponse(pub bool);

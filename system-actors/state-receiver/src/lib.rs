@@ -17,7 +17,7 @@ pub struct HandleMessageRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[response(())]
 pub struct ActorTxnCheckMessage {
-    pub from_b_node: bool,
-    pub txn_bytes: Vec<u8>,
-    pub should_freeze: bool,
+	pub from_b_node: bool,
+	pub txn_bytes: Vec<u8>,
+	pub should_freeze: bool,
 }

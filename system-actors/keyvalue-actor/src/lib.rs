@@ -29,14 +29,14 @@ pub struct ExportRequest;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ExportResponse {
-    pub data: Vec<u8>,
-    pub actor_id: ActorId,
+	pub data: Vec<u8>,
+	pub actor_id: ActorId,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
 #[response(())]
 pub struct ImportRequest {
-    pub data: Vec<u8>,
-    pub actor_id: ActorId,
+	pub data: Vec<u8>,
+	pub actor_id: ActorId,
 }

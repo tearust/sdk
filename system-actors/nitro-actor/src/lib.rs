@@ -14,28 +14,28 @@ pub const NAME: &[u8] = b"tea:nitro";
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AttestationDocRequest {
-    pub user_data: Option<Vec<u8>>,
-    pub nonce: Option<Vec<u8>>,
-    pub pubkey: Option<Vec<u8>>,
+	pub user_data: Option<Vec<u8>>,
+	pub nonce: Option<Vec<u8>>,
+	pub pubkey: Option<Vec<u8>>,
 }
 
 pub type AttestationDocResponse = Vec<u8>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PcrVerifyRequest {
-    pub doc_request: AttestationDocRequest,
-    pub doc_buf: AttestationDocResponse,
-    pub pcr_slots: PcrVerifySlots,
-    pub allow_dummy: bool,
+	pub doc_request: AttestationDocRequest,
+	pub doc_buf: AttestationDocResponse,
+	pub pcr_slots: PcrVerifySlots,
+	pub allow_dummy: bool,
 }
 
 pub type PcrVerifySlots = Vec<HashMap<PcrType, Vec<u8>>>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RaPeerRequest {
-    pub seq_number: u64,
-    pub conn_id: String,
-    pub doc_request: AttestationDocRequest,
+	pub seq_number: u64,
+	pub conn_id: String,
+	pub doc_request: AttestationDocRequest,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
@@ -88,16 +88,16 @@ pub struct GetVerificationPcrsResponse(pub PcrVerifySlots);
 #[price(10000)]
 #[response(Vec<u8>)]
 pub struct NitroEncryptRequest {
-    pub tag: String,
-    pub data: Vec<u8>,
+	pub tag: String,
+	pub data: Vec<u8>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(Vec<u8>)]
 pub struct NitroDecryptRequest {
-    pub tag: String,
-    pub cipher_data: Vec<u8>,
+	pub tag: String,
+	pub cipher_data: Vec<u8>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
@@ -105,13 +105,13 @@ pub struct NitroDecryptRequest {
 pub struct GenerateDataKeyRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenerateDataKeyResponse {
-    pub secret: Vec<u8>,
-    pub ciphertext: String,
+	pub secret: Vec<u8>,
+	pub ciphertext: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(Vec<u8>)]
 pub struct DecryptDataKeyRequest {
-    pub ciphertext: String,
+	pub ciphertext: String,
 }

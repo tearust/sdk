@@ -5,14 +5,14 @@ use thiserror::Error;
 use crate::error::Actor;
 
 define_scope! {
-    Http: pub Actor, HttpActor {
-        httparse::Error => @HttpActor::BadRequestFormat, @Display, @Debug;
-        http::Error => Http, @Display, @Debug;
-        http::uri::InvalidUri => @HttpActor::BadRequestFormat, @Display, @Debug;
-        http::header::InvalidHeaderName => @HttpActor::BadResponseFormat, @Display, @Debug;
-        http::header::InvalidHeaderValue => @HttpActor::BadResponseFormat, @Display, @Debug;
-        http::status::InvalidStatusCode => @HttpActor::BadResponseFormat, @Display, @Debug;
-    }
+	Http: pub Actor, HttpActor {
+		httparse::Error => @HttpActor::BadRequestFormat, @Display, @Debug;
+		http::Error => Http, @Display, @Debug;
+		http::uri::InvalidUri => @HttpActor::BadRequestFormat, @Display, @Debug;
+		http::header::InvalidHeaderName => @HttpActor::BadResponseFormat, @Display, @Debug;
+		http::header::InvalidHeaderValue => @HttpActor::BadResponseFormat, @Display, @Debug;
+		http::status::InvalidStatusCode => @HttpActor::BadResponseFormat, @Display, @Debug;
+	}
 }
 
 #[derive(Debug, Error)]

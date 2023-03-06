@@ -12,14 +12,14 @@ extern crate tea_codec as tea_sdk;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TxnItem {
-    pub txn: FullTxn,
-    pub tsid: Tsid,
+	pub txn: FullTxn,
+	pub tsid: Tsid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct HistoryItem {
-    pub txn_item: TxnItem,
-    pub err_msg: Option<String>,
+	pub txn_item: TxnItem,
+	pub err_msg: Option<String>,
 }
 
 pub const NAME: &[u8] = b"tea:replica";
@@ -45,7 +45,7 @@ pub struct CleanUpSyncReplicaRequest;
 pub struct GetReplicaCountRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetReplicaCountResponse {
-    pub count: u32,
+	pub count: u32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
@@ -63,11 +63,11 @@ pub struct ReceiveTxnResponse(pub Option<Tsid>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct FetchHistoryRequest {
-    pub end_tsid: Vec<u8>,
+	pub end_tsid: Vec<u8>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FetchHistoryResponse {
-    pub history_items: Vec<TxnItem>,
+	pub history_items: Vec<TxnItem>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
@@ -102,7 +102,7 @@ pub struct GetConsensusReplicasResponse(pub Vec<u8>);
 #[price(0)]
 #[response(())]
 pub struct SetSingleModeRequest {
-    pub single_mode: bool,
+	pub single_mode: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]

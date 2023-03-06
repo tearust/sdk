@@ -1,21 +1,21 @@
 #![feature(min_specialization)]
 
 use actor_txns::{
-    pre_args::{Arg, ArgSlots},
-    tsid::Tsid,
+	pre_args::{Arg, ArgSlots},
+	tsid::Tsid,
 };
 use serde::{Deserialize, Serialize};
 use solc_codec::txns::{MintCmlRecordTrans, UnlockRecordTrans};
 use std::collections::HashMap;
 use tapp_common::{
-    cml::{CmlId, CmlIntrinsic, CmlVariable},
-    machine::{MiningIntrinsic, MiningVariable},
-    ra::{EnclaveType, NodeStatus, PcrType, TeaNodeProfile},
-    seat::SeatMaintainer,
-    statement::TypedStatement,
-    sys::FreezeRequest,
-    version::SystemVersions,
-    Account, AuthKey, Hash, TimestampShort, TokenId,
+	cml::{CmlId, CmlIntrinsic, CmlVariable},
+	machine::{MiningIntrinsic, MiningVariable},
+	ra::{EnclaveType, NodeStatus, PcrType, TeaNodeProfile},
+	seat::SeatMaintainer,
+	statement::TypedStatement,
+	sys::FreezeRequest,
+	version::SystemVersions,
+	Account, AuthKey, Hash, TimestampShort, TokenId,
 };
 use tea_actorx_core::ActorId;
 use tea_codec::pricing::Priced;
@@ -93,15 +93,15 @@ pub struct QueryActiveSeatsResponse(pub Vec<SeatMaintainer>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct QueryActiveSeatsAsyncRequest {
-    pub sender: ActorId,
-    pub tsid: Tsid,
+	pub sender: ActorId,
+	pub tsid: Tsid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct QueryActiveSeatsAsyncReply {
-    pub seat_nodes: Vec<SeatMaintainer>,
-    pub tsid: Tsid,
+	pub seat_nodes: Vec<SeatMaintainer>,
+	pub tsid: Tsid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
@@ -126,15 +126,15 @@ pub struct FindExecutedTxnResponse(pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CheckUserSessionRequest {
-    pub token_id: TokenId,
-    pub account: Account,
+	pub token_id: TokenId,
+	pub account: Account,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CheckUserSessionResponse {
-    pub aes_key: Vec<u8>,
-    pub auth_key: Option<AuthKey>,
-    pub token_id: TokenId,
-    pub account: Account,
+	pub aes_key: Vec<u8>,
+	pub auth_key: Option<AuthKey>,
+	pub token_id: TokenId,
+	pub account: Account,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]

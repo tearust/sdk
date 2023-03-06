@@ -22,6 +22,6 @@ pub struct RegisterHttp(pub Vec<String>);
 #[price(10000)]
 #[response(Vec<u8>)]
 pub struct HttpRequest {
-    pub action: String,
-    pub payload: Vec<u8>,
+	pub action: String,
+	pub payload: Vec<u8>,
 }

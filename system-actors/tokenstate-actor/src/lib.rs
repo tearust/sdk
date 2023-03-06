@@ -13,40 +13,40 @@ extern crate tea_codec as tea_sdk;
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ActorExecutionArgs {
-    pub tsid: Tsid,
-    pub token_id: TokenId,
-    pub txn: TxnSerial,
-    pub args: Option<ArgSlots>,
+	pub tsid: Tsid,
+	pub token_id: TokenId,
+	pub txn: TxnSerial,
+	pub args: Option<ArgSlots>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RandomTickArgs {
-    pub subject: String,
-    pub start: u64,
-    pub end: u64,
-    pub gas_limit: u64,
+	pub subject: String,
+	pub start: u64,
+	pub end: u64,
+	pub gas_limit: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CronjobArgs {
-    pub subject: String,
-    pub expression: String,
-    pub gas_limit: u64,
+	pub subject: String,
+	pub expression: String,
+	pub gas_limit: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct InternalTickArgs {
-    pub target: ActorId,
-    pub cast: InternalCast,
-    pub payer: TokenId,
-    pub gas_limit: u64,
-    pub name: String,
+	pub target: ActorId,
+	pub cast: InternalCast,
+	pub payer: TokenId,
+	pub gas_limit: u64,
+	pub name: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub enum InternalCast {
-    RandomTick(RandomTickCast),
-    Cronjob(CronjobTickCast),
+	RandomTick(RandomTickCast),
+	Cronjob(CronjobTickCast),
 }
 
 pub const NAME: &[u8] = b"tea:tokenstate";
@@ -271,8 +271,8 @@ pub struct SetAuthOpsBytesResponse(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct QueryUserLoginSessionKeyRequest {
-    pub token_id: TokenId,
-    pub account: Account,
+	pub token_id: TokenId,
+	pub account: Account,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryUserLoginSessionKeyResponse(pub Option<AuthKey>);
@@ -423,12 +423,12 @@ pub struct IterTeaFtStateResponse(pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TokenFreezeOptions {
-    /// all random tick drops
-    pub ticks: bool,
-    /// persis cronjobs
-    pub persist_cronjob: bool,
-    /// all tappstore cronjobs
-    pub tappstore_cronjobs: bool,
+	/// all random tick drops
+	pub ticks: bool,
+	/// persis cronjobs
+	pub persist_cronjob: bool,
+	/// all tappstore cronjobs
+	pub tappstore_cronjobs: bool,
 }
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

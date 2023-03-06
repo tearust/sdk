@@ -38,7 +38,7 @@ pub struct SavePersist;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct UpgradeVersion {
-    pub data: Vec<u8>,
-    pub persist_only: bool,
-    pub at_time: TimestampShort,
+	pub data: Vec<u8>,
+	pub persist_only: bool,
+	pub at_time: TimestampShort,
 }
