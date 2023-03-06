@@ -1,4 +1,4 @@
-use actor_txns::tsid::Tsid;
+use tea_actor_txns::tsid::Tsid;
 
 pub mod dump;
 

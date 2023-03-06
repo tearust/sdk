@@ -1,5 +1,5 @@
 [package]
-name = "keyvalue-actor-codec"
+name = "tea-keyvalue-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

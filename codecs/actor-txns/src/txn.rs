@@ -1,8 +1,8 @@
 use crate::pre_args::ArgSlots;
 use crate::{error::Result, txn_hash};
 use serde::{Deserialize, Serialize};
-use tapp_common::Hash;
 use tea_sdk::ResultExt;
+use tea_tapp_common::Hash;
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTxn {

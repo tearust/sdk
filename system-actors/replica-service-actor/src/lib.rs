@@ -1,9 +1,9 @@
 #![feature(min_specialization)]
 
-use actor_txns::tsid::Tsid;
 use serde::{Deserialize, Serialize};
-use tapp_common::ReplicaId;
+use tea_actor_txns::tsid::Tsid;
 use tea_codec::serde::TypeId;
+use tea_tapp_common::ReplicaId;
 
 pub mod error;
 

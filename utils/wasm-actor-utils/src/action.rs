@@ -6,12 +6,12 @@ use crate::{
 	},
 	error::{Error, Errors, ProcessTransactionErrorFailed, Result},
 };
-use actor_txns::tsid::Tsid;
 use futures::Future;
 use std::{cell::UnsafeCell, collections::HashMap, pin::Pin};
-use tapp_common::TokenId;
+use tea_actor_txns::tsid::Tsid;
+use tea_tapp_common::TokenId;
 
-pub use adapter_actor_codec::HttpRequest;
+pub use tea_adapter_actor_codec::HttpRequest;
 
 struct Handlers(UnsafeCell<Option<HashMap<u64, CallbackItem>>>);
 unsafe impl Send for Handlers {}

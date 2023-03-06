@@ -1,5 +1,5 @@
 [package]
-name = "console-actor-codec"
+name = "tea-console-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

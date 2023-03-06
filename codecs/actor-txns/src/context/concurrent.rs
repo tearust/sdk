@@ -2,7 +2,7 @@ use super::{AssetContext, CheckConflict, Merge, ReadConflictMode};
 use crate::error::{ContextError, Result};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
-use tapp_common::{Account, Balance};
+use tea_tapp_common::{Account, Balance};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ConcurrentBalances {
@@ -202,7 +202,7 @@ mod tests {
 		context::{concurrent::ConcurrentBalances, AssetContext, CheckConflict, ReadConflictMode},
 		error::ContextError,
 	};
-	use tapp_common::{Account, Balance};
+	use tea_tapp_common::{Account, Balance};
 
 	#[test]
 	fn accumulate_balance_works() {

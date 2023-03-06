@@ -1,5 +1,5 @@
 [package]
-name = "tappstore-actor-codec"
+name = "tea-tappstore-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -13,9 +13,9 @@ repository = { workspace = true }
 [dependencies]
 tea-codec = { path = "../../codecs/tea-codec" }
 tea-actorx-core = { path = "../../actorx/actorx-core" }
-tapp-common = { path = "../../codecs/tapp-common" }
-actor-txns = { path = "../../codecs/actor-txns" }
-solc-codec = { path = "../../codecs/solc-codec" }
+tea-tapp-common = { path = "../../codecs/tapp-common" }
+tea-actor-txns = { path = "../../codecs/actor-txns" }
+tea-solc-codec = { path = "../../codecs/solc-codec" }
 
 serde = { workspace = true }
 strum = { workspace = true }

@@ -13,22 +13,22 @@ use crate::{
 	},
 	error::{Error, Errors, ProviderOperationRejected, Result},
 };
-use actor_txns::{
+use prost::Message;
+use std::collections::HashSet;
+use tea_actor_txns::{
 	pre_args::{Arg, ArgSlots},
 	tsid::Tsid,
 	Followup, TxnSerial,
 };
-use prost::Message;
-use replica_actor_codec::{
-	GetExecCursorRequest, ReceiveFollowupRequest, ReceiveTxnRequest, ReportTxnExecErrorRequest,
-	NAME,
-};
-use std::collections::HashSet;
-use tapp_common::Hash;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::serialize;
-use vmh_codec::message::{
+use tea_replica_actor_codec::{
+	GetExecCursorRequest, ReceiveFollowupRequest, ReceiveTxnRequest, ReportTxnExecErrorRequest,
+	NAME,
+};
+use tea_tapp_common::Hash;
+use tea_vmh_codec::message::{
 	encode_protobuf,
 	structs_proto::{replica, tokenstate},
 };
@@ -225,16 +225,16 @@ pub async fn report_txn_error(txn_hash: Vec<u8>, error_msg: String) -> Result<()
 
 pub async fn import_round_table(round_table_serial: Vec<u8>) -> Result<()> {
 	call(
-		RegId::Static(replica_service_actor_codec::NAME).inst(0),
-		replica_service_actor_codec::ImportRoundTableRequest(round_table_serial),
+		RegId::Static(tea_replica_service_actor_codec::NAME).inst(0),
+		tea_replica_service_actor_codec::ImportRoundTableRequest(round_table_serial),
 	)
 	.await
 }
 
 pub async fn export_round_table(tsid: &Option<Tsid>) -> Result<Vec<u8>> {
 	let res = call(
-		RegId::Static(replica_service_actor_codec::NAME).inst(0),
-		replica_service_actor_codec::ExportRoundTableRequest(*tsid),
+		RegId::Static(tea_replica_service_actor_codec::NAME).inst(0),
+		tea_replica_service_actor_codec::ExportRoundTableRequest(*tsid),
 	)
 	.await?;
 	Ok(res.0)
@@ -242,8 +242,8 @@ pub async fn export_round_table(tsid: &Option<Tsid>) -> Result<Vec<u8>> {
 
 pub async fn is_in_round_table_async(tea_id: &[u8]) -> Result<bool> {
 	let v = call(
-		RegId::Static(replica_service_actor_codec::NAME).inst(0),
-		replica_service_actor_codec::IsInRoundTableRequest(tea_id.try_into()?),
+		RegId::Static(tea_replica_service_actor_codec::NAME).inst(0),
+		tea_replica_service_actor_codec::IsInRoundTableRequest(tea_id.try_into()?),
 	)
 	.await?;
 	Ok(v.0)
@@ -256,8 +256,8 @@ pub async fn get_exec_cursor() -> Result<Option<Tsid>> {
 
 pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, String)>>> {
 	let msg = call(
-		RegId::Static(replica_service_actor_codec::NAME).inst(0),
-		replica_service_actor_codec::ValidatorsMembersRequest,
+		RegId::Static(tea_replica_service_actor_codec::NAME).inst(0),
+		tea_replica_service_actor_codec::ValidatorsMembersRequest,
 	)
 	.await?;
 
@@ -282,8 +282,8 @@ pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, Stri
 
 pub async fn fetch_validator_state_async() -> Result<Option<replica::ValidatorsState>> {
 	let buf = call(
-		RegId::Static(replica_service_actor_codec::NAME).inst(0),
-		replica_service_actor_codec::ValidatorsStateRequest,
+		RegId::Static(tea_replica_service_actor_codec::NAME).inst(0),
+		tea_replica_service_actor_codec::ValidatorsStateRequest,
 	)
 	.await?;
 	let res = replica::ValidatorsStateResponse::decode(buf.0.as_slice())?;
@@ -313,8 +313,8 @@ pub async fn random_select_connect_peers(
 
 pub async fn has_replica_service_init() -> Result<bool> {
 	let b = call(
-		RegId::Static(replica_service_actor_codec::NAME).inst(0),
-		replica_service_actor_codec::HasInitRequest,
+		RegId::Static(tea_replica_service_actor_codec::NAME).inst(0),
+		tea_replica_service_actor_codec::HasInitRequest,
 	)
 	.await?;
 	Ok(b.0)

@@ -49,7 +49,7 @@ fn send_otp_with_sendgrid(email: &str, otp: &str) -> Result<third_api::ThirdAPiG
 
 	let res = third_api::ThirdAPiGeneralResponse::decode(
 		wascc_call(
-			runtime_codec::THIRD_API_CAPABILITY_ID,
+			tea_runtime_codec::THIRD_API_CAPABILITY_ID,
 			"crypt_post",
 			&encode_protobuf(buf)?,
 		)?

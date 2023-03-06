@@ -2,10 +2,10 @@ use crate::error::Errors;
 use crate::io::RegistryKey;
 use crate::{error::Result, utils::split_once};
 use serde::{Deserialize, Serialize};
-use solc_codec::ContractAddresses;
 use std::collections::HashMap;
 use std::str::FromStr;
-use tapp_common::seat::SeatId;
+use tea_solc_codec::ContractAddresses;
+use tea_tapp_common::seat::SeatId;
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct EnvSettings {

@@ -1,5 +1,5 @@
 [package]
-name = "ra-actor-codec"
+name = "tea-ra-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -13,6 +13,6 @@ repository = { workspace = true }
 [dependencies]
 tea-codec = { path = "../../codecs/tea-codec" }
 tea-actorx-core = { path = "../../actorx/actorx-core" }
-nitro-actor-codec = { path = "../nitro-actor" }
+tea-nitro-actor-codec = { path = "../nitro-actor" }
 
 serde = { workspace = true }

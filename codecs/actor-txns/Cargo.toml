@@ -1,5 +1,5 @@
 [package]
-name = "actor-txns"
+name = "tea-actor-txns"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -20,6 +20,6 @@ thiserror = { workspace = true }
 prost = { workspace = true }
 sha2 = { workspace = true }
 
-runtime-codec = { path = "../runtime-codec" }
+tea-runtime-codec = { path = "../runtime-codec" }
 tea-codec = { path = "../tea-codec" }
-tapp-common = { path = "../tapp-common" }
+tea-tapp-common = { path = "../tapp-common" }

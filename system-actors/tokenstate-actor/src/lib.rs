@@ -1,11 +1,11 @@
 #![feature(min_specialization)]
 
-use actor_txns::{pre_args::ArgSlots, tsid::Tsid, TxnSerial};
 use serde::{Deserialize, Serialize};
-use tapp_common::{Account, AuthKey, TimestampShort, TokenId, Ts};
+use tea_actor_txns::{pre_args::ArgSlots, tsid::Tsid, TxnSerial};
 use tea_actorx_core::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::{defs::FreezeTimeSettings, serde::TypeId};
+use tea_tapp_common::{Account, AuthKey, TimestampShort, TokenId, Ts};
 
 pub mod error;
 

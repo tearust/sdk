@@ -1,5 +1,5 @@
 [package]
-name = "ipfs-relay-actor-codec"
+name = "tea-ipfs-relay-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

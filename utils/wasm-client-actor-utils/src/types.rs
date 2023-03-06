@@ -1,6 +1,6 @@
 use crate::api;
 use crate::error::Result;
-pub use wasm_actor_utils::action::HttpRequest;
+pub use tea_wasm_actor_utils::action::HttpRequest;
 
 pub type Callback = dyn Fn(Vec<u8>, String) -> Result<Vec<u8>> + Sync + Send + 'static;
 pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {

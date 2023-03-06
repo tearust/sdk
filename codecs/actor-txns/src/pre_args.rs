@@ -2,8 +2,8 @@ use crate::error::{Result, TxnError};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{array::TryFromSliceError, convert::TryInto};
-use tapp_common::{Hash, ReplicaId, TokenId};
 use tea_sdk::serialize;
+use tea_tapp_common::{Hash, ReplicaId, TokenId};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Arg {

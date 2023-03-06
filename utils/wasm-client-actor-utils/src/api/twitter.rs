@@ -1,4 +1,4 @@
-use wasm_actor_utils::actors::http::RequestExt;
+use tea_wasm_actor_utils::actors::http::RequestExt;
 
 use crate::error::Result;
 use crate::help;
@@ -35,8 +35,8 @@ pub struct TwitterRetweetForUserRequest {
 
 pub async fn retweet_check_for_twitter(_payload: Vec<u8>, _from_actor: String) -> Result<Vec<u8>> {
 	// let rs = call(
-	// 	tea_actorx_core::RegId::Static(http_actor_codec::NAME).inst(0),
-	// 	http_actor_codec::HyperRequest("a".to_string(), vec![]),
+	// 	tea_actorx_core::RegId::Static(tea_http_actor_codec::NAME).inst(0),
+	// 	tea_http_actor_codec::HyperRequest("a".to_string(), vec![]),
 	// )
 	// .await?;
 	info!("@@ 11111");
@@ -63,7 +63,7 @@ pub async fn retweet_check_for_twitter(_payload: Vec<u8>, _from_actor: String) -
 	// 	tea_codec::serialize(&req)?,
 	// 	txn_bytes,
 	// 	vec![],
-	// 	runtime_codec::ACTOR_PUBKEY_TAPPSTORE,
+	// 	tea_runtime_codec::ACTOR_PUBKEY_TAPPSTORE,
 	// )?;
 
 	help::result_ok()

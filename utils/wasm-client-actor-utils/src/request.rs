@@ -1,11 +1,11 @@
-use actor_txns::pre_args::Arg;
-use tappstore_actor_codec::txns::TappstoreTxn;
+use tea_actor_txns::pre_args::Arg;
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize, ResultExt,
 };
-pub use wasm_actor_utils::actors::http;
-use wasm_actor_utils::{
+use tea_tappstore_actor_codec::txns::TappstoreTxn;
+pub use tea_wasm_actor_utils::actors::http;
+use tea_wasm_actor_utils::{
 	action::CallbackReturn,
 	actors::{
 		libp2p::intelli_actor_query_ex,
@@ -23,7 +23,7 @@ where
 	T: FnOnce(C::Response) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	Ok(intelli_actor_query_ex(
-		tappstore_actor_codec::NAME,
+		tea_tappstore_actor_codec::NAME,
 		arg,
 		IntelliSendMode::RemoteOnly,
 		callback,
@@ -51,7 +51,7 @@ pub async fn send_tappstore_txn(
 	let gas_limit = gas_limit.unwrap_or(crate::CLIENT_DEFAULT_GAS_LIMIT);
 
 	intelli_send_txn(
-		tappstore_actor_codec::NAME,
+		tea_tappstore_actor_codec::NAME,
 		&serialize(&txn)?,
 		pre_args,
 		IntelliSendMode::RemoteOnly,

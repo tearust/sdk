@@ -1,12 +1,12 @@
 use crate::error::{GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
-use tapp_common::TokenId;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::call;
 use tea_codec::{deserialize, serialize, ResultExt};
-use tokenstate_actor_codec::*;
-use vmh_codec::message::{encode_protobuf, structs_proto::tokenstate};
+use tea_tapp_common::TokenId;
+use tea_tokenstate_actor_codec::*;
+use tea_vmh_codec::message::{encode_protobuf, structs_proto::tokenstate};
 
 pub async fn get_magic_number() -> Result<u64> {
 	let n = call(RegId::Static(NAME).inst(0), GetMagicNumberRequest).await?;

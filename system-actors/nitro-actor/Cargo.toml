@@ -1,5 +1,5 @@
 [package]
-name = "nitro-actor-codec"
+name = "tea-nitro-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -11,7 +11,7 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tapp-common = { path = "../../codecs/tapp-common" }
+tea-tapp-common = { path = "../../codecs/tapp-common" }
 tea-codec = { path = "../../codecs/tea-codec" }
 tea-actorx-core = { path = "../../actorx/actorx-core" }
 

@@ -4,8 +4,8 @@ use std::{
 	convert::TryInto,
 	time::{Duration, SystemTime},
 };
-use tapp_common::TimestampShort;
 use tea_sdk::{defs::FreezeTimeSettings, OptionExt};
+use tea_tapp_common::TimestampShort;
 
 pub use chrono::{offset::Utc, DateTime, NaiveTime};
 

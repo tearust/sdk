@@ -1,5 +1,5 @@
 [package]
-name = "layer1-service-actor-codec"
+name = "tea-layer1-service-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

@@ -1,5 +1,5 @@
 [package]
-name = "state-receiver-codec"
+name = "tea-state-receiver-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -13,6 +13,6 @@ repository = { workspace = true }
 [dependencies]
 tea-codec = { path = "../../codecs/tea-codec" }
 tea-actorx-core = { path = "../../actorx/actorx-core" }
-tapp-common = { path = "../../codecs/tapp-common" }
+tea-tapp-common = { path = "../../codecs/tapp-common" }
 
 serde = { workspace = true }

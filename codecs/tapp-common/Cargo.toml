@@ -1,5 +1,5 @@
 [package]
-name = "tapp-common"
+name = "tea-tapp-common"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -22,7 +22,7 @@ strum_macros = { workspace = true }
 primitive-types = { workspace = true }
 hex = { workspace = true }
 
-runtime-codec = { path = "../../codecs/runtime-codec" }
+tea-runtime-codec = { path = "../../codecs/runtime-codec" }
 tea-codec = { path = "../tea-codec" }
 thiserror = "1"
 

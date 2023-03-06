@@ -1,8 +1,8 @@
 use crate::{auth::AllowedOp, context::TappStorageType};
-use runtime_codec::error::RuntimeCodec;
 use serde::{Deserialize, Serialize};
-use tapp_common::{error::TApp, Account, AuthKey, TokenId};
+use tea_runtime_codec::error::RuntimeCodec;
 use tea_sdk::define_scope;
+use tea_tapp_common::{error::TApp, Account, AuthKey, TokenId};
 use thiserror::Error;
 
 define_scope! {

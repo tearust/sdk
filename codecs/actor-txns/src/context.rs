@@ -4,8 +4,8 @@ use crate::error::{Result, TxnError};
 use crate::{auth::TokenAuthOp, tsid::Tsid};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
-use tapp_common::{Account, AuthKey, Balance, TokenId};
 use tea_sdk::deserialize;
+use tea_tapp_common::{Account, AuthKey, Balance, TokenId};
 
 pub mod concurrent;
 

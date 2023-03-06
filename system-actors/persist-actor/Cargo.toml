@@ -1,5 +1,5 @@
 [package]
-name = "persist-actor-codec"
+name = "tea-persist-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

@@ -1,5 +1,5 @@
 use prost::{DecodeError, EncodeError};
-use runtime_codec::error::RuntimeCodec;
+use tea_runtime_codec::error::RuntimeCodec;
 use tea_sdk::define_scope;
 use thiserror::Error;
 

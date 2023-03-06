@@ -26,6 +26,7 @@ keywords = { workspace = true }
 categories = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
+exclude = ["actorx/*", "rust-toolchain.toml", ".rustfmt.toml", ".gitignore"]
 
 [dependencies]
 tea-codec = { path = "codecs/tea-codec" }
@@ -35,38 +36,38 @@ tea-actorx-host = { path = "actorx/actorx-host", optional = true }
 tea-actorx-runtime = { path = "actorx/actorx-runtime", optional = true }
 tea-actorx-signer = { path = "actorx/actorx-signer", optional = true }
 
-actor-txns = { path = "codecs/actor-txns" }
-runtime-codec = { path = "codecs/runtime-codec" }
-solc-codec = { path = "codecs/solc-codec" }
-tapp-common = { path = "codecs/tapp-common" }
-vmh-codec = { path = "codecs/vmh-codec" }
+tea-actor-txns = { path = "codecs/actor-txns" }
+tea-runtime-codec = { path = "codecs/runtime-codec" }
+tea-solc-codec = { path = "codecs/solc-codec" }
+tea-tapp-common = { path = "codecs/tapp-common" }
+tea-vmh-codec = { path = "codecs/vmh-codec" }
 
-adapter-actor-codec = { path = "system-actors/adapter-actor", optional = true }
-billing-actor-codec = { path = "system-actors/billing-actor", optional = true }
-console-actor-codec = { path = "system-actors/console-actor", optional = true }
-crypto-actor-codec = { path = "system-actors/crypto-actor", optional = true }
-env-actor-codec = { path = "system-actors/env-actor", optional = true }
-http-actor-codec = { path = "system-actors/http-actor", optional = true }
-ipfs-relay-actor-codec = { path = "system-actors/ipfs-relay-actor", optional = true }
-keyvalue-actor-codec = { path = "system-actors/keyvalue-actor", optional = true }
-layer1-actor-codec = { path = "system-actors/layer1-actor", optional = true }
-layer1-service-actor-codec = { path = "system-actors/layer1-service-actor", optional = true }
-libp2p-actor-codec = { path = "system-actors/libp2p-actor", optional = true }
-nitro-actor-codec = { path = "system-actors/nitro-actor", optional = true }
-orbitdb-actor-codec = { path = "system-actors/orbitdb-actor", optional = true }
-persist-actor-codec = { path = "system-actors/persist-actor", optional = true }
-ra-actor-codec = { path = "system-actors/ra-actor", optional = true }
-replica-actor-codec = { path = "system-actors/replica-actor", optional = true }
-replica-service-actor-codec = { path = "system-actors/replica-service-actor", optional = true }
-state-receiver-codec = { path = "system-actors/state-receiver", optional = true }
-tappstore-actor-codec = { path = "system-actors/tappstore-actor", optional = true }
-tokenstate-actor-codec = { path = "system-actors/tokenstate-actor", optional = true }
-tokenstate-service-actor-codec = { path = "system-actors/tokenstate-service-actor", optional = true }
+tea-billing-actor-codec = { path = "system-actors/billing-actor", optional = true }
+tea-console-actor-codec = { path = "system-actors/console-actor", optional = true }
+tea-adapter-actor-codec = { path = "system-actors/adapter-actor", optional = true }
+tea-crypto-actor-codec = { path = "system-actors/crypto-actor", optional = true }
+tea-env-actor-codec = { path = "system-actors/env-actor", optional = true }
+tea-http-actor-codec = { path = "system-actors/http-actor", optional = true }
+tea-ipfs-relay-actor-codec = { path = "system-actors/ipfs-relay-actor", optional = true }
+tea-keyvalue-actor-codec = { path = "system-actors/keyvalue-actor", optional = true }
+tea-layer1-actor-codec = { path = "system-actors/layer1-actor", optional = true }
+tea-layer1-service-actor-codec = { path = "system-actors/layer1-service-actor", optional = true }
+tea-libp2p-actor-codec = { path = "system-actors/libp2p-actor", optional = true }
+tea-nitro-actor-codec = { path = "system-actors/nitro-actor", optional = true }
+tea-orbitdb-actor-codec = { path = "system-actors/orbitdb-actor", optional = true }
+tea-persist-actor-codec = { path = "system-actors/persist-actor", optional = true }
+tea-ra-actor-codec = { path = "system-actors/ra-actor", optional = true }
+tea-replica-actor-codec = { path = "system-actors/replica-actor", optional = true }
+tea-replica-service-actor-codec = { path = "system-actors/replica-service-actor", optional = true }
+tea-state-receiver-codec = { path = "system-actors/state-receiver", optional = true }
+tea-tappstore-actor-codec = { path = "system-actors/tappstore-actor", optional = true }
+tea-tokenstate-actor-codec = { path = "system-actors/tokenstate-actor", optional = true }
+tea-tokenstate-service-actor-codec = { path = "system-actors/tokenstate-service-actor", optional = true }
 
-wasm-actor-utils = { path = "utils/wasm-actor-utils", features = [
+tea-wasm-actor-utils = { path = "utils/wasm-actor-utils", features = [
     "http",
 ], optional = true }
-wasm-client-actor-utils = { path = "utils/wasm-client-actor-utils", optional = true }
+tea-wasm-client-actor-utils = { path = "utils/wasm-client-actor-utils", optional = true }
 
 [workspace]
 resolver = "2"
@@ -84,46 +85,46 @@ default = []
 wasm = [
     "tea-actorx-runtime",
     "system-actors",
-    "wasm-actor-utils",
-    "wasm-client-actor-utils",
+    "tea-wasm-actor-utils",
+    "tea-wasm-client-actor-utils",
 ]
 host = ["tea-actorx-host", "system-actors"]
 system-actors = [
-    "adapter-actor-codec",
-    "billing-actor-codec",
-    "console-actor-codec",
-    "crypto-actor-codec",
-    "env-actor-codec",
-    "http-actor-codec",
-    "ipfs-relay-actor-codec",
-    "keyvalue-actor-codec",
-    "layer1-actor-codec",
-    "layer1-service-actor-codec",
-    "libp2p-actor-codec",
-    "nitro-actor-codec",
-    "orbitdb-actor-codec",
-    "persist-actor-codec",
-    "ra-actor-codec",
-    "replica-actor-codec",
-    "replica-service-actor-codec",
-    "state-receiver-codec",
-    "tappstore-actor-codec",
-    "tokenstate-actor-codec",
-    "tokenstate-service-actor-codec",
+    "tea-adapter-actor-codec",
+    "tea-billing-actor-codec",
+    "tea-console-actor-codec",
+    "tea-crypto-actor-codec",
+    "tea-env-actor-codec",
+    "tea-http-actor-codec",
+    "tea-ipfs-relay-actor-codec",
+    "tea-keyvalue-actor-codec",
+    "tea-layer1-actor-codec",
+    "tea-layer1-service-actor-codec",
+    "tea-libp2p-actor-codec",
+    "tea-nitro-actor-codec",
+    "tea-orbitdb-actor-codec",
+    "tea-persist-actor-codec",
+    "tea-ra-actor-codec",
+    "tea-replica-actor-codec",
+    "tea-replica-service-actor-codec",
+    "tea-state-receiver-codec",
+    "tea-tappstore-actor-codec",
+    "tea-tokenstate-actor-codec",
+    "tea-tokenstate-service-actor-codec",
 ]
 signer = ["tea-actorx-signer"]
 mock = ["wasm", "tea-actorx-runtime/mock"]
 unlimited = ["tea-actorx-host/unlimited"]
-nitro = ["vmh-codec/nitro", "env-actor-codec/nitro"]
-simulator = ["vmh-codec/simulator", "env-actor-codec/simulator"]
+nitro = ["tea-vmh-codec/nitro", "tea-env-actor-codec/nitro"]
+simulator = ["tea-vmh-codec/simulator", "tea-env-actor-codec/simulator"]
 __test = [
-    "runtime-codec/__test",
-    "solc-codec/__test",
-    "tapp-common/__test",
-    "vmh-codec/__test",
-    "libp2p-actor-codec/__test",
-    "wasm-actor-utils/__test",
-    "wasm-client-actor-utils/__test",
+    "tea-runtime-codec/__test",
+    "tea-solc-codec/__test",
+    "tea-tapp-common/__test",
+    "tea-vmh-codec/__test",
+    "tea-libp2p-actor-codec/__test",
+    "tea-wasm-actor-utils/__test",
+    "tea-wasm-client-actor-utils/__test",
 ]
 
 [workspace.dependencies]

@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::array::TryFromSliceError;
 use std::convert::{TryFrom, TryInto};
-use tapp_common::Hash;
+use tea_tapp_common::Hash;
 
 pub mod auth;
 pub mod context;

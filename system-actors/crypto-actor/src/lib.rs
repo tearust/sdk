@@ -1,9 +1,9 @@
 #![feature(min_specialization)]
 
 use serde::{Deserialize, Serialize};
-use tapp_common::Account;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
+use tea_tapp_common::Account;
 
 pub mod error;
 

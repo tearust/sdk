@@ -1,6 +1,6 @@
 use tea_codec::define_scope;
+use tea_wasm_actor_utils::error::Actor;
 use thiserror::Error;
-use wasm_actor_utils::error::Actor;
 
 define_scope! {
 	ClientUtilityActor: Actor {

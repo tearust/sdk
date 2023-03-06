@@ -1,5 +1,5 @@
 [package]
-name = "adapter-actor-codec"
+name = "tea-adapter-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

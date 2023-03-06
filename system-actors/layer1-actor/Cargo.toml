@@ -1,5 +1,5 @@
 [package]
-name = "layer1-actor-codec"
+name = "tea-layer1-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -13,9 +13,9 @@ repository = { workspace = true }
 [dependencies]
 tea-codec = { path = "../../codecs/tea-codec" }
 tea-actorx-core = { path = "../../actorx/actorx-core" }
-tapp-common = { path = "../../codecs/tapp-common" }
-solc-codec = { path = "../../codecs/solc-codec" }
-actor-txns = { path = "../../codecs/actor-txns" }
-tappstore-actor-codec = { path = "../tappstore-actor" }
+tea-tapp-common = { path = "../../codecs/tapp-common" }
+tea-solc-codec = { path = "../../codecs/solc-codec" }
+tea-actor-txns = { path = "../../codecs/actor-txns" }
+tea-tappstore-actor-codec = { path = "../tappstore-actor" }
 
 serde = { workspace = true }

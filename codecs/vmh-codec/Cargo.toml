@@ -1,5 +1,5 @@
 [package]
-name = "vmh-codec"
+name = "tea-vmh-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -25,11 +25,11 @@ chrono = { workspace = true }
 hex = "0.4.2"
 clap = { version = "3.1.3", features = ["derive", "env"] }
 
-runtime-codec = { path = "../runtime-codec" }
-solc-codec = { path = "../solc-codec" }
+tea-runtime-codec = { path = "../runtime-codec" }
+tea-solc-codec = { path = "../solc-codec" }
 tea-codec = { path = "../tea-codec" }
-tapp-common = { path = "../tapp-common" }
-actor-txns = { path = "../actor-txns" }
+tea-tapp-common = { path = "../tapp-common" }
+tea-actor-txns = { path = "../actor-txns" }
 
 [dev-dependencies]
 anyhow = "1.0"

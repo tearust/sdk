@@ -1,9 +1,9 @@
 #![feature(min_specialization)]
 
 use serde::{Deserialize, Serialize};
-use tapp_common::TimestampShort;
 use tea_actorx_core::ActorId;
 use tea_codec::serde::TypeId;
+use tea_tapp_common::TimestampShort;
 
 pub mod error;
 

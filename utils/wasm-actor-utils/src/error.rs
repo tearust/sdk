@@ -1,14 +1,14 @@
-use actor_txns::error::ActorTxns;
 use ed25519_dalek::SignatureError;
-use runtime_codec::error::RuntimeCodec;
-use solc_codec::error::SolcCodec;
-use tapp_common::{error::TApp, Balance, TokenId};
+use tea_actor_txns::error::ActorTxns;
 use tea_codec::{
 	define_scope,
 	errorx::{smallvec, SmallVec},
 };
+use tea_runtime_codec::error::RuntimeCodec;
+use tea_solc_codec::error::SolcCodec;
+use tea_tapp_common::{error::TApp, Balance, TokenId};
+use tea_vmh_codec::error::VmhCodec;
 use thiserror::Error;
-use vmh_codec::error::VmhCodec;
 
 define_scope! {
 	Actor: pub RuntimeCodec, VmhCodec, SolcCodec, TApp, ActorTxns {

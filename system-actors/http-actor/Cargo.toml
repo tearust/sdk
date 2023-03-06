@@ -1,5 +1,5 @@
 [package]
-name = "http-actor-codec"
+name = "tea-http-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

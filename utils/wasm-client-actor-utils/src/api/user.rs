@@ -5,23 +5,23 @@ use crate::request;
 use prost::Message;
 use serde_json::json;
 use std::str::FromStr;
-use tapp_common::{Balance, TokenId};
-use tappstore_actor_codec::txns::TappstoreTxn;
-use tappstore_actor_codec::CheckUserSessionRequest;
-use tappstore_actor_codec::CommonSqlQueryRequest;
-use tappstore_actor_codec::FetchAccountAssetRequest;
-use tappstore_actor_codec::FetchAllowanceRequest;
-use tappstore_actor_codec::FindExecutedTxnRequest;
-use tappstore_actor_codec::QueryTeaBalanceRequest;
-use tappstore_actor_codec::QueryTeaDepositRequest;
 use tea_codec::OptionExt;
 use tea_codec::{deserialize, serialize};
-use vmh_codec::message::{
+use tea_tapp_common::{Balance, TokenId};
+use tea_tappstore_actor_codec::txns::TappstoreTxn;
+use tea_tappstore_actor_codec::CheckUserSessionRequest;
+use tea_tappstore_actor_codec::CommonSqlQueryRequest;
+use tea_tappstore_actor_codec::FetchAccountAssetRequest;
+use tea_tappstore_actor_codec::FetchAllowanceRequest;
+use tea_tappstore_actor_codec::FindExecutedTxnRequest;
+use tea_tappstore_actor_codec::QueryTeaBalanceRequest;
+use tea_tappstore_actor_codec::QueryTeaDepositRequest;
+use tea_vmh_codec::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
 };
-use wasm_actor_utils::actors::enclave::get_my_tea_id;
-use wasm_actor_utils::actors::util as actor_util;
+use tea_wasm_actor_utils::actors::enclave::get_my_tea_id;
+use tea_wasm_actor_utils::actors::util as actor_util;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -360,7 +360,8 @@ pub async fn query_tapp_metadata(payload: Vec<u8>, from_actor: String) -> Result
 						"error": &r.err,
 					})
 				} else {
-					let data: tapp_common::tapp::TappMetaData = tea_codec::deserialize(&r.data)?;
+					let data: tea_tapp_common::tapp::TappMetaData =
+						tea_codec::deserialize(&r.data)?;
 					info!("query_tapp_metadata => {:?}", &data);
 
 					json!({ "sql_query_result": data })
@@ -469,7 +470,7 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 
 	request::send_tappstore_query(
 		&from_actor,
-		tappstore_actor_codec::QuerySystemVersionsRequest,
+		tea_tappstore_actor_codec::QuerySystemVersionsRequest,
 		move |res| {
 			Box::pin(async move {
 				let r = res.0;

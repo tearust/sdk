@@ -1,14 +1,14 @@
 use crate::error::Result;
-#[cfg(not(feature = "__test"))]
-use layer1_actor_codec::*;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
-use tapp_common::{
+use tea_codec::OptionExt;
+#[cfg(not(feature = "__test"))]
+use tea_layer1_actor_codec::*;
+use tea_tapp_common::{
 	cml::{CmlId, CmlIntrinsic},
 	seat::SeatId,
 	Account, BlockNumber,
 };
-use tea_codec::OptionExt;
 
 #[cfg(feature = "__test")]
 #[mockable]
@@ -22,8 +22,8 @@ pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>
 	use tea_actorx_runtime::call;
 
 	let rtn = call(
-		RegId::Static(env_actor_codec::NAME).inst(0),
-		env_actor_codec::GetMiningStartupRequest,
+		RegId::Static(tea_env_actor_codec::NAME).inst(0),
+		tea_env_actor_codec::GetMiningStartupRequest,
 	)
 	.await?;
 	Ok(rtn
@@ -67,9 +67,9 @@ pub async fn get_tapp_startup_nodes(
 pub async fn get_tapp_startup_nodes(
 	at_height: Option<BlockNumber>,
 ) -> Result<Vec<(Vec<u8>, CmlId, String)>> {
-	use solc_codec::queries::AsyncQuery;
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::{call, post};
+	use tea_solc_codec::queries::AsyncQuery;
 
 	if at_height.is_none() {
 		// only try get cache if at_height is none
@@ -138,9 +138,9 @@ pub async fn cmls_info_from_layer1(
 	cml_ids: Vec<CmlId>,
 	at_height: Option<BlockNumber>,
 ) -> Result<Vec<CmlIntrinsic>> {
-	use solc_codec::queries::{AsyncQuery, QueryType};
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
+	use tea_solc_codec::queries::{AsyncQuery, QueryType};
 
 	let (cached_cmls, missing_cml_ids): (Vec<CmlIntrinsic>, Vec<CmlId>) = if at_height.is_none() {
 		let (cached_cmls, missing_cml_ids) = get_cached_cmls(&cml_ids).await?;
@@ -201,9 +201,9 @@ async fn update_cml_cache(cmls: &[CmlIntrinsic]) -> Result<()> {
 
 #[cfg(not(feature = "__test"))]
 pub async fn appstore_owner_account(at_height: Option<BlockNumber>) -> Result<Account> {
-	use solc_codec::queries::AsyncQuery;
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
+	use tea_solc_codec::queries::AsyncQuery;
 
 	let res = call(
 		RegId::Static(NAME).inst(0),

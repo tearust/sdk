@@ -1,5 +1,5 @@
 [package]
-name = "env-actor-codec"
+name = "tea-env-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -13,8 +13,8 @@ repository = { workspace = true }
 [dependencies]
 tea-codec = { path = "../../codecs/tea-codec" }
 tea-actorx-core = { path = "../../actorx/actorx-core" }
-vmh-codec = { path = "../../codecs/vmh-codec" }
-solc-codec = { path = "../../codecs/solc-codec" }
+tea-vmh-codec = { path = "../../codecs/vmh-codec" }
+tea-solc-codec = { path = "../../codecs/solc-codec" }
 
 serde = { workspace = true }
 

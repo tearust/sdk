@@ -1,8 +1,8 @@
 use crate::{tsid::Hash, txn_hash, IntoSerial, ToHash, Txn, TxnSerial};
 use serde::{Deserialize, Serialize};
 use std::vec::Vec;
-use tapp_common::{ReplicaId, Ts};
 use tea_sdk::serialize;
+use tea_tapp_common::{ReplicaId, Ts};
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Followup {

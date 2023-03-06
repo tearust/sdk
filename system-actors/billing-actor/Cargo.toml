@@ -1,5 +1,5 @@
 [package]
-name = "billing-actor-codec"
+name = "tea-billing-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

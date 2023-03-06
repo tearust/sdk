@@ -1,9 +1,9 @@
 #![feature(min_specialization)]
 
-use nitro_actor_codec::{AttestationDocRequest, RaPeerRequest};
 use serde::{Deserialize, Serialize};
 use tea_actorx_core::RegId;
 use tea_codec::serde::TypeId;
+use tea_nitro_actor_codec::{AttestationDocRequest, RaPeerRequest};
 
 pub mod error;
 

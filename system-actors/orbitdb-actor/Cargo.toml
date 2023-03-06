@@ -1,5 +1,5 @@
 [package]
-name = "orbitdb-actor-codec"
+name = "tea-orbitdb-actor-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }

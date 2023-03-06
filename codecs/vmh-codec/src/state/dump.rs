@@ -1,5 +1,5 @@
-use actor_txns::tsid::Tsid;
-use tapp_common::{Account, Balance, TokenId};
+use tea_actor_txns::tsid::Tsid;
+use tea_tapp_common::{Account, Balance, TokenId};
 
 use crate::error::{Result, TableAccess};
 use crate::state::TsidReadable;

@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt;
 use std::hash::{Hash as StdHash, Hasher};
-use tapp_common::{ReplicaId, Ts};
+use tea_tapp_common::{ReplicaId, Ts};
 
 pub type Hash = [u8; 32];
 

@@ -5,22 +5,22 @@ use crate::{
 	},
 	error::{Error, Errors, Result},
 };
-use actor_txns::{
+use prost::Message;
+use tea_actor_txns::{
 	auth::TokenAuthOp,
 	context::{ReadConflictMode, TokenContext},
 	tsid::Tsid,
 	TxnSerial,
 };
-use prost::Message;
-use tapp_common::{
-	statement::TypedStatement, Account, AuthKey, Balance, TokenId, GOD_MODE_AUTH_KEY,
-};
-use tappstore_actor_codec::txns::TappstoreTxn;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::call;
 use tea_codec::{deserialize, serialize, ResultExt};
-use tokenstate_actor_codec::{self as codec};
-use vmh_codec::message::{
+use tea_tapp_common::{
+	statement::TypedStatement, Account, AuthKey, Balance, TokenId, GOD_MODE_AUTH_KEY,
+};
+use tea_tappstore_actor_codec::txns::TappstoreTxn;
+use tea_tokenstate_actor_codec::{self as codec};
+use tea_vmh_codec::message::{
 	encode_protobuf,
 	structs_proto::{persist, tokenstate::*},
 };
@@ -300,7 +300,7 @@ pub async fn send_tx_new_auth_key_expired(
 	};
 	send_transaction_locally(
 		&TxnSerial::new(
-			tappstore_actor_codec::NAME.to_vec(),
+			tea_tappstore_actor_codec::NAME.to_vec(),
 			serialize(&txn)?,
 			random_u64().await?,
 			gas_limit,

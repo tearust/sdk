@@ -1,14 +1,14 @@
 use crate::error::Result;
-use env_actor_codec::*;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use std::{collections::HashMap, time::SystemTime};
-use tapp_common::{BlockNumber, TokenId};
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::ResultExt;
+use tea_env_actor_codec::*;
+use tea_tapp_common::{BlockNumber, TokenId};
 
-pub use tokenstate_actor_codec::{CronjobArgs, RandomTickArgs};
+pub use tea_tokenstate_actor_codec::{CronjobArgs, RandomTickArgs};
 
 pub async fn get_system_time() -> Result<SystemTime> {
 	let time = call(RegId::Static(NAME).inst(0), GetSystemTimeRequest).await?;
@@ -16,7 +16,7 @@ pub async fn get_system_time() -> Result<SystemTime> {
 }
 
 pub async fn system_time_as_nanos() -> Result<u128> {
-	vmh_codec::utils::system_time_as_nanos(get_system_time().await?).err_into()
+	tea_vmh_codec::utils::system_time_as_nanos(get_system_time().await?).err_into()
 }
 
 pub async fn is_replica_test_mode() -> Result<bool> {
@@ -91,16 +91,16 @@ pub async fn initial_latest_topup_height() -> Result<BlockNumber> {
 /// in milliseconds
 pub async fn register_random_tick(args: RandomTickArgs) -> Result<()> {
 	post(
-		RegId::Static(tokenstate_actor_codec::NAME).inst(0),
-		tokenstate_actor_codec::RegisterRandomTickRequest(args),
+		RegId::Static(tea_tokenstate_actor_codec::NAME).inst(0),
+		tea_tokenstate_actor_codec::RegisterRandomTickRequest(args),
 	)
 	.await
 }
 
 pub async fn register_cron_job(args: CronjobArgs) -> Result<()> {
 	post(
-		RegId::Static(tokenstate_actor_codec::NAME).inst(0),
-		tokenstate_actor_codec::RegisterCronjobRequest(args),
+		RegId::Static(tea_tokenstate_actor_codec::NAME).inst(0),
+		tea_tokenstate_actor_codec::RegisterCronjobRequest(args),
 	)
 	.await
 }

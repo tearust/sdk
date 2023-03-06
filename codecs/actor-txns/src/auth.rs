@@ -1,7 +1,7 @@
 use crate::error::{Result, TxnError};
 use serde::{Deserialize, Serialize};
 use std::collections::HashSet;
-use tapp_common::{Account, TokenId};
+use tea_tapp_common::{Account, TokenId};
 
 /// These are allow operation that user authorize the tapp to
 /// When user login a tapp, these allow ops will be listed
