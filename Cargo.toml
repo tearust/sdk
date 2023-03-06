@@ -112,11 +112,7 @@ crossbeam-channel = "0.5.6"
 dashmap = "5.4"
 ed25519-dalek = "1.0.0"
 futures = "0.3.25"
-gluesql-core = { git = "https://github.com/gluesql/gluesql", rev = "4c08ba59", features = [
-    "metadata",
-    "transaction",
-    "index",
-] }
+gluesql-core = { version = "0.13.1" }
 hex = "0.4.0"
 http = "0.2.8"
 http-body = "0.4.5"

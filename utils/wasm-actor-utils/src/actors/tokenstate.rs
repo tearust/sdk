@@ -1,5 +1,5 @@
 use crate::error::{GlueSqlErrors, Result};
-use gluesql_core::prelude::{Payload, Value};
+use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
 use tapp_common::TokenId;
 use tea_actorx_core::RegId;
@@ -45,14 +45,14 @@ pub async fn table_row_count(token_id: TokenId, table_name: &str) -> Result<u64>
 	)
 }
 
-pub fn query_select_rows(payload: &Payload) -> Result<&Vec<Vec<Value>>> {
+pub fn query_select_rows(payload: &Payload) -> Result<&Vec<Row>> {
 	match payload {
 		Payload::Select { labels: _, rows } => Ok(rows),
 		_ => Err(GlueSqlErrors::InvalidSelectResult.into()),
 	}
 }
 
-pub fn query_first_row(payload: &Payload) -> Result<&Vec<Value>> {
+pub fn query_first_row(payload: &Payload) -> Result<&Row> {
 	let rows = query_select_rows(payload)?;
 	rows.get(0).ok_or(GlueSqlErrors::InvalidFirstRow.into())
 }
@@ -60,7 +60,7 @@ pub fn query_first_row(payload: &Payload) -> Result<&Vec<Value>> {
 pub fn query_all_first_columns_as_u64(payload: &Payload) -> Result<Vec<u64>> {
 	let mut rtn = Vec::new();
 	for v in query_select_rows(payload)? {
-		if let Some(cml_id) = v.get(0) {
+		if let Some(cml_id) = v.get_value_by_index(0) {
 			rtn.push(sql_value_to_u64(cml_id)?);
 		}
 	}
@@ -70,7 +70,7 @@ pub fn query_all_first_columns_as_u64(payload: &Payload) -> Result<Vec<u64>> {
 pub fn query_all_first_columns_as_string(payload: &Payload) -> Result<Vec<&str>> {
 	let mut rtn = Vec::new();
 	for v in query_select_rows(payload)? {
-		if let Some(cml_id) = v.get(0) {
+		if let Some(cml_id) = v.get_value_by_index(0) {
 			rtn.push(sql_value_to_string(cml_id)?);
 		}
 	}
@@ -79,13 +79,17 @@ pub fn query_all_first_columns_as_string(payload: &Payload) -> Result<Vec<&str>>
 
 pub fn query_first_u64(payload: &Payload) -> Result<u64> {
 	let row = query_first_row(payload)?;
-	let count = row.get(0).ok_or(GlueSqlErrors::InvalidFirstValue)?;
+	let count = row
+		.get_value_by_index(0)
+		.ok_or(GlueSqlErrors::InvalidFirstValue)?;
 	sql_value_to_u64(count)
 }
 
 pub fn query_first_string(payload: &Payload) -> Result<&str> {
 	let row = query_first_row(payload)?;
-	let value = row.get(0).ok_or(GlueSqlErrors::InvalidFirstValue)?;
+	let value = row
+		.get_value_by_index(0)
+		.ok_or(GlueSqlErrors::InvalidFirstValue)?;
 	sql_value_to_string(value)
 }
 
