@@ -1,7 +1,31 @@
+[workspace.package]
+version = "0.2.0-dev.1"
+edition = "2021"
+description = "The TEA SDK"
+authors = [
+    "Kevin Zhang <kevin.zhang.canada@gmail.com>",
+    "Yan Mingzhi <realraindust@gmail.com>",
+    "Jacky.li <liyangwood@gmail.com>",
+    "Alsein Xiang <xyh951115@live.com>",
+]
+license-file = "LICENSE"
+keywords = ["tea", "tapp", "wasm", "web3.0"]
+categories = ["cryptography::cryptocurrencies", "development-tools", "wasm"]
+homepage = "https://teaproject.org/"
+repository = "https://github.com/tearust/sdk/"
+
+
 [package]
 name = "tea-sdk"
-version = "0.1.0"
-edition = "2021"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+authors = { workspace = true }
+license-file = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
 
 [dependencies]
 tea-codec = { path = "codecs/tea-codec" }

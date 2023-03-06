@@ -1,9 +1,15 @@
 [package]
 name = "actorx-example-codec"
-version = "0.1.0"
-edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+authors = { workspace = true }
+license-file = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+publish = false
 
 [dependencies]
 tea-sdk = { path = "../../.." }
