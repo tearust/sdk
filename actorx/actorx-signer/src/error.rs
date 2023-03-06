@@ -9,6 +9,7 @@ define_scope! {
 		rustc_hex::FromHexError => Parse, @Display, @Debug;
 		InvalidSignatureFormat => InvalidSignatureFormat, @Display, @Debug;
 		leb128::read::Error => Leb128ReadError, @Display, @Debug;
+		serde_yaml::Error => Serde, @Display, @Debug;
 	}
 }
 

@@ -1,6 +1,10 @@
 #![feature(iterator_try_collect)]
 
-use tea_codec::ResultExt;
+mod config;
+
+use std::{env, path::PathBuf};
+
+use config::Manifest;
 use tokio::fs;
 
 use clap::Parser;
@@ -10,52 +14,44 @@ use tea_actorx_signer::*;
 #[derive(Debug, Parser)]
 struct Cli {
 	wasm: String,
-
 	#[arg(short, long)]
-	id: String,
-
-	#[arg(short, long)]
-	key: String,
-
-	#[arg(short, long)]
-	access: Vec<String>,
-
-	#[arg(short, long)]
-	token_id: String,
+	manifest: Option<String>,
+	key: Option<String>,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
-	let cli = Cli::parse();
-	let wasm_path = cli.wasm;
-	let (wasm, key, id) = tokio::join!(
-		fs::read(wasm_path.as_str()),
-		fs::read(cli.key),
-		fs::read(cli.id)
-	);
-	let (mut wasm, key, id) = (wasm?, key?, id?);
-	let payload = Metadata {
-		id,
-		signer: key,
-		claims: cli
-			.access
-			.into_iter()
-			.map(|input| {
-				Ok(Claim::ActorAccess(
-					if let [b'#', input @ ..] = input.as_bytes() {
-						base64::decode(input)?
-					} else {
-						input.into_bytes()
-					},
-				)) as Result<_>
-			})
-			.chain(Some(cli.token_id.parse().map(Claim::TokenId).err_into()))
-			.try_collect()?,
-	};
+	let Cli {
+		wasm: wasm_path,
+		manifest,
+		key,
+	} = Cli::parse();
+	let manifest = manifest
+		.map(Into::into)
+		.unwrap_or_else(current_dir_file("manifest.yaml"));
+	let key = key
+		.map(Into::into)
+		.unwrap_or_else(current_dir_file("key.pem"));
+	let (wasm, key, manifest) =
+		tokio::join!(fs::read(&wasm_path), fs::read(key), fs::read(manifest));
+	let (mut wasm, key, manifest) = (wasm?, key?, manifest?);
 
-	sign(&mut wasm, payload)?;
+	if verify(&wasm).is_ok() {
+		return Ok(());
+	}
+
+	let manifest = serde_yaml::from_slice::<Manifest>(&manifest)?;
+	sign(&mut wasm, manifest.into_metadata(key)?)?;
 
 	fs::write(wasm_path, wasm).await?;
 
 	Ok(())
+}
+
+fn current_dir_file(name: &str) -> impl Fn() -> PathBuf + '_ {
+	move || {
+		let mut path = env::current_dir().unwrap();
+		path.push(name);
+		path
+	}
 }

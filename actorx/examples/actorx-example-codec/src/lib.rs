@@ -5,7 +5,7 @@ use tea_sdk::{pricing::Priced, serde::TypeId};
 
 pub mod error;
 
-pub const WASM_ACTOR_NAME: &[u8] = b"actorx-example-actor";
+pub const WASM_ACTOR_NAME: &[u8] = b"com.tea.actorx-example-actor";
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct HelloWorldRequest(pub String);
