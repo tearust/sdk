@@ -11,8 +11,8 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { path = "../../codecs/tea-codec" }
-tea-actorx-core = { path = "../../actorx/actorx-core" }
-tea-nitro-actor-codec = { path = "../nitro-actor" }
+tea-codec = { version = "0.2.0-dev.1", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.1", path = "../../actorx/actorx-core" }
+tea-nitro-actor-codec = { version = "0.2.0-dev.1", path = "../nitro-actor" }
 
 serde = { workspace = true }

@@ -11,10 +11,10 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { path = "../../codecs/tea-codec" }
-tea-actorx-core = { path = "../../actorx/actorx-core" }
-tea-vmh-codec = { path = "../../codecs/vmh-codec" }
-tea-solc-codec = { path = "../../codecs/solc-codec" }
+tea-codec = { version = "0.2.0-dev.1", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.1", path = "../../actorx/actorx-core" }
+tea-vmh-codec = { version = "0.2.0-dev.1", path = "../../codecs/vmh-codec" }
+tea-solc-codec = { version = "0.2.0-dev.1", path = "../../codecs/solc-codec" }
 
 serde = { workspace = true }
 

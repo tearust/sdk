@@ -22,8 +22,8 @@ strum_macros = { workspace = true }
 primitive-types = { workspace = true }
 hex = { workspace = true }
 
-tea-runtime-codec = { path = "../../codecs/runtime-codec" }
-tea-codec = { path = "../tea-codec" }
+tea-runtime-codec = { version = "0.2.0-dev.1", path = "../../codecs/runtime-codec" }
+tea-codec = { version = "0.2.0-dev.1", path = "../tea-codec" }
 thiserror = "1"
 
 [features]

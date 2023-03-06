@@ -11,33 +11,35 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { path = "../../codecs/tea-codec" }
-tea-actorx-core = { path = "../../actorx/actorx-core" }
-tea-actorx-runtime = { path = "../../actorx/actorx-runtime" }
-tea-tapp-common = { path = "../../codecs/tapp-common" }
-tea-actor-txns = { path = "../../codecs/actor-txns" }
-tea-solc-codec = { path = "../../codecs/solc-codec" }
-tea-vmh-codec = { path = "../../codecs/vmh-codec" }
-tea-runtime-codec = { path = "../../codecs/runtime-codec" }
+tea-codec = { version = "0.2.0-dev.1", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.1", path = "../../actorx/actorx-core" }
+tea-actorx-runtime = { version = "0.2.0-dev.1", path = "../../actorx/actorx-runtime" }
+tea-tapp-common = { version = "0.2.0-dev.1", path = "../../codecs/tapp-common" }
+tea-actor-txns = { version = "0.2.0-dev.1", path = "../../codecs/actor-txns" }
+tea-solc-codec = { version = "0.2.0-dev.1", path = "../../codecs/solc-codec" }
+tea-vmh-codec = { version = "0.2.0-dev.1", path = "../../codecs/vmh-codec" }
+tea-runtime-codec = { version = "0.2.0-dev.1", path = "../../codecs/runtime-codec" }
 
-tea-wasm-actor-utils = { path = "../wasm-actor-utils", features = ["http"] }
+tea-wasm-actor-utils = { version = "0.2.0-dev.1", path = "../wasm-actor-utils", features = [
+    "http",
+] }
 
-tea-adapter-actor-codec = { path = "../../system-actors/adapter-actor" }
-tea-crypto-actor-codec = { path = "../../system-actors/crypto-actor" }
-tea-env-actor-codec = { path = "../../system-actors/env-actor" }
-tea-http-actor-codec = { path = "../../system-actors/http-actor" }
-tea-keyvalue-actor-codec = { path = "../../system-actors/keyvalue-actor" }
-tea-layer1-actor-codec = { path = "../../system-actors/layer1-actor" }
-tea-layer1-service-actor-codec = { path = "../../system-actors/layer1-service-actor" }
-tea-libp2p-actor-codec = { path = "../../system-actors/libp2p-actor" }
-tea-nitro-actor-codec = { path = "../../system-actors/nitro-actor" }
-tea-ra-actor-codec = { path = "../../system-actors/ra-actor" }
-tea-replica-actor-codec = { path = "../../system-actors/replica-actor" }
-tea-replica-service-actor-codec = { path = "../../system-actors/replica-service-actor" }
-tea-state-receiver-codec = { path = "../../system-actors/state-receiver" }
-tea-tappstore-actor-codec = { path = "../../system-actors/tappstore-actor" }
-tea-tokenstate-actor-codec = { path = "../../system-actors/tokenstate-actor" }
-tea-tokenstate-service-actor-codec = { path = "../../system-actors/tokenstate-service-actor" }
+tea-adapter-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/adapter-actor" }
+tea-crypto-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/crypto-actor" }
+tea-env-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/env-actor" }
+tea-http-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/http-actor" }
+tea-keyvalue-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/keyvalue-actor" }
+tea-layer1-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/layer1-actor" }
+tea-layer1-service-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/layer1-service-actor" }
+tea-libp2p-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/libp2p-actor" }
+tea-nitro-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/nitro-actor" }
+tea-ra-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/ra-actor" }
+tea-replica-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/replica-actor" }
+tea-replica-service-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/replica-service-actor" }
+tea-state-receiver-codec = { version = "0.2.0-dev.1", path = "../../system-actors/state-receiver" }
+tea-tappstore-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/tappstore-actor" }
+tea-tokenstate-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/tokenstate-actor" }
+tea-tokenstate-service-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/tokenstate-service-actor" }
 
 serde = { workspace = true }
 base64 = { workspace = true }

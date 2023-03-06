@@ -20,8 +20,8 @@ default = ["cli"]
 cli = ["clap"]
 
 [dependencies]
-tea-codec = { path = "../../codecs/tea-codec" }
-tea-actorx-core = { path = "../actorx-core" }
+tea-codec = { version = "0.2.0-dev.1", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.1", path = "../actorx-core" }
 
 tokio = { workspace = true, features = ["full"] }
 leb128 = "0.2.5"
@@ -33,5 +33,5 @@ bincode = { workspace = true }
 openssl = { workspace = true }
 thiserror = { workspace = true }
 primitive-types = { workspace = true }
-rustc-hex = "*"
+rustc-hex = "2.1.0"
 clap = { version = "4.0.8", features = ["derive"], optional = true }

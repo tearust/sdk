@@ -15,11 +15,11 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-tea-sdk = { path = "../../..", features = ["wasm"] }
-actorx-example-codec = { path = "../actorx-example-codec" }
+tea-sdk = { version = "0.2.0-dev.1", path = "../../..", features = ["wasm"] }
+actorx-example-codec = { version = "0.2.0-dev.1", path = "../actorx-example-codec" }
 
 [dev-dependencies]
-tea-sdk = { path = "../../..", features = ["mock"] }
+tea-sdk = { version = "0.2.0-dev.1", path = "../../..", features = ["mock"] }
 tokio = { workspace = true, features = ["full"] }
 tracing-subscriber = { workspace = true }
-actorx-example-host = { path = "../actorx-example-host" }
+actorx-example-host = { version = "0.2.0-dev.1", path = "../actorx-example-host" }
