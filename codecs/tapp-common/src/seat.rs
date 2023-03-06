@@ -120,7 +120,6 @@ impl SeatInfo {
 				.as_ref()
 				.map(|v| v.status.to_string())
 				.unwrap_or_default(),
-			owner: format!("{:?}", seat.owner),
 			price: match seat.market {
 				Some(ref m) => m.price.to_string(),
 				_ => "".to_string(),
@@ -147,6 +146,13 @@ impl SeatInfo {
 			},
 			market_status: match seat.market {
 				Some(ref m) => m.status.to_string(),
+				_ => "".to_string(),
+			},
+			owner: match seat.market {
+				Some(ref m) => match m.owner {
+					Some(x) => format!("{x:?}"),
+					None => "".to_string(),
+				},
 				_ => "".to_string(),
 			},
 			real_price: match seat.market {

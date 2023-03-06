@@ -6,8 +6,8 @@ use error::Result;
 use primitive_types::{H160, U256};
 use serde::{Deserialize, Serialize};
 use std::{
-    fmt::{Debug, Display, Formatter},
-    sync::Arc,
+	fmt::{Debug, Display, Formatter},
+	sync::Arc,
 };
 use tea_sdk::serde::TypeId;
 
@@ -57,45 +57,45 @@ pub struct TokenId(pub H160);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, PartialEq, Eq, Hash)]
 pub enum AccountId {
-    User(H160),
-    App(H160),
-    Other(Arc<[u8]>),
+	User(H160),
+	App(H160),
+	Other(Arc<[u8]>),
 }
 
 impl Display for AccountId {
-    fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
-        Debug::fmt(&self, f)
-    }
+	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
+		Debug::fmt(&self, f)
+	}
 }
 
 impl From<[u8; 20]> for TokenId {
-    fn from(v: [u8; 20]) -> Self {
-        TokenId(H160(v))
-    }
+	fn from(v: [u8; 20]) -> Self {
+		TokenId(H160(v))
+	}
 }
 
 impl From<H160> for TokenId {
-    fn from(v: H160) -> Self {
-        TokenId(v)
-    }
+	fn from(v: H160) -> Self {
+		TokenId(v)
+	}
 }
 
 impl Debug for TokenId {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "0x{}", hex::encode(self.0))
-    }
+	fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+		write!(f, "0x{}", hex::encode(self.0))
+	}
 }
 
 impl TokenId {
-    pub fn to_hex(&self) -> String {
-        format!("{:?}", self.0)
-    }
+	pub fn to_hex(&self) -> String {
+		format!("{:?}", self.0)
+	}
 
-    pub fn from_hex<T: AsRef<str>>(s: T) -> Result<Self> {
-        let inner: H160 = s
-            .as_ref()
-            .parse()
-            .map_err(|_| crate::error::Errors::ParseAddressError)?;
-        Ok(inner.into())
-    }
+	pub fn from_hex<T: AsRef<str>>(s: T) -> Result<Self> {
+		let inner: H160 = s
+			.as_ref()
+			.parse()
+			.map_err(|_| crate::error::Errors::ParseAddressError)?;
+		Ok(inner.into())
+	}
 }

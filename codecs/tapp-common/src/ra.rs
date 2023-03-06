@@ -48,6 +48,18 @@ impl TryFrom<usize> for PcrType {
 	}
 }
 
+impl PartialOrd for PcrType {
+	fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+		self.slot_index().partial_cmp(&other.slot_index())
+	}
+}
+
+impl Ord for PcrType {
+	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+		self.slot_index().cmp(&other.slot_index())
+	}
+}
+
 impl PcrType {
 	pub fn slot_index(&self) -> usize {
 		match self {

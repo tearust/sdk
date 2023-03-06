@@ -154,6 +154,16 @@ pub struct DumpGluedbDataSorted {
 	pub tables: Vec<(String, serde_json::Value)>,
 }
 
+impl From<DumpGluedbDataResponse> for DumpGluedbDataSorted {
+	fn from(value: DumpGluedbDataResponse) -> Self {
+		let mut sorted = DumpGluedbDataSorted {
+			tables: value.tables.into_iter().collect(),
+		};
+		sorted.tables.sort_by(|(a, _), (b, _)| a.cmp(b));
+		sorted
+	}
+}
+
 impl DumpGluedbDataResponse {
 	pub fn first_row(&self, table: &str) -> Result<&serde_json::Value> {
 		self.get_row_at(table, 0)
