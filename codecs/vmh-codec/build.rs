@@ -21,9 +21,10 @@ fn main() {
 		proto_files
 	);
 
-	let out_path = Path::new("./src/message/structs_proto");
-	if !std::path::Path::new(out_path).exists() {
-		std::fs::create_dir_all(out_path).expect("create proto out directory failed");
+	let mut out_path = PathBuf::from(env::var("OUT_DIR").expect("'OUT_DIR' is not set"));
+	out_path.push("structs_proto");
+	if !out_path.exists() {
+		std::fs::create_dir_all(&out_path).expect("create proto out directory failed");
 	}
 
 	prost_build::Config::new()

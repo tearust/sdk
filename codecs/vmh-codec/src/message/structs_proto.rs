@@ -1,24 +1,19 @@
 #![allow(clippy::all)] // disable clippy for auto-generated codes
 
-pub mod crypto;
-pub mod env;
-pub mod intercom;
-pub mod ipfs;
-pub mod kvp;
-pub mod layer1;
-pub mod libp2p;
-pub mod orbitdb;
-pub mod p2p;
-pub mod persist;
-pub mod pinner;
-pub mod ra;
-pub mod raft;
-pub mod receipt;
-pub mod replica;
-pub mod report;
-pub mod rpc;
-pub mod tappstore;
-pub mod third_api;
-pub mod tokenstate;
-pub mod tpm;
-pub mod vmh;
+macro_rules! import_proto {
+	[$($name:ident),*] => {
+		$(pub mod $name {
+			include!(concat!(
+				env!("OUT_DIR"),
+				"/structs_proto/",
+				stringify!($name),
+				".rs"
+			));
+		})*
+	};
+}
+
+import_proto![
+	crypto, env, intercom, ipfs, kvp, layer1, libp2p, orbitdb, p2p, persist, pinner, ra, raft,
+	receipt, replica, report, rpc, tappstore, third_api, tokenstate, tpm, vmh
+];
