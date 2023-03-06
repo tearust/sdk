@@ -329,7 +329,7 @@ pub fn can_async_error_be_ignored(e: &Error) -> bool {
 	let name = e.name();
 	name == VmhCodec::IntercomActorNotSupported
 		|| name == VmhCodec::IntercomRequestRejected
-		|| name == tea_sdk::actorx::error::ActorX::NativeActorNotExists
+		|| name == tea_actorx_core::error::ActorX::NativeActorNotExists
 }
 
 pub async fn generate_query_message(
