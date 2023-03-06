@@ -91,6 +91,7 @@ signer = ["tea-actorx-signer"]
 mock = ["wasm", "tea-actorx-runtime/mock"]
 unlimited = ["tea-actorx-host/unlimited"]
 nitro = ["vmh-codec/nitro", "env-actor-codec/nitro"]
+simulator = ["vmh-codec/simulator", "env-actor-codec/simulator"]
 __test = [
     "runtime-codec/__test",
     "solc-codec/__test",
