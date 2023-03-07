@@ -26,6 +26,10 @@ pub fn init_host(host: ActorHost) {
 	HOST.set(host).expect("Mocked host is already initialized")
 }
 
+pub fn init_host_with(f: impl FnOnce() -> ActorHost) {
+	HOST.get_or_init(f);
+}
+
 pub async fn call<C, S>(actor_id: impl Into<ActorId>, arg: C) -> Result<C::Response, Error<S>>
 where
 	C: Request + ToBytes,
