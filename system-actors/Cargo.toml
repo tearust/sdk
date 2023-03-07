@@ -11,12 +11,12 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { path = "../codecs/tea-codec" }
-tea-actorx-core = { path = "../actorx/actorx-core" }
-tea-tapp-common = { path = "../codecs/tapp-common" }
-tea-solc-codec = { path = "../codecs/solc-codec" }
-tea-vmh-codec = { path = "../codecs/vmh-codec" }
-tea-actor-txns = { path = "../codecs/actor-txns" }
+tea-codec = { version = "0.2.0-dev.2", path = "../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.2", path = "../actorx/actorx-core" }
+tea-tapp-common = { version = "0.2.0-dev.2", path = "../codecs/tapp-common" }
+tea-solc-codec = { version = "0.2.0-dev.2", path = "../codecs/solc-codec" }
+tea-vmh-codec = { version = "0.2.0-dev.2", path = "../codecs/vmh-codec" }
+tea-actor-txns = { version = "0.2.0-dev.2", path = "../codecs/actor-txns" }
 
 serde = { workspace = true }
 strum_macros = { workspace = true }

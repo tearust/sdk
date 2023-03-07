@@ -11,7 +11,7 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.1", path = "../../codecs/tea-codec" }
+tea-codec = { version = "0.2.0-dev.2", path = "../../codecs/tea-codec" }
 
 serde = { workspace = true }
 wasmer = { workspace = true, optional = true }

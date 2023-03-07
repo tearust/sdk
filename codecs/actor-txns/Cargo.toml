@@ -20,6 +20,6 @@ thiserror = { workspace = true }
 prost = { workspace = true }
 sha2 = { workspace = true }
 
-tea-runtime-codec = { version = "0.2.0-dev.1", path = "../runtime-codec" }
-tea-codec = { version = "0.2.0-dev.1", path = "../tea-codec" }
-tea-tapp-common = { version = "0.2.0-dev.1", path = "../tapp-common" }
+tea-runtime-codec = { version = "0.2.0-dev.2", path = "../runtime-codec" }
+tea-codec = { version = "0.2.0-dev.2", path = "../tea-codec" }
+tea-tapp-common = { version = "0.2.0-dev.2", path = "../tapp-common" }

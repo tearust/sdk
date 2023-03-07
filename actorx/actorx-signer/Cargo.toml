@@ -20,8 +20,8 @@ default = ["cli"]
 cli = ["clap"]
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.1", path = "../../codecs/tea-codec" }
-tea-actorx-core = { version = "0.2.0-dev.1", path = "../actorx-core" }
+tea-codec = { version = "0.2.0-dev.2", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.2", path = "../actorx-core" }
 
 tokio = { workspace = true, features = ["full"] }
 leb128 = "0.2.5"
