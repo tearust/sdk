@@ -1,5 +1,5 @@
 use tea_codec::define_scope;
-use tea_http_actor_codec::error::HttpActor;
+use tea_system_actors::http::error::HttpActor;
 use thiserror::Error;
 
 use crate::error::Actor;

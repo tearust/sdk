@@ -6,7 +6,7 @@ use crate::{
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::deserialize;
-use tea_nitro_actor_codec::*;
+use tea_system_actors::nitro::*;
 
 pub async fn get_my_tea_id() -> Result<Vec<u8>> {
 	let res_vec = call(RegId::Static(NAME).inst(0), GetTeaIdRequest).await?;
@@ -63,7 +63,7 @@ pub async fn verify_peer<T>(
 where
 	T: FnOnce(bool) -> CallbackReturn + Send + Sync + 'static,
 {
-	use tea_ra_actor_codec::*;
+	use tea_system_actors::ra::*;
 
 	let seq_number = libp2p_seq_number().await?;
 	add_callback(seq_number, |res| {

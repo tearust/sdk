@@ -2,7 +2,7 @@ use crate::error::Result;
 use prost::Message;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::call;
-use tea_crypto_actor_codec::*;
+use tea_system_actors::crypto::*;
 use tea_tapp_common::Account;
 use tea_vmh_codec::message::{encode_protobuf, structs_proto::crypto};
 

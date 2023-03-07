@@ -24,22 +24,7 @@ tea-wasm-actor-utils = { version = "0.2.0-dev.1", path = "../wasm-actor-utils", 
     "http",
 ] }
 
-tea-adapter-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/adapter-actor" }
-tea-crypto-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/crypto-actor" }
-tea-env-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/env-actor" }
-tea-http-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/http-actor" }
-tea-keyvalue-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/keyvalue-actor" }
-tea-layer1-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/layer1-actor" }
-tea-layer1-service-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/layer1-service-actor" }
-tea-libp2p-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/libp2p-actor" }
-tea-nitro-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/nitro-actor" }
-tea-ra-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/ra-actor" }
-tea-replica-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/replica-actor" }
-tea-replica-service-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/replica-service-actor" }
-tea-state-receiver-codec = { version = "0.2.0-dev.1", path = "../../system-actors/state-receiver" }
-tea-tappstore-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/tappstore-actor" }
-tea-tokenstate-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/tokenstate-actor" }
-tea-tokenstate-service-actor-codec = { version = "0.2.0-dev.1", path = "../../system-actors/tokenstate-service-actor" }
+tea-system-actors = { version = "0.2.0-dev.1", path = "../../system-actors" }
 
 serde = { workspace = true }
 base64 = { workspace = true }

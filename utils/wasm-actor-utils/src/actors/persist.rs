@@ -19,8 +19,8 @@ pub async fn async_persist_request(
 	use prost::Message;
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
-	use tea_persist_actor_codec::*;
 	use tea_runtime_codec::ops::persist::OP_ASYNC_REQUEST;
+	use tea_system_actors::persist::*;
 	use tea_vmh_codec::message::encode_protobuf;
 
 	let msg = call(

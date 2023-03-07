@@ -27,9 +27,9 @@ where
 	async fn request_raw(self) -> Result<Response<Bytes>> {
 		let uri = self.uri().to_string();
 		let data = request_to_bytes(self).await?;
-		let tea_http_actor_codec::Response(result) = tea_actorx_runtime::call(
-			tea_actorx_core::RegId::Static(tea_http_actor_codec::NAME).inst(1),
-			tea_http_actor_codec::Request(uri.to_string(), data),
+		let tea_system_actors::http::Response(result) = tea_actorx_runtime::call(
+			tea_actorx_core::RegId::Static(tea_system_actors::http::NAME).inst(1),
+			tea_system_actors::http::Request(uri.to_string(), data),
 		)
 		.await?;
 		let result = Bytes::from(result);
@@ -55,9 +55,9 @@ where
 	{
 		let uri = self.uri().to_string();
 		let data = request_to_bytes(self).await?;
-		let tea_http_actor_codec::Response(result) = tea_actorx_runtime::call(
-			tea_actorx_core::RegId::Static(tea_http_actor_codec::NAME).inst(1),
-			tea_http_actor_codec::Request(uri.to_string(), data),
+		let tea_system_actors::http::Response(result) = tea_actorx_runtime::call(
+			tea_actorx_core::RegId::Static(tea_system_actors::http::NAME).inst(1),
+			tea_system_actors::http::Request(uri.to_string(), data),
 		)
 		.await?;
 		let mut headers = [httparse::EMPTY_HEADER; 32];

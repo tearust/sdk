@@ -7,15 +7,15 @@ use serde_json::json;
 use std::str::FromStr;
 use tea_codec::OptionExt;
 use tea_codec::{deserialize, serialize};
+use tea_system_actors::tappstore::txns::TappstoreTxn;
+use tea_system_actors::tappstore::CheckUserSessionRequest;
+use tea_system_actors::tappstore::CommonSqlQueryRequest;
+use tea_system_actors::tappstore::FetchAccountAssetRequest;
+use tea_system_actors::tappstore::FetchAllowanceRequest;
+use tea_system_actors::tappstore::FindExecutedTxnRequest;
+use tea_system_actors::tappstore::QueryTeaBalanceRequest;
+use tea_system_actors::tappstore::QueryTeaDepositRequest;
 use tea_tapp_common::{Balance, TokenId};
-use tea_tappstore_actor_codec::txns::TappstoreTxn;
-use tea_tappstore_actor_codec::CheckUserSessionRequest;
-use tea_tappstore_actor_codec::CommonSqlQueryRequest;
-use tea_tappstore_actor_codec::FetchAccountAssetRequest;
-use tea_tappstore_actor_codec::FetchAllowanceRequest;
-use tea_tappstore_actor_codec::FindExecutedTxnRequest;
-use tea_tappstore_actor_codec::QueryTeaBalanceRequest;
-use tea_tappstore_actor_codec::QueryTeaDepositRequest;
 use tea_vmh_codec::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
@@ -470,7 +470,7 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 
 	request::send_tappstore_query(
 		&from_actor,
-		tea_tappstore_actor_codec::QuerySystemVersionsRequest,
+		tea_system_actors::tappstore::QuerySystemVersionsRequest,
 		move |res| {
 			Box::pin(async move {
 				let r = res.0;

@@ -3,7 +3,7 @@ use crate::error::Result;
 use mocktopus::macros::*;
 use tea_codec::OptionExt;
 #[cfg(not(feature = "__test"))]
-use tea_layer1_actor_codec::*;
+use tea_system_actors::layer1::*;
 use tea_tapp_common::{
 	cml::{CmlId, CmlIntrinsic},
 	seat::SeatId,
@@ -22,8 +22,8 @@ pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>
 	use tea_actorx_runtime::call;
 
 	let rtn = call(
-		RegId::Static(tea_env_actor_codec::NAME).inst(0),
-		tea_env_actor_codec::GetMiningStartupRequest,
+		RegId::Static(tea_system_actors::env::NAME).inst(0),
+		tea_system_actors::env::GetMiningStartupRequest,
 	)
 	.await?;
 	Ok(rtn

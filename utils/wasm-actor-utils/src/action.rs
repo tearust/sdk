@@ -11,7 +11,7 @@ use std::{cell::UnsafeCell, collections::HashMap, pin::Pin};
 use tea_actor_txns::tsid::Tsid;
 use tea_tapp_common::TokenId;
 
-pub use tea_adapter_actor_codec::HttpRequest;
+pub use tea_system_actors::adapter::HttpRequest;
 
 struct Handlers(UnsafeCell<Option<HashMap<u64, CallbackItem>>>);
 unsafe impl Send for Handlers {}

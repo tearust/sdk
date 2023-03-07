@@ -14,6 +14,8 @@ use tea_actor_txns::pre_args::{Arg, ArgSlots};
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::call;
 use tea_codec::{deserialize, serialize};
+use tea_system_actors::tappstore::*;
+use tea_system_actors::tokenstate::HasDbInitRequest;
 use tea_tapp_common::{
 	cml::CmlId,
 	ra::{NodeStatus, TeaNodeProfile},
@@ -21,8 +23,6 @@ use tea_tapp_common::{
 	version::SystemVersions,
 	Account, Balance, ReplicaId, TokenId, Ts,
 };
-use tea_tappstore_actor_codec::*;
-use tea_tokenstate_actor_codec::HasDbInitRequest;
 use tea_vmh_codec::message::{
 	encode_protobuf,
 	structs_proto::{persist, tappstore, tokenstate},
@@ -50,7 +50,7 @@ where
 	T: FnOnce(Vec<TeaNodeProfile>) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		NodeProfileByConnIdsRequest(encode_protobuf(tappstore::QueryNodeProfilesByConnIds {
 			conn_ids,
 		})?),
@@ -62,7 +62,7 @@ where
 
 pub async fn has_tappstore_init() -> Result<bool> {
 	let buf = call(
-		RegId::Static(tea_tokenstate_actor_codec::NAME).inst(0),
+		RegId::Static(tea_system_actors::tokenstate::NAME).inst(0),
 		HasDbInitRequest(encode_protobuf(tokenstate::HasGlueDbInitRequest {
 			token_id: serialize(&tappstore_id().await?)?,
 		})?),
@@ -110,7 +110,7 @@ where
 	T: FnOnce(Balance, Ts) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		QueryTeaBalanceRequest(encode_protobuf(tappstore::TeaBalanceRequest {
 			account: account.to_string(),
 			token_id: serialize(&tappstore_id().await?)?,
@@ -145,7 +145,7 @@ where
 	T: FnOnce(Vec<CmlId>) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		QueryActiveCmlsRequest(encode_protobuf(tappstore::QueryActiveNodes {
 			has_exclude: exclude_tea_id.is_some(),
 			exclude_tea_id: exclude_tea_id.unwrap_or_default(),
@@ -161,7 +161,7 @@ where
 	T: FnOnce(Vec<CmlId>) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		QueryMiningCmlIdsRequest,
 		mode,
 		|res| Box::pin(async move { callback(res.0).await }),
@@ -179,7 +179,7 @@ where
 	T: FnOnce(Vec<CmlId>) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		QueryHostingCmlsRequest(serialize(&(token_id, active_only))?),
 		mode,
 		|res| Box::pin(async move { callback(res.0).await }),
@@ -204,7 +204,7 @@ where
 	const MAX_SIZE: u64 = 1024 * 1024;
 
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		GetStatementsRequest(encode_protobuf(persist::GetStatements {
 			max_size: MAX_SIZE,
 			account_filter: account
@@ -231,7 +231,7 @@ where
 	T: FnOnce(NodeStatus) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		QueryCmlRaStatusRequest(tea_id.to_vec()),
 		mode,
 		|res| Box::pin(async move { callback(res.0).await }),
@@ -248,7 +248,7 @@ where
 	T: FnOnce(Vec<TeaNodeProfile>) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		QueryActiveNodesRequest(encode_protobuf(tappstore::QueryActiveNodes {
 			has_exclude: exclude_tea_id.is_some(),
 			exclude_tea_id: exclude_tea_id.unwrap_or_default(),
@@ -269,7 +269,7 @@ where
 	}
 
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		ProcessPreArgsRequest(pre_args),
 		IntelliSendMode::LocalOnly,
 		|res| Box::pin(async move { callback(Some(res.0)).await }),
@@ -282,7 +282,7 @@ where
 	T: FnOnce(SystemVersions) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		QuerySystemVersionsRequest,
 		mode,
 		|res| Box::pin(async move { callback(res.0).await }),

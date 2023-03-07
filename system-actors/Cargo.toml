@@ -1,0 +1,27 @@
+[package]
+name = "tea-system-actors"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+authors = { workspace = true }
+license-file = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+tea-codec = { path = "../codecs/tea-codec" }
+tea-actorx-core = { path = "../actorx/actorx-core" }
+tea-tapp-common = { path = "../codecs/tapp-common" }
+tea-solc-codec = { path = "../codecs/solc-codec" }
+tea-vmh-codec = { path = "../codecs/vmh-codec" }
+tea-actor-txns = { path = "../codecs/actor-txns" }
+
+serde = { workspace = true }
+strum_macros = { workspace = true }
+
+[features]
+nitro = []
+simulator = []
+__test = []

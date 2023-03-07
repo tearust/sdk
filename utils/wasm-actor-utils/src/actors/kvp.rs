@@ -4,7 +4,7 @@ use tea_actorx_core::RegId;
 use tea_actorx_core::{ActorId, InstanceId};
 use tea_actorx_runtime::call;
 use tea_codec::{deserialize, serialize, ResultExt};
-use tea_keyvalue_actor_codec::{actions::*, manager::*};
+use tea_system_actors::keyvalue::{actions::*, manager::*};
 
 pub struct ShabbyLock {
 	key: String,
@@ -28,12 +28,12 @@ impl Drop for ShabbyLock {
 
 async fn current_actor_id() -> Result<ActorId> {
 	const TARGET_ID: ActorId = ActorId {
-		reg: RegId::Static(tea_keyvalue_actor_codec::manager::NAME),
+		reg: RegId::Static(tea_system_actors::keyvalue::manager::NAME),
 		inst: InstanceId::ZERO,
 	};
 	let AssignInstanceResponse(inst_id) = call(TARGET_ID, AssignInstanceRequest()).await?;
 	Ok(ActorId {
-		reg: RegId::Static(tea_keyvalue_actor_codec::NAME),
+		reg: RegId::Static(tea_system_actors::keyvalue::NAME),
 		inst: inst_id,
 	})
 }

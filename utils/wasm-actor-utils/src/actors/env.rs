@@ -5,10 +5,10 @@ use std::{collections::HashMap, time::SystemTime};
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::ResultExt;
-use tea_env_actor_codec::*;
+use tea_system_actors::env::*;
 use tea_tapp_common::{BlockNumber, TokenId};
 
-pub use tea_tokenstate_actor_codec::{CronjobArgs, RandomTickArgs};
+pub use tea_system_actors::tokenstate::{CronjobArgs, RandomTickArgs};
 
 pub async fn get_system_time() -> Result<SystemTime> {
 	let time = call(RegId::Static(NAME).inst(0), GetSystemTimeRequest).await?;
@@ -91,16 +91,16 @@ pub async fn initial_latest_topup_height() -> Result<BlockNumber> {
 /// in milliseconds
 pub async fn register_random_tick(args: RandomTickArgs) -> Result<()> {
 	post(
-		RegId::Static(tea_tokenstate_actor_codec::NAME).inst(0),
-		tea_tokenstate_actor_codec::RegisterRandomTickRequest(args),
+		RegId::Static(tea_system_actors::tokenstate::NAME).inst(0),
+		tea_system_actors::tokenstate::RegisterRandomTickRequest(args),
 	)
 	.await
 }
 
 pub async fn register_cron_job(args: CronjobArgs) -> Result<()> {
 	post(
-		RegId::Static(tea_tokenstate_actor_codec::NAME).inst(0),
-		tea_tokenstate_actor_codec::RegisterCronjobRequest(args),
+		RegId::Static(tea_system_actors::tokenstate::NAME).inst(0),
+		tea_system_actors::tokenstate::RegisterCronjobRequest(args),
 	)
 	.await
 }

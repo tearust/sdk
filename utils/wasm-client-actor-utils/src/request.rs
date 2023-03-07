@@ -3,7 +3,7 @@ use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize, ResultExt,
 };
-use tea_tappstore_actor_codec::txns::TappstoreTxn;
+use tea_system_actors::tappstore::txns::TappstoreTxn;
 pub use tea_wasm_actor_utils::actors::http;
 use tea_wasm_actor_utils::{
 	action::CallbackReturn,
@@ -23,7 +23,7 @@ where
 	T: FnOnce(C::Response) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	Ok(intelli_actor_query_ex(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		arg,
 		IntelliSendMode::RemoteOnly,
 		callback,
@@ -51,7 +51,7 @@ pub async fn send_tappstore_txn(
 	let gas_limit = gas_limit.unwrap_or(crate::CLIENT_DEFAULT_GAS_LIMIT);
 
 	intelli_send_txn(
-		tea_tappstore_actor_codec::NAME,
+		tea_system_actors::tappstore::NAME,
 		&serialize(&txn)?,
 		pre_args,
 		IntelliSendMode::RemoteOnly,

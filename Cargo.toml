@@ -42,27 +42,7 @@ tea-solc-codec = { version = "0.2.0-dev.1", path = "codecs/solc-codec" }
 tea-tapp-common = { version = "0.2.0-dev.1", path = "codecs/tapp-common" }
 tea-vmh-codec = { version = "0.2.0-dev.1", path = "codecs/vmh-codec" }
 
-tea-billing-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/billing-actor", optional = true }
-tea-console-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/console-actor", optional = true }
-tea-adapter-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/adapter-actor", optional = true }
-tea-crypto-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/crypto-actor", optional = true }
-tea-env-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/env-actor", optional = true }
-tea-http-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/http-actor", optional = true }
-tea-ipfs-relay-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/ipfs-relay-actor", optional = true }
-tea-keyvalue-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/keyvalue-actor", optional = true }
-tea-layer1-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/layer1-actor", optional = true }
-tea-layer1-service-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/layer1-service-actor", optional = true }
-tea-libp2p-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/libp2p-actor", optional = true }
-tea-nitro-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/nitro-actor", optional = true }
-tea-orbitdb-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/orbitdb-actor", optional = true }
-tea-persist-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/persist-actor", optional = true }
-tea-ra-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/ra-actor", optional = true }
-tea-replica-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/replica-actor", optional = true }
-tea-replica-service-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/replica-service-actor", optional = true }
-tea-state-receiver-codec = { version = "0.2.0-dev.1", path = "system-actors/state-receiver", optional = true }
-tea-tappstore-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/tappstore-actor", optional = true }
-tea-tokenstate-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/tokenstate-actor", optional = true }
-tea-tokenstate-service-actor-codec = { version = "0.2.0-dev.1", path = "system-actors/tokenstate-service-actor", optional = true }
+tea-system-actors = { version = "0.2.0-dev.1", path = "system-actors", optional = true }
 
 tea-wasm-actor-utils = { version = "0.2.0-dev.1", path = "utils/wasm-actor-utils", features = [
     "http",
@@ -76,7 +56,7 @@ members = [
     "codecs/tea-codec/macros",
     "actorx/actorx-*",
     "actorx/examples/*",
-    "system-actors/*",
+    "system-actors",
     "utils/*",
 ]
 
@@ -89,40 +69,18 @@ wasm = [
     "tea-wasm-client-actor-utils",
 ]
 host = ["tea-actorx-host", "system-actors"]
-system-actors = [
-    "tea-adapter-actor-codec",
-    "tea-billing-actor-codec",
-    "tea-console-actor-codec",
-    "tea-crypto-actor-codec",
-    "tea-env-actor-codec",
-    "tea-http-actor-codec",
-    "tea-ipfs-relay-actor-codec",
-    "tea-keyvalue-actor-codec",
-    "tea-layer1-actor-codec",
-    "tea-layer1-service-actor-codec",
-    "tea-libp2p-actor-codec",
-    "tea-nitro-actor-codec",
-    "tea-orbitdb-actor-codec",
-    "tea-persist-actor-codec",
-    "tea-ra-actor-codec",
-    "tea-replica-actor-codec",
-    "tea-replica-service-actor-codec",
-    "tea-state-receiver-codec",
-    "tea-tappstore-actor-codec",
-    "tea-tokenstate-actor-codec",
-    "tea-tokenstate-service-actor-codec",
-]
+system-actors = ["tea-system-actors"]
 signer = ["tea-actorx-signer"]
 mock = ["wasm", "tea-actorx-runtime/mock"]
 unlimited = ["tea-actorx-host/unlimited"]
-nitro = ["tea-vmh-codec/nitro", "tea-env-actor-codec/nitro"]
-simulator = ["tea-vmh-codec/simulator", "tea-env-actor-codec/simulator"]
+nitro = ["tea-vmh-codec/nitro", "tea-system-actors/nitro"]
+simulator = ["tea-vmh-codec/simulator", "tea-system-actors/simulator"]
 __test = [
     "tea-runtime-codec/__test",
     "tea-solc-codec/__test",
     "tea-tapp-common/__test",
     "tea-vmh-codec/__test",
-    "tea-libp2p-actor-codec/__test",
+    "tea-system-actors/__test",
     "tea-wasm-actor-utils/__test",
     "tea-wasm-client-actor-utils/__test",
 ]

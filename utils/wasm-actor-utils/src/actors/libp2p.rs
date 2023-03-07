@@ -16,7 +16,7 @@ use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize,
 };
-use tea_libp2p_actor_codec::{
+use tea_system_actors::libp2p::{
 	HasCooldownRequest, ListPeersRequest, MyConnIdRequest, NextSeqNumberRequest, PubMessageRequest,
 	RandomPeersRequest,
 };
@@ -32,7 +32,7 @@ const INTELLI_CANDIDATES_COUNT: usize = 2;
 
 pub async fn my_conn_id() -> Result<String> {
 	let conn_id = call(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		MyConnIdRequest,
 	)
 	.await?;
@@ -41,7 +41,7 @@ pub async fn my_conn_id() -> Result<String> {
 
 pub async fn is_connection_healthy() -> Result<bool> {
 	let cooldown = call(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		HasCooldownRequest,
 	)
 	.await?;
@@ -62,7 +62,7 @@ pub async fn is_connection_healthy() -> Result<bool> {
 
 pub(crate) async fn libp2p_seq_number() -> Result<u64> {
 	let seq_number = call(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		NextSeqNumberRequest,
 	)
 	.await?;
@@ -82,8 +82,8 @@ pub async fn send_message(
 
 	let seq_number = libp2p_seq_number().await?;
 	post(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
-		tea_libp2p_actor_codec::SendMessageRequest(
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
+		tea_system_actors::libp2p::SendMessageRequest(
 			encode_protobuf(libp2p::GeneralRequest {
 				source_conn_id: Default::default(),
 				target_conn_id,
@@ -111,7 +111,7 @@ pub async fn pub_message(
 	topic_name: Option<String>,
 ) -> Result<()> {
 	post(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		PubMessageRequest(encode_protobuf(libp2p::PubMessage {
 			source_conn_id: Default::default(),
 			topic: topic_name.map(|topic_name| libp2p::Topic { topic_name }),
@@ -132,7 +132,7 @@ pub async fn pub_message(
 
 pub async fn connected_peers() -> Result<Vec<String>> {
 	let buf = call(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		ListPeersRequest,
 	)
 	.await?;
@@ -142,7 +142,7 @@ pub async fn connected_peers() -> Result<Vec<String>> {
 
 pub async fn get_random_peers(peer_count: u32) -> Result<(Vec<String>, bool)> {
 	let buf = call(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		RandomPeersRequest(encode_protobuf(libp2p::RandomPeersRequest {
 			count: peer_count,
 		})?),
@@ -300,8 +300,8 @@ where
 {
 	let seq_number = libp2p_seq_number().await?;
 	post(
-		RegId::Static(tea_libp2p_actor_codec::NAME).inst(0),
-		tea_libp2p_actor_codec::SendMessageRequest(
+		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
+		tea_system_actors::libp2p::SendMessageRequest(
 			encode_protobuf(libp2p::GeneralRequest {
 				source_conn_id: Default::default(),
 				target_conn_id,
@@ -312,7 +312,7 @@ where
 						target_action: Default::default(),
 					}),
 					target_address: Some(libp2p::RuntimeAddress {
-						target_key: tea_state_receiver_codec::NAME.to_vec(),
+						target_key: tea_system_actors::state_receiver::NAME.to_vec(),
 						target_action: "libp2p.state-receiver".to_string(),
 					}),
 					content: encode_protobuf(msg)?,
