@@ -6,7 +6,7 @@ use tea_codec::serde::TypeId;
 
 pub mod error;
 
-pub const SETTLEMENT_INTERVAL: Duration = Duration::from_secs(120);
+pub const SETTLEMENT_INTERVAL: Duration = Duration::from_secs(600);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
