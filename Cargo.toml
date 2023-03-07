@@ -137,7 +137,11 @@ crossbeam-channel = "0.5.6"
 dashmap = "5.4"
 ed25519-dalek = "1.0.0"
 futures = "0.3.25"
-gluesql-core = { version = "0.13.1" }
+gluesql-core = { version = "0.13.1", features = [
+    "transaction",
+    "index",
+    "alter-table",
+] }
 hex = "0.4.0"
 http = "0.2.8"
 http-body = "0.4.5"
