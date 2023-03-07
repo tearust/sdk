@@ -6,10 +6,10 @@ use crate::error::Result;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Manifest {
-	actor_id: String,
-	owner_id: String,
-	token_id: H160,
-	access: Vec<String>,
+	pub actor_id: String,
+	pub owner_id: String,
+	pub token_id: H160,
+	pub access: Vec<String>,
 }
 
 impl Manifest {
