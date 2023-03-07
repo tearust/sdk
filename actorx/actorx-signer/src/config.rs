@@ -1,6 +1,6 @@
+use crate::{Claim, Metadata};
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
-use tea_actorx_signer::{Claim, Metadata};
 
 use crate::error::Result;
 

@@ -1,4 +1,5 @@
 #![feature(min_specialization)]
+#![feature(iterator_try_collect)]
 
 use error::{InvalidSignatureFormat, Result, SignatureMismatch};
 use openssl::{
@@ -8,7 +9,10 @@ use openssl::{
 };
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
+mod config;
 pub mod error;
+
+pub use config::Manifest;
 
 extern crate tea_codec as tea_sdk;
 
