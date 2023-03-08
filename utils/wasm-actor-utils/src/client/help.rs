@@ -1,6 +1,6 @@
-use crate::{Errors, Result};
+use crate::client::{Errors, Result};
+use crate::enclave::actors::kvp;
 use tea_codec::OptionExt;
-use tea_wasm_actor_utils::actors::kvp;
 
 pub async fn set_mem_cache(key: &str, val: Vec<u8>) -> Result<()> {
 	kvp::set(key, &val, 1800).await?;

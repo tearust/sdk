@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::enclave::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use std::{collections::HashMap, time::SystemTime};
@@ -54,7 +54,7 @@ pub async fn tappstore_id() -> Result<TokenId> {
 #[cfg(feature = "__test")]
 #[mockable]
 pub async fn tappstore_id() -> Result<TokenId> {
-	use interface::MOCK_TOKEN_ID_TAPPSTORE;
+	use tea_runtime_codec::tapp::MOCK_TOKEN_ID_TAPPSTORE;
 
 	Ok(MOCK_TOKEN_ID_TAPPSTORE)
 }

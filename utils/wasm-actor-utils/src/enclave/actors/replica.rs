@@ -2,7 +2,7 @@ use super::{
 	enclave::generate_uuid, env::apply_validator, libp2p::connected_peers,
 	statemachine::new_txn_serial, util::random_select,
 };
-use crate::{
+use crate::enclave::{
 	action::CallbackReturn,
 	actors::{
 		crypto::sha256,

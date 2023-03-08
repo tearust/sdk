@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::enclave::error::Result;
 use serde::{de::DeserializeOwned, Serialize};
 use tea_actorx_core::RegId;
 use tea_actorx_core::{ActorId, InstanceId};

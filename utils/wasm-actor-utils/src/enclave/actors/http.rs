@@ -1,7 +1,7 @@
 use tea_runtime_codec::runtime::http::{FromHttpBytes, IntoHttpBytes};
 use tea_sdk::ResultExt;
 
-use crate::error::Result;
+use crate::enclave::error::Result;
 
 pub use http::*;
 pub use http_body::*;

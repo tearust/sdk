@@ -1,4 +1,4 @@
-use crate::{
+use crate::enclave::{
 	actors::{
 		env::tappstore_id,
 		replica::report_txn_error,

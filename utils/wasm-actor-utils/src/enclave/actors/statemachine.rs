@@ -1,5 +1,5 @@
 use super::enclave::random_u64;
-use crate::{
+use crate::enclave::{
 	actors::{
 		env::tappstore_id, persist::async_persist_request, replica::send_transaction_locally,
 	},

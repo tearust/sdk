@@ -2,7 +2,7 @@ use super::{
 	enclave::generate_uuid,
 	replica::{random_select_validators_locally, IntelliSendMode},
 };
-use crate::{
+use crate::enclave::{
 	action::{add_callback, CallbackReturn},
 	error::{Error, Errors, Result},
 };
@@ -342,7 +342,7 @@ pub async fn generate_query_message(
 		bytes: content.to_vec(),
 	};
 
-	let from_token = crate::actors::env::get_current_wasm_actor_token_id().await?;
+	let from_token = crate::enclave::actors::env::get_current_wasm_actor_token_id().await?;
 	Ok(tokenstate::StateReceiverMessage {
 		uuid,
 		msg: Some(tokenstate::state_receiver_message::Msg::StateQuery(

@@ -1,4 +1,4 @@
-use crate::error::{GlueSqlErrors, Result};
+use crate::enclave::error::{GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
 use tea_actorx_core::RegId;

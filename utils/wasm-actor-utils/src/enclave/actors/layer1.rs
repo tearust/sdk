@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::enclave::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use tea_codec::OptionExt;

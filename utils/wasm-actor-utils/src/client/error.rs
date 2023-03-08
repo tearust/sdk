@@ -1,5 +1,5 @@
+use crate::enclave::error::Actor;
 use tea_codec::define_scope;
-use tea_wasm_actor_utils::error::Actor;
 use thiserror::Error;
 
 define_scope! {

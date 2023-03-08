@@ -1,4 +1,4 @@
-use crate::{
+use crate::enclave::{
 	action::{add_callback, CallbackReturn},
 	actors::libp2p::libp2p_seq_number,
 	error::{Errors, Result},

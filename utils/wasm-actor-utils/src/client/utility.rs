@@ -1,4 +1,4 @@
-use crate::Result;
+use crate::client::Result;
 use tea_codec::ResultExt;
 use tea_runtime_codec::tapp::Account;
 

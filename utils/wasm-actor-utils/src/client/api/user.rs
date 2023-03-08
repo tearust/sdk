@@ -1,7 +1,9 @@
-use crate::error::Result;
-use crate::help;
-use crate::request;
+use crate::client::error::Result;
+use crate::client::help;
+use crate::client::request;
 
+use crate::enclave::actors::enclave::get_my_tea_id;
+use crate::enclave::actors::util as actor_util;
 use prost::Message;
 use serde::Deserialize;
 use serde::Serialize;
@@ -22,8 +24,6 @@ use tea_system_actors::tappstore::FetchAllowanceRequest;
 use tea_system_actors::tappstore::FindExecutedTxnRequest;
 use tea_system_actors::tappstore::QueryTeaBalanceRequest;
 use tea_system_actors::tappstore::QueryTeaDepositRequest;
-use tea_wasm_actor_utils::actors::enclave::get_my_tea_id;
-use tea_wasm_actor_utils::actors::util as actor_util;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -396,7 +396,7 @@ pub struct HttpQueryResultWithUuid {
 }
 pub async fn query_result(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
 	let req: HttpQueryResultWithUuid = serde_json::from_slice(&payload)?;
-	match crate::query_cb::query_callback(from_actor, &req.uuid).await {
+	match crate::client::query_cb::query_callback(from_actor, &req.uuid).await {
 		Ok(res_val) => Ok(serde_json::to_vec(&res_val)?),
 		Err(e) => help::result_error(e.to_string()),
 	}

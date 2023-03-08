@@ -29,8 +29,8 @@ pub use tea_system_actors as actors;
 
 pub mod utils {
 	#[cfg(feature = "wasm")]
-	pub use tea_wasm_actor_utils as wasm_actor;
+	pub use tea_wasm_actor_utils::enclave as wasm_actor;
 
 	#[cfg(feature = "wasm")]
-	pub use tea_wasm_client_actor_utils as client_wasm_actor;
+	pub use tea_wasm_actor_utils::client as client_wasm_actor;
 }

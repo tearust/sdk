@@ -44,7 +44,6 @@ tea-system-actors = { version = "0.2.0-dev.4", path = "system-actors", optional 
 tea-wasm-actor-utils = { version = "0.2.0-dev.4", path = "utils/wasm-actor-utils", features = [
     "http",
 ], optional = true }
-tea-wasm-client-actor-utils = { version = "0.2.0-dev.4", path = "utils/wasm-client-actor-utils", optional = true }
 
 tokio = { workspace = true, features = ["macros"], optional = true }
 
@@ -61,12 +60,7 @@ members = [
 
 [features]
 default = []
-wasm = [
-    "tea-actorx-runtime",
-    "system-actors",
-    "tea-wasm-actor-utils",
-    "tea-wasm-client-actor-utils",
-]
+wasm = ["tea-actorx-runtime", "system-actors", "tea-wasm-actor-utils"]
 host = ["tea-actorx-host", "system-actors"]
 system-actors = ["tea-system-actors", "vmh"]
 vmh = ["tea-runtime-codec/vmh"]
@@ -80,7 +74,6 @@ __test = [
     "tea-runtime-codec/__test",
     "tea-system-actors/__test",
     "tea-wasm-actor-utils/__test",
-    "tea-wasm-client-actor-utils/__test",
 ]
 
 [workspace.dependencies]
@@ -110,6 +103,7 @@ impl-trait-for-tuples = "0.2.2"
 lazy_static = "1.4.0"
 leb128 = "0.2.5"
 log = { version = "0.4.17", features = ["std", "serde"] }
+mocktopus = "0.8.0"
 num-derive = "0.3.3"
 num-traits = "0.2.15"
 num_enum = "0.5.11"

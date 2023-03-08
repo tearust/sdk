@@ -1,20 +1,20 @@
-use tea_codec::{
-	serde::{handle::Request, FromBytes, ToBytes},
-	serialize, ResultExt,
-};
-use tea_runtime_codec::actor_txns::pre_args::Arg;
-use tea_system_actors::tappstore::txns::TappstoreTxn;
-pub use tea_wasm_actor_utils::actors::http;
-use tea_wasm_actor_utils::{
+pub use crate::enclave::actors::http;
+use crate::enclave::{
 	action::CallbackReturn,
 	actors::{
 		libp2p::intelli_actor_query_ex,
 		replica::{intelli_send_txn, IntelliSendMode},
 	},
 };
+use tea_codec::{
+	serde::{handle::Request, FromBytes, ToBytes},
+	serialize, ResultExt,
+};
+use tea_runtime_codec::actor_txns::pre_args::Arg;
+use tea_system_actors::tappstore::txns::TappstoreTxn;
 
-use crate::help;
-use crate::Result;
+use crate::client::help;
+use crate::client::Result;
 
 pub async fn send_tappstore_query<C, T>(_from_actor: &str, arg: C, callback: T) -> Result<()>
 where
@@ -48,7 +48,7 @@ pub async fn send_tappstore_txn(
 
 	let uuid = uuid.to_string();
 
-	let gas_limit = gas_limit.unwrap_or(crate::CLIENT_DEFAULT_GAS_LIMIT);
+	let gas_limit = gas_limit.unwrap_or(crate::client::CLIENT_DEFAULT_GAS_LIMIT);
 
 	intelli_send_txn(
 		tea_system_actors::tappstore::NAME,

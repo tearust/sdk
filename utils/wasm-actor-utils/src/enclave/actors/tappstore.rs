@@ -3,7 +3,7 @@ use super::{
 	replica::IntelliSendMode,
 	util::random_select,
 };
-use crate::{
+use crate::enclave::{
 	action::CallbackReturn,
 	actors::env::tappstore_id,
 	error::{Error, Result},

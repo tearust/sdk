@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::enclave::error::Result;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::post;
 use tea_system_actors::adapter::*;

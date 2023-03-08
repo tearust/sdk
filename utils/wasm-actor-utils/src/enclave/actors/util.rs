@@ -1,4 +1,4 @@
-use crate::{
+use crate::enclave::{
 	actors::enclave::generate_random,
 	error::{Layer1Errors, Result},
 };

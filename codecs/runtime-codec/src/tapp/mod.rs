@@ -30,6 +30,11 @@ pub type Balance = U256;
 pub const CENTS: Balance = U256([10_000_000_000_000_000, 0, 0, 0]);
 pub const DOLLARS: Balance = U256([1_000_000_000_000_000_000, 0, 0, 0]);
 
+/// When use TOKEN_ID_TAPPSTORE, this is not for any tapp.
+/// it is just a TEA account for a user transfer
+/// between layer one and layer two
+pub const MOCK_TOKEN_ID_TAPPSTORE: TokenId = TokenId(H160::zero());
+
 /// Short format of timestamp (from chrono timestamp), to distinguish between transactions
 ///  that may send multiple times
 pub type TimestampShort = i64;

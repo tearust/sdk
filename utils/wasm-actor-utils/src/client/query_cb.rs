@@ -1,5 +1,5 @@
-use crate::help;
-use crate::Result;
+use crate::client::help;
+use crate::client::Result;
 
 pub async fn query_callback(_from_actor: String, key: &str) -> Result<serde_json::Value> {
 	let value = help::get_mem_cache(key).await?;

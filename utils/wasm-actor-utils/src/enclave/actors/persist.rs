@@ -1,4 +1,4 @@
-use crate::error::Result;
+use crate::enclave::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use tea_runtime_codec::vmh::message::structs_proto::persist;
@@ -15,7 +15,7 @@ pub async fn async_persist_request(
 pub async fn async_persist_request(
 	req: persist::PersistRequest,
 ) -> Result<persist::PersistResponse> {
-	use crate::error::Errors;
+	use crate::enclave::error::Errors;
 	use prost::Message;
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;

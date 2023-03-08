@@ -1,10 +1,10 @@
+use crate::enclave::actors::http::RequestExt;
 use serde::Deserialize;
 use serde::Serialize;
-use tea_wasm_actor_utils::actors::http::RequestExt;
 
-use crate::error::Result;
-use crate::help;
-use crate::request;
+use crate::client::error::Result;
+use crate::client::help;
+use crate::client::request;
 
 //const TWITTER_OAUTH_KEY: &str = "AAAAAAAAAAAAAAAAAAAAAF4gTwEAAAAAedgLBTRn%2Bp78NXs2n12t7xhbcl8%3DRE8ZxY6KcGFaUKYa1F5oWgf6pE0rBC8Us8A3hiIdEUwx4rUF8f";
 //const TWITTER_CANDIDATE_KEY: &str = "twitter_candidate_key";
