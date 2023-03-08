@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
-use tea_tapp_common::ra::PcrType;
+use tea_runtime_codec::tapp::ra::PcrType;
 
 pub mod error;
 

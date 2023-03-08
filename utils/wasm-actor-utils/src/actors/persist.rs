@@ -1,7 +1,7 @@
 use crate::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
-use tea_vmh_codec::message::structs_proto::persist;
+use tea_runtime_codec::vmh::message::structs_proto::persist;
 
 #[mockable]
 #[cfg(feature = "__test")]
@@ -19,9 +19,9 @@ pub async fn async_persist_request(
 	use prost::Message;
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
-	use tea_runtime_codec::ops::persist::OP_ASYNC_REQUEST;
+	use tea_runtime_codec::runtime::ops::persist::OP_ASYNC_REQUEST;
+	use tea_runtime_codec::vmh::message::encode_protobuf;
 	use tea_system_actors::persist::*;
-	use tea_vmh_codec::message::encode_protobuf;
 
 	let msg = call(
 		RegId::Static(NAME).inst(0),

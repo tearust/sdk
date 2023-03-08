@@ -8,8 +8,8 @@ use crate::{
 };
 use futures::Future;
 use std::{cell::UnsafeCell, collections::HashMap, pin::Pin};
-use tea_actor_txns::tsid::Tsid;
-use tea_tapp_common::TokenId;
+use tea_runtime_codec::actor_txns::tsid::Tsid;
+use tea_runtime_codec::tapp::TokenId;
 
 pub use tea_system_actors::adapter::HttpRequest;
 

@@ -2,13 +2,13 @@ use crate::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use tea_codec::OptionExt;
-#[cfg(not(feature = "__test"))]
-use tea_system_actors::layer1::*;
-use tea_tapp_common::{
+use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic},
 	seat::SeatId,
 	Account, BlockNumber,
 };
+#[cfg(not(feature = "__test"))]
+use tea_system_actors::layer1::*;
 
 #[cfg(feature = "__test")]
 #[mockable]
@@ -69,7 +69,7 @@ pub async fn get_tapp_startup_nodes(
 ) -> Result<Vec<(Vec<u8>, CmlId, String)>> {
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::{call, post};
-	use tea_solc_codec::queries::AsyncQuery;
+	use tea_runtime_codec::solc::queries::AsyncQuery;
 
 	if at_height.is_none() {
 		// only try get cache if at_height is none
@@ -140,7 +140,7 @@ pub async fn cmls_info_from_layer1(
 ) -> Result<Vec<CmlIntrinsic>> {
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
-	use tea_solc_codec::queries::{AsyncQuery, QueryType};
+	use tea_runtime_codec::solc::queries::{AsyncQuery, QueryType};
 
 	let (cached_cmls, missing_cml_ids): (Vec<CmlIntrinsic>, Vec<CmlId>) = if at_height.is_none() {
 		let (cached_cmls, missing_cml_ids) = get_cached_cmls(&cml_ids).await?;
@@ -203,7 +203,7 @@ async fn update_cml_cache(cmls: &[CmlIntrinsic]) -> Result<()> {
 pub async fn appstore_owner_account(at_height: Option<BlockNumber>) -> Result<Account> {
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
-	use tea_solc_codec::queries::AsyncQuery;
+	use tea_runtime_codec::solc::queries::AsyncQuery;
 
 	let res = call(
 		RegId::Static(NAME).inst(0),

@@ -3,8 +3,8 @@ use std::{collections::HashMap, time::SystemTime};
 use serde::{Deserialize, Serialize};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
-use tea_solc_codec::{BlockNumber, ContractAddresses};
-use tea_vmh_codec::io::VersionInfo;
+use tea_runtime_codec::solc::{BlockNumber, ContractAddresses};
+use tea_runtime_codec::vmh::io::VersionInfo;
 
 pub mod error;
 

@@ -5,8 +5,6 @@
 
 #[macro_use]
 extern crate log;
-#[macro_use]
-extern crate serde_derive;
 extern crate tea_codec as tea_sdk;
 
 pub mod api;

@@ -1,3 +1,5 @@
+use serde::Deserialize;
+use serde::Serialize;
 use tea_wasm_actor_utils::actors::http::RequestExt;
 
 use crate::error::Result;

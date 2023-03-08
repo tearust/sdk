@@ -2,9 +2,9 @@ use crate::error::Result;
 use prost::Message;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::call;
+use tea_runtime_codec::tapp::Account;
+use tea_runtime_codec::vmh::message::{encode_protobuf, structs_proto::crypto};
 use tea_system_actors::crypto::*;
-use tea_tapp_common::Account;
-use tea_vmh_codec::message::{encode_protobuf, structs_proto::crypto};
 
 pub async fn sha256(content: Vec<u8>) -> Result<Vec<u8>> {
 	let req = crypto::ShaRequest {

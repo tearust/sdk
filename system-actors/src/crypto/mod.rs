@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
-use tea_tapp_common::Account;
+use tea_runtime_codec::tapp::Account;
 
 pub mod error;
 

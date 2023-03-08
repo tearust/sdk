@@ -1,8 +1,8 @@
-use tea_actor_txns::pre_args::Arg;
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize, ResultExt,
 };
+use tea_runtime_codec::actor_txns::pre_args::Arg;
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 pub use tea_wasm_actor_utils::actors::http;
 use tea_wasm_actor_utils::{

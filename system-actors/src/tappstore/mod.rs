@@ -1,14 +1,14 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use tea_actor_txns::{
-	pre_args::{Arg, ArgSlots},
-	tsid::Tsid,
-};
 use tea_actorx_core::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
-use tea_solc_codec::txns::{MintCmlRecordTrans, UnlockRecordTrans};
-use tea_tapp_common::{
+use tea_runtime_codec::actor_txns::{
+	pre_args::{Arg, ArgSlots},
+	tsid::Tsid,
+};
+use tea_runtime_codec::solc::txns::{MintCmlRecordTrans, UnlockRecordTrans};
+use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic, CmlVariable},
 	machine::{MiningIntrinsic, MiningVariable},
 	ra::{EnclaveType, NodeStatus, PcrType, TeaNodeProfile},

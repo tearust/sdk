@@ -2,11 +2,11 @@ use super::error::Error;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
-use strum_macros::Display;
-use tea_actor_txns::{IntoSerial, Transferable, Txn, TxnSerial};
+use strum::Display;
 use tea_codec::ResultExt;
 use tea_codec::{deserialize, serialize};
-use tea_tapp_common::{
+use tea_runtime_codec::actor_txns::{IntoSerial, Transferable, Txn, TxnSerial};
+use tea_runtime_codec::tapp::{
 	entity::EntitySettings,
 	machine::{IssuerId, TappStartupItem},
 	ra::{PcrType, TeaNodeProfile},

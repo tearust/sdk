@@ -13,14 +13,12 @@ repository = { workspace = true }
 [dependencies]
 tea-codec = { version = "0.2.0-dev.4", path = "../codecs/tea-codec" }
 tea-actorx-core = { version = "0.2.0-dev.4", path = "../actorx/actorx-core" }
-tea-tapp-common = { version = "0.2.0-dev.4", path = "../codecs/tapp-common" }
-tea-solc-codec = { version = "0.2.0-dev.4", path = "../codecs/solc-codec" }
-tea-vmh-codec = { version = "0.2.0-dev.4", path = "../codecs/vmh-codec" }
-tea-runtime-codec = { version = "0.2.0-dev.4", path = "../codecs/runtime-codec" }
-tea-actor-txns = { version = "0.2.0-dev.4", path = "../codecs/actor-txns" }
+tea-runtime-codec = { version = "0.2.0-dev.4", path = "../codecs/runtime-codec", features = [
+    "vmh",
+] }
 
 serde = { workspace = true }
-strum_macros = { workspace = true }
+strum = { workspace = true }
 
 [features]
 nitro = []

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tea_actorx_core::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
-use tea_vmh_codec::io::HostType;
+use tea_runtime_codec::vmh::io::HostType;
 
 pub mod error;
 

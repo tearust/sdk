@@ -15,16 +15,11 @@ tea-codec = { version = "0.2.0-dev.4", path = "../../codecs/tea-codec" }
 tea-actorx-core = { version = "0.2.0-dev.4", path = "../../actorx/actorx-core" }
 tea-actorx-host = { version = "0.2.0-dev.4", path = "../../actorx/actorx-host", optional = true }
 tea-actorx-runtime = { version = "0.2.0-dev.4", path = "../../actorx/actorx-runtime" }
-tea-tapp-common = { version = "0.2.0-dev.4", path = "../../codecs/tapp-common" }
-tea-actor-txns = { version = "0.2.0-dev.4", path = "../../codecs/actor-txns" }
-tea-solc-codec = { version = "0.2.0-dev.4", path = "../../codecs/solc-codec" }
-tea-vmh-codec = { version = "0.2.0-dev.4", path = "../../codecs/vmh-codec" }
 tea-runtime-codec = { version = "0.2.0-dev.4", path = "../../codecs/runtime-codec" }
 
 tea-system-actors = { version = "0.2.0-dev.4", path = "../../system-actors" }
 
 serde = { workspace = true }
-serde_derive = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
 ed25519-dalek = { workspace = true }
@@ -50,4 +45,4 @@ nitro = []
 simulator = []
 http = ["dep:http", "http-body", "httparse", "bytes"]
 native = ["tea-actorx-host"]
-__test = ["tea-vmh-codec/__test", "mocktopus"]
+__test = ["tea-runtime-codec/__test", "mocktopus"]

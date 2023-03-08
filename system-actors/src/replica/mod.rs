@@ -1,8 +1,8 @@
 use serde::{Deserialize, Serialize};
-use tea_actor_txns::{pre_args::ArgSlots, tsid::Tsid, txn::FullTxn};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
-use tea_tapp_common::{Hash, ReplicaId};
+use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, txn::FullTxn};
+use tea_runtime_codec::tapp::{Hash, ReplicaId};
 
 pub mod error;
 

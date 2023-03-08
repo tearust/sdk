@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
-use tea_actor_txns::tsid::Tsid;
 use tea_codec::serde::TypeId;
-use tea_tapp_common::ReplicaId;
+use tea_runtime_codec::actor_txns::tsid::Tsid;
+use tea_runtime_codec::tapp::ReplicaId;
 
 pub mod error;
 

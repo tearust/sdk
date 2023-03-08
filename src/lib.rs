@@ -1,13 +1,13 @@
-pub use tea_actor_txns;
+pub use tea_codec::*;
+
 pub mod runtime {
 	#[cfg(feature = "host")]
 	pub use tea_codec::runtime::*;
-	pub use tea_runtime_codec::*;
+	pub use tea_runtime_codec::runtime::*;
 }
-pub use tea_codec::*;
-pub use tea_solc_codec as solc;
-pub use tea_tapp_common as tapp;
-pub use tea_vmh_codec as vmh;
+#[cfg(feature = "vmh")]
+pub use tea_runtime_codec::vmh;
+pub use tea_runtime_codec::{actor_txns, solc, tapp};
 #[doc(hidden)]
 pub mod third;
 

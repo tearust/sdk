@@ -3,10 +3,17 @@ use crate::help;
 use crate::request;
 
 use prost::Message;
+use serde::Deserialize;
+use serde::Serialize;
 use serde_json::json;
 use std::str::FromStr;
 use tea_codec::OptionExt;
 use tea_codec::{deserialize, serialize};
+use tea_runtime_codec::tapp::{Balance, TokenId};
+use tea_runtime_codec::vmh::message::{
+	encode_protobuf,
+	structs_proto::{replica, tappstore},
+};
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 use tea_system_actors::tappstore::CheckUserSessionRequest;
 use tea_system_actors::tappstore::CommonSqlQueryRequest;
@@ -15,11 +22,6 @@ use tea_system_actors::tappstore::FetchAllowanceRequest;
 use tea_system_actors::tappstore::FindExecutedTxnRequest;
 use tea_system_actors::tappstore::QueryTeaBalanceRequest;
 use tea_system_actors::tappstore::QueryTeaDepositRequest;
-use tea_tapp_common::{Balance, TokenId};
-use tea_vmh_codec::message::{
-	encode_protobuf,
-	structs_proto::{replica, tappstore},
-};
 use tea_wasm_actor_utils::actors::enclave::get_my_tea_id;
 use tea_wasm_actor_utils::actors::util as actor_util;
 
@@ -360,7 +362,7 @@ pub async fn query_tapp_metadata(payload: Vec<u8>, from_actor: String) -> Result
 						"error": &r.err,
 					})
 				} else {
-					let data: tea_tapp_common::tapp::TappMetaData =
+					let data: tea_runtime_codec::tapp::tapp::TappMetaData =
 						tea_codec::deserialize(&r.data)?;
 					info!("query_tapp_metadata => {:?}", &data);
 

@@ -8,7 +8,6 @@ use crate::{
 };
 use prost::Message;
 use std::collections::HashSet;
-use tea_actor_txns::QuerySerial;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::{
@@ -16,16 +15,17 @@ use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize,
 };
-use tea_system_actors::libp2p::{
-	HasCooldownRequest, ListPeersRequest, MyConnIdRequest, NextSeqNumberRequest, PubMessageRequest,
-	RandomPeersRequest,
-};
-use tea_vmh_codec::{
+use tea_runtime_codec::actor_txns::QuerySerial;
+use tea_runtime_codec::vmh::{
 	error::{VmhCodec, VmhResult},
 	message::{
 		encode_protobuf,
 		structs_proto::{libp2p, tokenstate},
 	},
+};
+use tea_system_actors::libp2p::{
+	HasCooldownRequest, ListPeersRequest, MyConnIdRequest, NextSeqNumberRequest, PubMessageRequest,
+	RandomPeersRequest,
 };
 
 const INTELLI_CANDIDATES_COUNT: usize = 2;

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use tea_actorx_core::ActorId;
 use tea_codec::serde::TypeId;
-use tea_tapp_common::TimestampShort;
+use tea_runtime_codec::tapp::TimestampShort;
 
 pub mod error;
 

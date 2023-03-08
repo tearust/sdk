@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 use tea_actorx_core::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
-use tea_solc_codec::{
+use tea_runtime_codec::solc::{
 	queries::AsyncQuery,
 	txns::{AsyncTxn, SingleSign},
 	BlockNumber,
 };
-use tea_tapp_common::{
+use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic},
 	Account,
 };

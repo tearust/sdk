@@ -5,8 +5,8 @@ use std::{collections::HashMap, time::SystemTime};
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::ResultExt;
+use tea_runtime_codec::tapp::{BlockNumber, TokenId};
 use tea_system_actors::env::*;
-use tea_tapp_common::{BlockNumber, TokenId};
 
 pub use tea_system_actors::tokenstate::{CronjobArgs, RandomTickArgs};
 
@@ -16,7 +16,7 @@ pub async fn get_system_time() -> Result<SystemTime> {
 }
 
 pub async fn system_time_as_nanos() -> Result<u128> {
-	tea_vmh_codec::utils::system_time_as_nanos(get_system_time().await?).err_into()
+	tea_runtime_codec::vmh::utils::system_time_as_nanos(get_system_time().await?).err_into()
 }
 
 pub async fn is_replica_test_mode() -> Result<bool> {
