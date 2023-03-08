@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.2.0-dev.3"
+version = "0.2.0-dev.4"
 edition = "2021"
 description = "The TEA SDK"
 authors = [
@@ -29,26 +29,26 @@ repository = { workspace = true }
 exclude = ["actorx/*", "rust-toolchain.toml", ".rustfmt.toml", ".gitignore"]
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.3", path = "codecs/tea-codec" }
+tea-codec = { version = "0.2.0-dev.4", path = "codecs/tea-codec" }
 
-tea-actorx-core = { version = "0.2.0-dev.3", path = "actorx/actorx-core" }
-tea-actorx-host = { version = "0.2.0-dev.3", path = "actorx/actorx-host", optional = true }
-tea-actorx-runtime = { version = "0.2.0-dev.3", path = "actorx/actorx-runtime", optional = true }
-tea-actorx-signer = { version = "0.2.0-dev.3", path = "actorx/actorx-signer", optional = true }
-tea-actorx-macros = { version = "0.2.0-dev.3", path = "actorx/actorx-macros", optional = true }
+tea-actorx-core = { version = "0.2.0-dev.4", path = "actorx/actorx-core" }
+tea-actorx-host = { version = "0.2.0-dev.4", path = "actorx/actorx-host", optional = true }
+tea-actorx-runtime = { version = "0.2.0-dev.4", path = "actorx/actorx-runtime", optional = true }
+tea-actorx-signer = { version = "0.2.0-dev.4", path = "actorx/actorx-signer", optional = true }
+tea-actorx-macros = { version = "0.2.0-dev.4", path = "actorx/actorx-macros", optional = true }
 
-tea-actor-txns = { version = "0.2.0-dev.3", path = "codecs/actor-txns" }
-tea-runtime-codec = { version = "0.2.0-dev.3", path = "codecs/runtime-codec" }
-tea-solc-codec = { version = "0.2.0-dev.3", path = "codecs/solc-codec" }
-tea-tapp-common = { version = "0.2.0-dev.3", path = "codecs/tapp-common" }
-tea-vmh-codec = { version = "0.2.0-dev.3", path = "codecs/vmh-codec" }
+tea-actor-txns = { version = "0.2.0-dev.4", path = "codecs/actor-txns" }
+tea-runtime-codec = { version = "0.2.0-dev.4", path = "codecs/runtime-codec" }
+tea-solc-codec = { version = "0.2.0-dev.4", path = "codecs/solc-codec" }
+tea-tapp-common = { version = "0.2.0-dev.4", path = "codecs/tapp-common" }
+tea-vmh-codec = { version = "0.2.0-dev.4", path = "codecs/vmh-codec" }
 
-tea-system-actors = { version = "0.2.0-dev.3", path = "system-actors", optional = true }
+tea-system-actors = { version = "0.2.0-dev.4", path = "system-actors", optional = true }
 
-tea-wasm-actor-utils = { version = "0.2.0-dev.3", path = "utils/wasm-actor-utils", features = [
+tea-wasm-actor-utils = { version = "0.2.0-dev.4", path = "utils/wasm-actor-utils", features = [
     "http",
 ], optional = true }
-tea-wasm-client-actor-utils = { version = "0.2.0-dev.3", path = "utils/wasm-client-actor-utils", optional = true }
+tea-wasm-client-actor-utils = { version = "0.2.0-dev.4", path = "utils/wasm-client-actor-utils", optional = true }
 
 tokio = { workspace = true, features = ["macros"], optional = true }
 

@@ -6,9 +6,6 @@ use prost::bytes::Bytes;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tea_sdk::{errorx::Scope, serde::TypeId, ResultExt};
 
-pub const OP_HTTP_REQUEST: &str = "HttpRequest";
-pub const OP_UPGRADE_VERSION: &str = "UpgradeVersion";
-
 #[derive(Clone, Debug, TypeId, Serialize, Deserialize)]
 pub struct HttpRequest {
 	#[serde(with = "http_serde::method")]
@@ -289,5 +286,17 @@ impl IntoHttpBytes for Arc<str> {
 impl FromHttpBytes for Arc<str> {
 	fn from_http_bytes(input: Vec<u8>) -> Result<Self> {
 		Ok(std::str::from_utf8(&input)?.into())
+	}
+}
+
+impl IntoHttpBytes for () {
+	fn into_http_bytes(self) -> Result<Vec<u8>> {
+		Ok(Vec::new())
+	}
+}
+
+impl FromHttpBytes for () {
+	fn from_http_bytes(_: Vec<u8>) -> Result<Self> {
+		Ok(())
 	}
 }
