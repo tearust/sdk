@@ -78,6 +78,7 @@ mock = ["wasm", "tea-actorx-runtime/mock", "tea-actorx-macros", "tokio"]
 unlimited = ["tea-actorx-host/unlimited"]
 nitro = ["tea-vmh-codec/nitro", "tea-system-actors/nitro"]
 simulator = ["tea-vmh-codec/simulator", "tea-system-actors/simulator"]
+dev = ["tea-vmh-codec/dev"]
 __test = [
     "tea-runtime-codec/__test",
     "tea-solc-codec/__test",

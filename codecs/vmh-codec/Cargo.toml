@@ -41,4 +41,5 @@ prost-build = "0.11.1"
 default = []
 nitro = []
 simulator = []
+dev = []
 __test = ["simulator"]

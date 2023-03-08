@@ -46,6 +46,8 @@ pub struct HostSettings {
 	pub loaded_clients: Vec<RegistryKey>,
 	pub encryted_key: Option<Vec<u8>>,
 	pub init_layer1_key: Option<Vec<u8>>,
+	#[cfg(feature = "dev")]
+	pub local_wasm_folder: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
