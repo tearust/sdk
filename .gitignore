@@ -1,10 +1,5 @@
+/target/
 .idea/
-target/
-tokio_target/
 *.log
 .DS_Store
 .vs_code
-check/
-test/
-.cargo
-Cargo.lock

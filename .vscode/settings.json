@@ -1,0 +1,10 @@
+{
+    "rust-analyzer.check.command": "clippy",
+    "rust-analyzer.check.overrideCommand": [
+        "cargo",
+        "clippy"
+    ],
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true,
+    "editor.formatOnType": true,
+}
