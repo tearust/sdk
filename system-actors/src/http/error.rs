@@ -3,8 +3,5 @@ use tea_codec::define_scope;
 
 define_scope! {
 	HttpActor: ActorX {
-		BadRequestFormat;
-		BadResponseFormat;
-		KeepAliveNotSupported;
 	}
 }

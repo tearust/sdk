@@ -12,6 +12,11 @@
 //!
 
 #![feature(min_specialization)]
+#![feature(auto_traits)]
+#![feature(negative_impls)]
+#![allow(incomplete_features)]
+#![feature(return_position_impl_trait_in_trait)]
+#![feature(type_alias_impl_trait)]
 
 /// The version of the codec as seen on crates.io
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
@@ -41,6 +46,7 @@ pub struct DelayMessage {
 }
 
 pub mod error;
+pub mod http;
 pub mod ops;
 
 #[derive(Debug, PartialEq, Eq, Deserialize, Serialize)]

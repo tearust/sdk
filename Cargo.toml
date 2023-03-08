@@ -106,6 +106,7 @@ gluesql-core = { version = "0.13.1", features = [
 hex = "0.4.0"
 http = "0.2.8"
 http-body = "0.4.5"
+http-serde = "1.1.2"
 httparse = "1.8.0"
 hyper = "0.14.23"
 impl-trait-for-tuples = "0.2.2"

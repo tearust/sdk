@@ -10,10 +10,11 @@ define_scope! {
 		BondingGeneralError;
 		DbNotFoundError;
 		InvalidTransactionContext;
-		InvalidValidator => InvalidValidator, @Display, @Display;
-		UpgradeError=> UpgradeError, @Display, @Display;
+		InvalidValidator => InvalidValidator;
+		UpgradeError=> UpgradeError;
 		InvalidTxnRequest;
 		AsyncCanceled;
+		http::Error => Http;
 	}
 }
 
