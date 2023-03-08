@@ -24,7 +24,7 @@ hex = "0.4.0"
 log = { version = "0.4", features = ["std", "serde"] }
 thiserror = "1.0.22"
 
-tea-codec = { version = "0.2.0-dev.2", path = "../tea-codec" }
+tea-codec = { version = "0.2.0-dev.3", path = "../tea-codec" }
 
 [dev-dependencies]
 structopt = "0.3.12"

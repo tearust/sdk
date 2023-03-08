@@ -17,8 +17,8 @@ serde_derive = "1.0.106"
 ethereum-types = "0.14.1"
 primitive-types = { workspace = true }
 
-tea-codec = { version = "0.2.0-dev.2", path = "../tea-codec" }
-tea-runtime-codec = { version = "0.2.0-dev.2", path = "../runtime-codec" }
+tea-codec = { version = "0.2.0-dev.3", path = "../tea-codec" }
+tea-runtime-codec = { version = "0.2.0-dev.3", path = "../runtime-codec" }
 
 [features]
 __test = []

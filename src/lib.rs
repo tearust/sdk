@@ -8,6 +8,8 @@ pub use tea_codec::*;
 pub use tea_solc_codec as solc;
 pub use tea_tapp_common as tapp;
 pub use tea_vmh_codec as vmh;
+#[doc(hidden)]
+pub mod third;
 
 pub mod actorx {
 	pub use tea_actorx_core::*;
@@ -18,6 +20,9 @@ pub mod actorx {
 	#[cfg(feature = "signer")]
 	pub use tea_actorx_signer as signer;
 }
+
+#[cfg(feature = "mock")]
+pub use tea_actorx_macros::test;
 
 #[cfg(feature = "system-actors")]
 pub use tea_system_actors as actors;

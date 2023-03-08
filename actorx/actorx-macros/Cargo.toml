@@ -1,5 +1,5 @@
 [package]
-name = "actorx-example-codec"
+name = "tea-actorx-macros"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -9,8 +9,11 @@ keywords = { workspace = true }
 categories = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
-publish = false
+
+[lib]
+proc-macro = true
 
 [dependencies]
-tea-sdk = { version = "0.2.0-dev.3", path = "../../.." }
-serde = { workspace = true }
+proc-macro2 = "1.0"
+syn = { version = "1.0", features = ["full"] }
+quote = "1.0"

@@ -10,13 +10,9 @@ impl MockedActorName for ActorHandler {
 	const NAME: &'static [u8] = b"actorx-example-actor";
 }
 
-#[tokio::test]
+#[tea_sdk::test(init)]
 async fn actor_test() -> Result<()> {
 	tracing_subscriber::fmt().init();
-	let host = ActorHost::new();
-	host.register_mocked(ActorHandler)?;
-	host.register_native(|context| Ok(TimeActor::new(context)))?;
-	tea_sdk::actorx::runtime::init_host(host);
 
 	let HelloWorldResponse(r1) = call(
 		RegId::from(WASM_ACTOR_NAME).inst(0),
@@ -30,4 +26,11 @@ async fn actor_test() -> Result<()> {
 	assert_eq!(r2, 3);
 	assert_eq!(test.len(), 65537);
 	Ok(())
+}
+
+async fn init() -> Result<ActorHost> {
+	let host = ActorHost::new();
+	host.register_mocked(ActorHandler)?;
+	host.register_native(|context| Ok(TimeActor::new(context)))?;
+	Ok(host)
 }

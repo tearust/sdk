@@ -1,5 +1,6 @@
+use std::future::Future;
+
 use super::CallingCx as WasmCallingCx;
-use once_cell::sync::OnceCell;
 use tea_actorx_core::ActorId;
 use tea_actorx_host::actor::{BudgetCheckWrapper, CallingCx, NativeActor};
 pub use tea_actorx_host::*;
@@ -11,23 +12,25 @@ use tea_codec::{
 	},
 	ResultExt,
 };
+use tokio::task_local;
 
 use crate::{error::Error, interface::NoCallingCxWrapper};
 
-static HOST: OnceCell<ActorHost> = OnceCell::new();
+task_local! {
+	static HOST: ActorHost;
+}
 
 fn host() -> ActorHostRef {
-	HOST.get()
-		.expect("Mocked host must be initialized")
-		.downgrade()
+	HOST.with(|x| x.downgrade())
 }
 
-pub fn init_host(host: ActorHost) {
-	HOST.set(host).expect("Mocked host is already initialized")
-}
-
-pub fn init_host_with(f: impl FnOnce() -> ActorHost) {
-	HOST.get_or_init(f);
+pub async fn with_host<O, E, H, HF, F>(host: H, f: F) -> Result<O, E>
+where
+	H: FnOnce() -> HF,
+	HF: Future<Output = Result<ActorHost, E>>,
+	F: Future<Output = Result<O, E>>,
+{
+	HOST.scope(host().await?, f).await
 }
 
 pub async fn call<C, S>(actor_id: impl Into<ActorId>, arg: C) -> Result<C::Response, Error<S>>

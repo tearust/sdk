@@ -11,20 +11,20 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.2", path = "../../codecs/tea-codec" }
-tea-actorx-core = { version = "0.2.0-dev.2", path = "../../actorx/actorx-core" }
-tea-actorx-runtime = { version = "0.2.0-dev.2", path = "../../actorx/actorx-runtime" }
-tea-tapp-common = { version = "0.2.0-dev.2", path = "../../codecs/tapp-common" }
-tea-actor-txns = { version = "0.2.0-dev.2", path = "../../codecs/actor-txns" }
-tea-solc-codec = { version = "0.2.0-dev.2", path = "../../codecs/solc-codec" }
-tea-vmh-codec = { version = "0.2.0-dev.2", path = "../../codecs/vmh-codec" }
-tea-runtime-codec = { version = "0.2.0-dev.2", path = "../../codecs/runtime-codec" }
+tea-codec = { version = "0.2.0-dev.3", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.3", path = "../../actorx/actorx-core" }
+tea-actorx-runtime = { version = "0.2.0-dev.3", path = "../../actorx/actorx-runtime" }
+tea-tapp-common = { version = "0.2.0-dev.3", path = "../../codecs/tapp-common" }
+tea-actor-txns = { version = "0.2.0-dev.3", path = "../../codecs/actor-txns" }
+tea-solc-codec = { version = "0.2.0-dev.3", path = "../../codecs/solc-codec" }
+tea-vmh-codec = { version = "0.2.0-dev.3", path = "../../codecs/vmh-codec" }
+tea-runtime-codec = { version = "0.2.0-dev.3", path = "../../codecs/runtime-codec" }
 
-tea-wasm-actor-utils = { version = "0.2.0-dev.2", path = "../wasm-actor-utils", features = [
+tea-wasm-actor-utils = { version = "0.2.0-dev.3", path = "../wasm-actor-utils", features = [
     "http",
 ] }
 
-tea-system-actors = { version = "0.2.0-dev.2", path = "../../system-actors" }
+tea-system-actors = { version = "0.2.0-dev.3", path = "../../system-actors" }
 
 serde = { workspace = true }
 base64 = { workspace = true }
