@@ -4,7 +4,6 @@ use tea_sdk::ResultExt;
 use crate::enclave::error::Result;
 
 pub use http::*;
-pub use http_body::*;
 
 pub trait RequestExt {
 	async fn request<T>(self) -> Result<Response<T>>

@@ -41,9 +41,7 @@ tea-runtime-codec = { version = "0.2.0-dev.5", path = "codecs/runtime-codec" }
 
 tea-system-actors = { version = "0.2.0-dev.5", path = "system-actors", optional = true }
 
-tea-wasm-actor-utils = { version = "0.2.0-dev.5", path = "utils/wasm-actor-utils", features = [
-    "http",
-], optional = true }
+tea-wasm-actor-utils = { version = "0.2.0-dev.5", path = "utils/wasm-actor-utils", optional = true }
 
 tokio = { workspace = true, features = ["macros"], optional = true }
 

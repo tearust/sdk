@@ -4,7 +4,6 @@ pub mod adapter;
 pub mod crypto;
 pub mod enclave;
 pub mod env;
-#[cfg(feature = "http")]
 pub mod http;
 pub mod kvp;
 pub mod layer1;

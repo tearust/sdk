@@ -33,16 +33,13 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true }
 lazy_static = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }
-http = { workspace = true, optional = true }
-http-body = { workspace = true, optional = true }
-httparse = { workspace = true, optional = true }
-bytes = { workspace = true, optional = true }
+http = { workspace = true }
+bytes = { workspace = true }
 
 mocktopus = { workspace = true, optional = true }
 
 [features]
 nitro = []
 simulator = []
-http = ["dep:http", "http-body", "httparse", "bytes"]
 native = ["tea-actorx-host"]
 __test = ["tea-runtime-codec/__test"]
