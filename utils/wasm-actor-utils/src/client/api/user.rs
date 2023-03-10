@@ -58,7 +58,6 @@ pub async fn txn_login(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> 
 		tea_codec::serialize(&req)?,
 		txn,
 		vec![],
-		None,
 	)
 	.await?;
 

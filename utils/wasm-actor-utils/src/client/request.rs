@@ -38,7 +38,6 @@ pub async fn send_tappstore_txn(
 	req_bytes: Vec<u8>,
 	txn: TappstoreTxn,
 	pre_args: Vec<Arg>,
-	gas_limit: Option<u64>,
 ) -> Result<()> {
 	let ori_uuid = str::replace(uuid, "txn_", "");
 	let action_key = uuid_cb_key(&ori_uuid, "action_name");
@@ -48,7 +47,7 @@ pub async fn send_tappstore_txn(
 
 	let uuid = uuid.to_string();
 
-	let gas_limit = gas_limit.unwrap_or(crate::client::CLIENT_DEFAULT_GAS_LIMIT);
+	let gas_limit = crate::client::CLIENT_DEFAULT_GAS_LIMIT;
 
 	intelli_send_txn(
 		tea_system_actors::tappstore::NAME,
