@@ -48,6 +48,17 @@ pub async fn email_to_h160(email: &str) -> Result<H160> {
 	Ok(acct)
 }
 
+pub async fn randome_number_by_len(len: u8) -> Result<String> {
+	let len = u32::from(len);
+	let mut rs: Vec<String> = Vec::new();
+	let seed = generate_random(len).await?;
+	for n in seed {
+		let s = n % 10;
+		rs.push(s.to_string());
+	}
+	Ok(rs.join(""))
+}
+
 pub async fn random_select<T>(mut select_array: Vec<T>, select_count: usize) -> Result<Vec<T>> {
 	if select_array.len() < select_count {
 		return Ok(select_array);

@@ -17,9 +17,7 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 		"query_tapp_metadata" => api::user::query_tapp_metadata(arg, from_actor).await?,
 		"query_error_log" => api::user::query_error_log(arg, from_actor).await?,
 		"query_system_version" => api::user::query_system_version(arg, from_actor).await?,
-		"retweet_check_for_twitter" => {
-			api::twitter::retweet_check_for_twitter(arg, from_actor).await?
-		}
+
 		_ => vec![],
 	};
 	Ok(res)
@@ -38,14 +36,6 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"query_allowance",
 		"query_tapp_metadata",
 		"query_error_log",
-		"retweet_check_for_twitter",
 		"query_system_version",
 	]
 }
-
-// TODO
-// struct ActorHandler;
-// impl Handles<()> for ActorHandler {
-// 	type List = Handle![];
-// 	type Scope = Impl;
-// }
