@@ -138,3 +138,12 @@ pub struct GetWasmActorTokenIdResponse(pub Option<String>);
 pub struct GenesisEnclavePcrsRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenesisEnclavePcrsResponse(pub HashMap<String, String>);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct RaSettingsRequest;
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct RaSettingsResponse {
+	pub default_validators_count: usize,
+	pub min_validators_count: usize,
+}

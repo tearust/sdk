@@ -6,6 +6,7 @@ pub mod message;
 pub mod nitro;
 pub mod persist;
 pub mod state;
+pub mod registry;
 pub mod utils;
 
 pub const ADAPTER_RPC_CHANNEL_NAME: &str = "adapter rpc";
