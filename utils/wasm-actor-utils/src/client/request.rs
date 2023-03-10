@@ -16,28 +16,43 @@ use tea_system_actors::tappstore::txns::TappstoreTxn;
 use crate::client::help;
 use crate::client::Result;
 
-pub async fn send_tappstore_query<C, T>(_from_actor: &str, arg: C, callback: T) -> Result<()>
+pub async fn send_custom_query<C, T>(
+	_from_actor: &str,
+	arg: C,
+	target: &'static [u8],
+	callback: T,
+) -> Result<()>
 where
 	C: Request + ToBytes + Clone,
 	C::Response: for<'a> FromBytes<'a> + Send,
 	T: FnOnce(C::Response) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
-	Ok(intelli_actor_query_ex(
-		tea_system_actors::tappstore::NAME,
-		arg,
-		IntelliSendMode::RemoteOnly,
-		callback,
-	)
-	.await?)
+	Ok(intelli_actor_query_ex(target, arg, IntelliSendMode::RemoteOnly, callback).await?)
 }
 
-pub async fn send_tappstore_txn(
+pub async fn send_tappstore_query<C, T>(from_actor: &str, arg: C, callback: T) -> Result<()>
+where
+	C: Request + ToBytes + Clone,
+	C::Response: for<'a> FromBytes<'a> + Send,
+	T: FnOnce(C::Response) -> CallbackReturn + Clone + Send + Sync + 'static,
+{
+	send_custom_query(
+		from_actor,
+		arg,
+		&tea_system_actors::tappstore::NAME,
+		callback,
+	)
+	.await
+}
+
+pub async fn send_custom_txn(
 	_from_actor: &str,
 	action_name: &str,
 	uuid: &str,
 	req_bytes: Vec<u8>,
 	txn: TappstoreTxn,
 	pre_args: Vec<Arg>,
+	target: &[u8],
 ) -> Result<()> {
 	let ori_uuid = str::replace(uuid, "txn_", "");
 	let action_key = uuid_cb_key(&ori_uuid, "action_name");
@@ -50,7 +65,7 @@ pub async fn send_tappstore_txn(
 	let gas_limit = crate::client::CLIENT_DEFAULT_GAS_LIMIT;
 
 	intelli_send_txn(
-		tea_system_actors::tappstore::NAME,
+		target,
 		&serialize(&txn)?,
 		pre_args,
 		IntelliSendMode::RemoteOnly,
@@ -75,6 +90,26 @@ pub async fn send_tappstore_txn(
 	)
 	.await
 	.err_into()
+}
+
+pub async fn send_tappstore_txn(
+	from_actor: &str,
+	action_name: &str,
+	uuid: &str,
+	req_bytes: Vec<u8>,
+	txn: TappstoreTxn,
+	pre_args: Vec<Arg>,
+) -> Result<()> {
+	send_custom_txn(
+		from_actor,
+		action_name,
+		uuid,
+		req_bytes,
+		txn,
+		pre_args,
+		&tea_system_actors::tappstore::NAME,
+	)
+	.await
 }
 
 pub fn uuid_cb_key(uuid: &str, stype: &str) -> String {
