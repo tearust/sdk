@@ -48,6 +48,8 @@ pub struct HostSettings {
 	pub init_layer1_key: Option<Vec<u8>>,
 	#[cfg(feature = "dev")]
 	pub local_wasm_folder: Option<String>,
+	#[cfg(feature = "dev")]
+	pub genesis_settings: super::registry::GenesisSettings,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
