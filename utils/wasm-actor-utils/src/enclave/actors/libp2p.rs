@@ -231,9 +231,9 @@ where
 		if !can_async_error_be_ignored(e) {
 			return Err(e.clone());
 		}
+		info!("error can be ignored continue to send remotely");
 	}
 
-	info!("error can be ignored continue to send remotely");
 	let count = if let Some(c) = candidate_count {
 		c
 	} else {
