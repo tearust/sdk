@@ -1,5 +1,5 @@
 pub mod prelude {
-	pub use gluesql_core::prelude::{DataType, Key, Payload, Value};
+	pub use gluesql_core::prelude::{DataType, Key, Payload, Row, Value};
 }
 
 pub mod action;
