@@ -11,9 +11,9 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.7", path = "../codecs/tea-codec" }
-tea-actorx-core = { version = "0.2.0-dev.7", path = "../actorx/actorx-core" }
-tea-runtime-codec = { version = "0.2.0-dev.7", path = "../codecs/runtime-codec", features = [
+tea-codec = { version = "0.2.0-dev.8", path = "../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.8", path = "../actorx/actorx-core" }
+tea-runtime-codec = { version = "0.2.0-dev.8", path = "../codecs/runtime-codec", features = [
     "vmh",
 ] }
 
