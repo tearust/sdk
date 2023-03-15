@@ -110,7 +110,7 @@ pub async fn send_tappstore_txn(
 		action_name,
 		uuid,
 		req_bytes,
-		&serialize(&txn)?,
+		serialize(&txn)?,
 		pre_args,
 		&tea_system_actors::tappstore::NAME,
 	)
