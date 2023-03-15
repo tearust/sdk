@@ -46,14 +46,20 @@ where
 }
 
 pub async fn send_custom_txn(
-	_from_actor: &str,
+	from_actor: &str,
 	action_name: &str,
 	uuid: &str,
 	req_bytes: Vec<u8>,
-	txn: TappstoreTxn,
+	txn_bytes: Vec<u8>,
 	pre_args: Vec<Arg>,
 	target: &[u8],
 ) -> Result<()> {
+	info!(
+		"Send custom txn from {:?} to {:?} => {:?}",
+		from_actor,
+		String::from_utf8(target.to_vec())?,
+		action_name
+	);
 	let ori_uuid = str::replace(uuid, "txn_", "");
 	let action_key = uuid_cb_key(&ori_uuid, "action_name");
 	let req_key = uuid_cb_key(&ori_uuid, "action_req");
@@ -63,10 +69,9 @@ pub async fn send_custom_txn(
 	let uuid = uuid.to_string();
 
 	let gas_limit = crate::client::CLIENT_DEFAULT_GAS_LIMIT;
-
 	intelli_send_txn(
 		target,
-		&serialize(&txn)?,
+		&txn_bytes,
 		pre_args,
 		IntelliSendMode::RemoteOnly,
 		gas_limit,
@@ -105,7 +110,7 @@ pub async fn send_tappstore_txn(
 		action_name,
 		uuid,
 		req_bytes,
-		txn,
+		&serialize(&txn)?,
 		pre_args,
 		&tea_system_actors::tappstore::NAME,
 	)
