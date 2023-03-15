@@ -3,7 +3,7 @@ use tea_actorx_core::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::{defs::FreezeTimeSettings, serde::TypeId};
 use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, TxnSerial};
-use tea_runtime_codec::tapp::{Account, AuthKey, TimestampShort, TokenId, Ts};
+use tea_runtime_codec::tapp::{Account, AuthKey, Balance, TimestampShort, TokenId, Ts};
 
 pub mod error;
 
@@ -123,15 +123,29 @@ pub struct WithdrawResponse(pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct MoveRequest(pub Vec<u8>);
+pub struct MoveRequest {
+	pub from: Account,
+	pub to: Account,
+	pub amt: Balance,
+	pub ctx: Vec<u8>,
+}
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct MoveResponse(pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct CrossMoveRequest(pub Vec<u8>);
+pub struct CrossMoveRequest {
+	pub from: Account,
+	pub to: Account,
+	pub amt: Balance,
+	pub from_ctx: Vec<u8>,
+	pub to_ctx: Vec<u8>,
+}
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct CrossMoveResponse(pub Vec<u8>);
+pub struct CrossMoveResponse {
+	pub from_ctx: Vec<u8>,
+	pub to_ctx: Vec<u8>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

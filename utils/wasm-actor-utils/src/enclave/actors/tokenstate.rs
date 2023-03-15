@@ -1,10 +1,11 @@
-use crate::enclave::error::{GlueSqlErrors, Result};
+use crate::enclave::error::{Actor, Errors, GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::call;
 use tea_codec::{deserialize, serialize, ResultExt};
-use tea_runtime_codec::tapp::TokenId;
+use tea_runtime_codec::actor_txns::context::TokenContext;
+use tea_runtime_codec::tapp::{Account, Balance, TokenId};
 use tea_runtime_codec::vmh::message::{encode_protobuf, structs_proto::tokenstate};
 use tea_system_actors::tokenstate::*;
 
@@ -146,4 +147,66 @@ pub async fn sql_query_first(token_id: TokenId, sql: String) -> Result<Payload> 
 		return Err(GlueSqlErrors::InvalidFirstPayload(sql, token_id).into());
 	}
 	Ok(payloads.remove(0))
+}
+
+pub async fn mov(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+	if amt.is_zero() {
+		info!("Mov 0 unit, ignored.");
+		return Ok(ctx);
+	}
+
+	let res: MoveResponse = call::<_, Actor>(
+		RegId::Static(NAME).inst(0),
+		MoveRequest { from, to, amt, ctx },
+	)
+	.await
+	.map_err(|e| Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.into()))?;
+	Ok(res.0)
+}
+
+/// move TEA across token. That means from one token_id balance to another token_id balance
+/// Most likely move from TAppStore balance to a TAppToken balance due to buy/sell token
+pub async fn cross_move(
+	from: Account,
+	to: Account,
+	amt: Balance,            //unit is TEA
+	from_ctx_bytes: Vec<u8>, //
+	to_ctx_bytes: Vec<u8>,   //still TEA
+) -> Result<(Vec<u8>, Vec<u8>)> {
+	if amt == 0.into() {
+		info!("Cross move 0 unit, ignored.");
+		return Ok((from_ctx_bytes, to_ctx_bytes));
+	}
+
+	let from_ctx: TokenContext = deserialize(&from_ctx_bytes)?;
+	let to_ctx: TokenContext = deserialize(&to_ctx_bytes)?;
+
+	if from_ctx.tid == to_ctx.tid {
+		// same token id, move.
+		let from_ctx_bytes = mov(from, to, amt, from_ctx_bytes).await?;
+		return Ok((from_ctx_bytes, to_ctx_bytes));
+	}
+
+	let res = call::<_, Actor>(
+		RegId::Static(NAME).inst(0),
+		CrossMoveRequest {
+			from,
+			to,
+			amt,
+			from_ctx: from_ctx_bytes,
+			to_ctx: to_ctx_bytes,
+		},
+	)
+	.await
+	.map_err(|e| {
+		Errors::StateMachineCrossMoveFailed(
+			from_ctx.tid.to_hex(),
+			from.to_string(),
+			to_ctx.tid.to_hex(),
+			to.to_string(),
+			amt,
+			e.into(),
+		)
+	})?;
+	Ok((res.from_ctx, res.to_ctx))
 }

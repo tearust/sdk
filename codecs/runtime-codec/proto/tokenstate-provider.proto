@@ -195,21 +195,6 @@ message WithdrawRequest {
   bytes amt = 3;
 }
 
-message MoveRequest {
-  bytes ctx = 1;
-  bytes from = 2;
-  bytes to = 3;
-  bytes amt = 4;
-}
-
-message CrossMoveRequest {
-  bytes fromCtx = 1;
-  bytes toCtx = 2;
-  bytes from = 3;
-  bytes to = 4;
-  bytes amt = 5;
-}
-
 /// To simplify the coding and process, we did not use One_of the
 /// protobuf syntax. We just check if ctx bytes is empty, then check
 /// the error. The protocol here is that if there is error, set the ctx
