@@ -9,18 +9,21 @@ use prost::Message;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::call;
 use tea_codec::{deserialize, serialize, ResultExt};
-use tea_runtime_codec::actor_txns::{
-	auth::TokenAuthOp,
-	context::{ReadConflictMode, TokenContext},
-	tsid::Tsid,
-	TxnSerial,
-};
 use tea_runtime_codec::tapp::{
 	statement::TypedStatement, Account, AuthKey, Balance, TokenId, GOD_MODE_AUTH_KEY,
 };
 use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{persist, tokenstate::*},
+};
+use tea_runtime_codec::{
+	actor_txns::{
+		auth::TokenAuthOp,
+		context::{ReadConflictMode, TokenContext},
+		tsid::Tsid,
+		TxnSerial,
+	},
+	tapp::RECEIPTING_AUTH_KEY,
 };
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 use tea_system_actors::tokenstate::{self as codec};
@@ -58,6 +61,15 @@ impl CommitContext {
 		CommitContext {
 			ctx,
 			auth_key: GOD_MODE_AUTH_KEY,
+			..Default::default()
+		}
+	}
+
+	pub fn ctx_receipting(ctx: Vec<u8>, memo: String) -> CommitContext {
+		CommitContext {
+			ctx,
+			memo,
+			auth_key: RECEIPTING_AUTH_KEY,
 			..Default::default()
 		}
 	}

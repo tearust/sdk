@@ -47,7 +47,10 @@ pub type TimestampShort = i64;
 /// Currently in epoch7 Dec 2021, the AuthKey is the
 /// same as AesKey
 pub type AuthKey = u128;
+/// God mode auth key only allowed in system actors
 pub const GOD_MODE_AUTH_KEY: AuthKey = u128::MAX;
+pub const RECEIPTING_AUTH_KEY: AuthKey = 1;
+pub const PUBLIC_RESERVED_ACCOUNT: Account = H160([1_u8; 20]);
 
 /// tokenId is actually the TappId.
 /// When a Tapp is created, it is issued a TApp Id from Layer one.
