@@ -52,6 +52,22 @@ impl TappItem {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct DevTappItem {
+	pub tapp_id: TokenId,
+	pub name: String,
+	pub owner: String,
+	pub ticker: String,
+	pub detail: String,
+	pub tapp_type: String,
+	pub cid: Option<String>,
+	pub dev_status: String,
+	pub actor_cid: Option<String>,
+	pub actor_version: Option<u64>,
+	pub state_actor_cid: Option<String>,
+	pub state_actor_version: Option<u64>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LeaderboardItem {
 	pub address: String,
 	pub init_asset_add: String,
