@@ -306,6 +306,7 @@ pub enum TappstoreTxn {
 		fee: Balance,
 	},
 	UpdateTAppForDevportal {
+		user: Account,
 		auth_b64: String,
 		token_id: TokenId,
 		cid: Option<String>,
