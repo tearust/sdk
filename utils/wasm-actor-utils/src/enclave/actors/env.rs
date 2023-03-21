@@ -140,3 +140,8 @@ pub fn tapp_email_wallet_token_id() -> Result<TokenId> {
 		"0x1000000000000000000000000000000000000005",
 	)?)
 }
+pub fn tapp_dev_portal_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0x1000000000000000000000000000000000000006",
+	)?)
+}
