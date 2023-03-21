@@ -305,6 +305,16 @@ pub enum TappstoreTxn {
 		txn_name: String,
 		fee: Balance,
 	},
+	UpdateTAppForDevportal {
+		auth_b64: String,
+		token_id: TokenId,
+		cid: Option<String>,
+		actor_cid: Option<String>,
+		state_actor_cid: Option<String>,
+		actor_version: Option<u64>,
+		state_actor_version: Option<u64>,
+		dev_status: Option<String>,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
