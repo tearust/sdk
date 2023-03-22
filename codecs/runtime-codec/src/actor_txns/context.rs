@@ -128,6 +128,8 @@ where
 	fn allowance_context(&self) -> &C;
 
 	fn allowance_context_mut(&mut self) -> &mut C;
+
+	fn allowance_token_id(&self) -> Option<TokenId>;
 }
 
 /// TokenContext implement the context trait
@@ -181,6 +183,8 @@ pub struct TokenContext {
 	/// the auth checking rule, but we can verify again at the commit
 	/// time. so it may be refused to commit to state at the end.
 	auth_ops: Vec<TokenAuthOp>,
+
+	allowance_tid: Option<TokenId>,
 }
 
 impl CheckConflict for TokenContext {
@@ -200,6 +204,10 @@ impl Context<ConcurrentBalances> for TokenContext {
 	/// What token (FT/NFT) is this context associate?
 	fn get_token_id(&self) -> TokenId {
 		self.tid
+	}
+
+	fn allowance_token_id(&self) -> Option<TokenId> {
+		self.allowance_tid
 	}
 
 	fn get_tsid(&self) -> Tsid {
@@ -343,6 +351,16 @@ impl TokenContext {
 			tsid,
 			tid,
 			base,
+			..Default::default()
+		}
+	}
+
+	pub fn new_cross_move(tsid: Tsid, base: Tsid, tid: TokenId, allowance_tid: TokenId) -> Self {
+		TokenContext {
+			tsid,
+			tid,
+			base,
+			allowance_tid: Some(allowance_tid),
 			..Default::default()
 		}
 	}
