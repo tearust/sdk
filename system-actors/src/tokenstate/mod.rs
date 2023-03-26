@@ -141,6 +141,16 @@ pub struct CrossMoveRequest {
 	pub from_ctx: Vec<u8>,
 	pub to_ctx: Vec<u8>,
 }
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1000000)]
+pub struct ApiCrossMoveRequest {
+	pub from: Account,
+	pub to: Account,
+	pub amt: Balance,
+	pub from_ctx: Vec<u8>,
+	pub to_ctx: Vec<u8>,
+	pub tappstore_id: TokenId,
+}
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CrossMoveResponse {
 	pub from_ctx: Vec<u8>,
@@ -174,12 +184,19 @@ pub struct GetTappstoreAcctResponse(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct DepositRequest(pub Vec<u8>);
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1000000)]
+pub struct ApiDepositRequest(pub Vec<u8>);
+
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct DepositResponse(pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct RefundRequest(pub Vec<u8>);
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1000000)]
+pub struct ApiRefundRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RefundResponse(pub Vec<u8>);
 
