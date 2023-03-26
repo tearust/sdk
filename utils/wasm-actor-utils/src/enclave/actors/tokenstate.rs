@@ -10,6 +10,8 @@ use tea_runtime_codec::tapp::{Account, Balance, TokenId};
 use tea_runtime_codec::vmh::message::{encode_protobuf, structs_proto::tokenstate};
 use tea_system_actors::tokenstate::*;
 
+const OPERATE_ERROR_SUCCESS_SUMMARY: &str = "OP_101__success_without_context_change";
+
 pub async fn get_magic_number() -> Result<u64> {
 	let n = call(RegId::Static(NAME).inst(0), GetMagicNumberRequest).await?;
 	Ok(n.0)
@@ -264,7 +266,7 @@ pub async fn api_deposit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Ve
 		amt: serialize(&amt)?,
 		ctx,
 	})?;
-	let res_buf = call(RegId::Static(NAME).inst(0), codec::ApiDepositRequest(buf)).await?;
+	let res_buf = call(RegId::Static(NAME).inst(0), ApiDepositRequest(buf)).await?;
 	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
@@ -285,7 +287,7 @@ pub async fn api_refund(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec
 		amt: serialize(&amt)?,
 		ctx,
 	})?;
-	let res_buf = call(RegId::Static(NAME).inst(0), codec::ApiRefundRequest(buf)).await?;
+	let res_buf = call(RegId::Static(NAME).inst(0), ApiRefundRequest(buf)).await?;
 	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
