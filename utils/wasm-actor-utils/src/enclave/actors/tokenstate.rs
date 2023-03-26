@@ -1,5 +1,5 @@
 use crate::enclave::actors::env::tappstore_id;
-use crate::enclave::error::{Actor, Errors, GlueSqlErrors, Result};
+use crate::enclave::error::{Actor, Error, Errors, GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
 use tea_actorx_core::RegId;
@@ -264,12 +264,8 @@ pub async fn api_deposit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Ve
 		amt: serialize(&amt)?,
 		ctx,
 	})?;
-	let res_buf = call(
-		RegId::Static(codec::NAME).inst(0),
-		codec::ApiDepositRequest(buf),
-	)
-	.await?;
-	let res = StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let res_buf = call(RegId::Static(NAME).inst(0), codec::ApiDepositRequest(buf)).await?;
+	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
 		info!("actor_statemachine api_deposit successed");
@@ -289,12 +285,8 @@ pub async fn api_refund(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec
 		amt: serialize(&amt)?,
 		ctx,
 	})?;
-	let res_buf = call(
-		RegId::Static(codec::NAME).inst(0),
-		codec::ApiRefundRequest(buf),
-	)
-	.await?;
-	let res = StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let res_buf = call(RegId::Static(NAME).inst(0), codec::ApiRefundRequest(buf)).await?;
+	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
 		info!("actor_statemachine api_refund successed");
