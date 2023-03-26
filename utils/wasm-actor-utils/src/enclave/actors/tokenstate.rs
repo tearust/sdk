@@ -1,3 +1,4 @@
+use crate::enclave::actors::env::tappstore_id;
 use crate::enclave::error::{Actor, Errors, GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
@@ -209,4 +210,100 @@ pub async fn cross_move(
 		)
 	})?;
 	Ok((res.from_ctx, res.to_ctx))
+}
+
+pub async fn api_cross_move(
+	from: Account,
+	to: Account,
+	amt: Balance,            //unit is TEA
+	from_ctx_bytes: Vec<u8>, //
+	to_ctx_bytes: Vec<u8>,   //still TEA
+) -> Result<(Vec<u8>, Vec<u8>)> {
+	if amt == 0.into() {
+		info!("Api Cross move 0 unit, ignored.");
+		return Ok((from_ctx_bytes, to_ctx_bytes));
+	}
+
+	let from_ctx: TokenContext = deserialize(&from_ctx_bytes)?;
+	let to_ctx: TokenContext = deserialize(&to_ctx_bytes)?;
+
+	if from_ctx.tid == to_ctx.tid {
+		// same token id, move.
+		let from_ctx_bytes = mov(from, to, amt, from_ctx_bytes).await?;
+		return Ok((from_ctx_bytes, to_ctx_bytes));
+	}
+
+	let res = call::<_, Actor>(
+		RegId::Static(NAME).inst(0),
+		ApiCrossMoveRequest {
+			from,
+			to,
+			amt,
+			from_ctx: from_ctx_bytes,
+			to_ctx: to_ctx_bytes,
+			tappstore_id: tappstore_id().await?,
+		},
+	)
+	.await
+	.map_err(|e| {
+		Errors::StateMachineCrossMoveFailed(
+			from_ctx.tid.to_hex(),
+			from.to_string(),
+			to_ctx.tid.to_hex(),
+			to.to_string(),
+			amt,
+			e.into(),
+		)
+	})?;
+	Ok((res.from_ctx, res.to_ctx))
+}
+
+pub async fn api_deposit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+	let buf = encode_protobuf(tokenstate::DepositRequest {
+		acct: serialize(&acct)?,
+		amt: serialize(&amt)?,
+		ctx,
+	})?;
+	let res_buf = call(
+		RegId::Static(codec::NAME).inst(0),
+		codec::ApiDepositRequest(buf),
+	)
+	.await?;
+	let res = StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let operate_error: Error = deserialize(&res.operate_error)?;
+	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+		info!("actor_statemachine api_deposit successed");
+		Ok(res.ctx)
+	} else {
+		error!(
+			"actor_statemachine api_deposit error {}",
+			operate_error.to_string()
+		);
+		Err(operate_error.into())
+	}
+}
+
+pub async fn api_refund(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+	let buf = encode_protobuf(tokenstate::RefundRequest {
+		acct: serialize(&acct)?,
+		amt: serialize(&amt)?,
+		ctx,
+	})?;
+	let res_buf = call(
+		RegId::Static(codec::NAME).inst(0),
+		codec::ApiRefundRequest(buf),
+	)
+	.await?;
+	let res = StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let operate_error: Error = deserialize(&res.operate_error)?;
+	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+		info!("actor_statemachine api_refund successed");
+		Ok(res.ctx)
+	} else {
+		error!(
+			"actor_statemachine api_refund error {}",
+			operate_error.to_string()
+		);
+		Err(operate_error.into())
+	}
 }
