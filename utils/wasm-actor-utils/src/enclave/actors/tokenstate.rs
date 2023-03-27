@@ -260,18 +260,24 @@ pub async fn api_cross_move(
 	Ok((res.from_ctx, res.to_ctx))
 }
 
-pub async fn api_deposit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
-	let buf = encode_protobuf(tokenstate::DepositRequest {
+pub async fn api_deposit(
+	acct: Account,
+	amt: Balance,
+	tappstore_ctx: Vec<u8>,
+	token_ctx: Vec<u8>,
+) -> Result<(Vec<u8>, Vec<u8>)> {
+	let buf = encode_protobuf(tokenstate::ApiDepositRequest {
 		acct: serialize(&acct)?,
 		amt: serialize(&amt)?,
-		ctx,
+		ctx: tappstore_ctx,
+		token_ctx,
 	})?;
 	let res_buf = call(RegId::Static(NAME).inst(0), ApiDepositRequest(buf)).await?;
-	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let res = tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
 		info!("actor_statemachine api_deposit successed");
-		Ok(res.ctx)
+		Ok((res.ctx, res.token_ctx))
 	} else {
 		error!(
 			"actor_statemachine api_deposit error {}",
@@ -281,18 +287,24 @@ pub async fn api_deposit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Ve
 	}
 }
 
-pub async fn api_refund(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
-	let buf = encode_protobuf(tokenstate::RefundRequest {
+pub async fn api_refund(
+	acct: Account,
+	amt: Balance,
+	tappstore_ctx: Vec<u8>,
+	token_ctx: Vec<u8>,
+) -> Result<(Vec<u8>, Vec<u8>)> {
+	let buf = encode_protobuf(tokenstate::ApiRefundRequest {
 		acct: serialize(&acct)?,
 		amt: serialize(&amt)?,
-		ctx,
+		ctx: tappstore_ctx,
+		token_ctx,
 	})?;
 	let res_buf = call(RegId::Static(NAME).inst(0), ApiRefundRequest(buf)).await?;
-	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let res = tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
 		info!("actor_statemachine api_refund successed");
-		Ok(res.ctx)
+		Ok((res.ctx, res.token_ctx))
 	} else {
 		error!(
 			"actor_statemachine api_refund error {}",

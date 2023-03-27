@@ -146,10 +146,22 @@ message DepositRequest{
   bytes acct = 2;
   bytes amt = 3;
 }
+message ApiDepositRequest{
+  bytes ctx = 1;
+  bytes acct = 2;
+  bytes amt = 3;
+  bytes tokenCtx = 4;
+}
 message RefundRequest{
   bytes ctx = 1;
   bytes acct = 2;
   bytes amt = 3;
+}
+message ApiRefundRequest {
+  bytes ctx = 1;
+  bytes acct = 2;
+  bytes amt = 3;
+  bytes tokenCtx = 4;
 }
 message ConsumeFromDepositRequest{
   bytes ctx = 1;
@@ -206,6 +218,11 @@ message StateOperateResponse {
 message CrossStateOperateResponse {
   bytes fromCtx = 1;
   bytes toCtx = 2;
+  bytes operateError = 3;
+}
+message ApiStateOperateResponse {
+  bytes ctx = 1;
+  bytes tokenCtx = 2;
   bytes operateError = 3;
 }
 
