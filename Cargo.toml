@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.2.0-dev.12"
+version = "0.2.0-dev.13"
 edition = "2021"
 description = "The TEA SDK"
 authors = [
@@ -29,19 +29,19 @@ repository = { workspace = true }
 exclude = ["actorx/*", "rust-toolchain.toml", ".rustfmt.toml", ".gitignore"]
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.12", path = "codecs/tea-codec" }
+tea-codec = { version = "0.2.0-dev.13", path = "codecs/tea-codec" }
 
-tea-actorx-core = { version = "0.2.0-dev.12", path = "actorx/actorx-core" }
-tea-actorx-host = { version = "0.2.0-dev.12", path = "actorx/actorx-host", optional = true }
-tea-actorx-runtime = { version = "0.2.0-dev.12", path = "actorx/actorx-runtime", optional = true }
-tea-actorx-signer = { version = "0.2.0-dev.12", path = "actorx/actorx-signer", optional = true }
-tea-actorx-macros = { version = "0.2.0-dev.12", path = "actorx/actorx-macros", optional = true }
+tea-actorx-core = { version = "0.2.0-dev.13", path = "actorx/actorx-core" }
+tea-actorx-host = { version = "0.2.0-dev.13", path = "actorx/actorx-host", optional = true }
+tea-actorx-runtime = { version = "0.2.0-dev.13", path = "actorx/actorx-runtime", optional = true }
+tea-actorx-signer = { version = "0.2.0-dev.13", path = "actorx/actorx-signer", optional = true }
+tea-actorx-macros = { version = "0.2.0-dev.13", path = "actorx/actorx-macros", optional = true }
 
-tea-runtime-codec = { version = "0.2.0-dev.12", path = "codecs/runtime-codec" }
+tea-runtime-codec = { version = "0.2.0-dev.13", path = "codecs/runtime-codec" }
 
-tea-system-actors = { version = "0.2.0-dev.12", path = "system-actors", optional = true }
+tea-system-actors = { version = "0.2.0-dev.13", path = "system-actors", optional = true }
 
-tea-wasm-actor-utils = { version = "0.2.0-dev.12", path = "utils/wasm-actor-utils", optional = true }
+tea-wasm-actor-utils = { version = "0.2.0-dev.13", path = "utils/wasm-actor-utils", optional = true }
 
 tokio = { workspace = true, features = ["macros"], optional = true }
 
