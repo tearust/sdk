@@ -316,6 +316,10 @@ pub enum TappstoreTxn {
 		state_actor_version: Option<u64>,
 		dev_status: Option<String>,
 	},
+	ActivateActor {
+		token_id: TokenId,
+		filename: String,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

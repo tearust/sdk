@@ -16,4 +16,10 @@ pub struct ImportStateRequest(pub String);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
+pub struct LoadActorRequest {
+	pub file_path: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
 pub struct DumpRegistryRequest;

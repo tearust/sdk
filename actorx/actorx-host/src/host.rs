@@ -68,7 +68,7 @@ impl ActorHost {
 	}
 
 	#[inline(always)]
-	pub fn register_wasm<C>(&self, wasm: Vec<u8>, cost: C) -> Result<()>
+	pub fn register_wasm<C>(&self, wasm: Vec<u8>, cost: C) -> Result<Vec<u8>>
 	where
 		C: Fn(&Operator) -> u64 + Clone + Send + Sync + 'static,
 	{
@@ -81,7 +81,7 @@ impl ActorHost {
 		wasm: Vec<u8>,
 		cost: C,
 		memory_limit: Option<u64>,
-	) -> Result<()>
+	) -> Result<Vec<u8>>
 	where
 		C: Fn(&Operator) -> u64 + Clone + Send + Sync + 'static,
 	{
@@ -90,7 +90,7 @@ impl ActorHost {
 			metadata.id.clone().into(),
 			registry::Registry::new(Box::new(factory), metadata.id.clone().into()),
 		);
-		Ok(())
+		Ok(metadata.id.clone())
 	}
 
 	#[inline(always)]

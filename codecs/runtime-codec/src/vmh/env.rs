@@ -46,6 +46,8 @@ pub struct HostSettings {
 	pub loaded_clients: Vec<RegistryKey>,
 	pub encryted_key: Option<Vec<u8>>,
 	pub init_layer1_key: Option<Vec<u8>>,
+	pub actor_download_path: String,
+	pub ipfs_url_base: String,
 	#[cfg(feature = "dev")]
 	pub local_wasm_folder: Option<String>,
 	#[cfg(feature = "dev")]
@@ -63,6 +65,7 @@ pub enum HostCommand {
 	Shutdown,
 	Export,
 	Import(Vec<u8>),
+	LoadActor(Vec<u8>),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -76,6 +79,7 @@ pub enum AppCommand {
 	DeactiveAll,
 	Export,
 	Import(Vec<u8>),
+	LoadActor(Vec<u8>),
 }
 
 impl std::fmt::Display for AppCommand {
@@ -85,6 +89,7 @@ impl std::fmt::Display for AppCommand {
 			AppCommand::DeactiveAll => write!(f, "DeactiveAll"),
 			AppCommand::Export => write!(f, "Export"),
 			AppCommand::Import(..) => write!(f, "Import"),
+			AppCommand::LoadActor(..) => write!(f, "LoadActor"),
 		}
 	}
 }
