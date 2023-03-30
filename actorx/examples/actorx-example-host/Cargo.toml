@@ -12,8 +12,8 @@ repository = { workspace = true }
 publish = false
 
 [dependencies]
-tea-sdk = { version = "0.2.0-dev.13", path = "../../..", features = ["host"] }
-actorx-example-codec = { version = "0.2.0-dev.13", path = "../actorx-example-codec" }
+tea-sdk = { version = "0.2.0-dev.14", path = "../../..", features = ["host"] }
+actorx-example-codec = { version = "0.2.0-dev.14", path = "../actorx-example-codec" }
 
 tokio = { version = "1.21.2", features = ["full"] }
 wasmer = { workspace = true }
