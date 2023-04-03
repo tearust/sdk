@@ -35,6 +35,21 @@ pub struct GetFileRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
+#[response(Vec<u8>)]
+pub struct GetFileLocallyRequest {
+	pub filename: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct PersistFileRequest {
+	pub filename: String,
+	pub content: Vec<u8>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 #[response(())]
 pub struct GetFileReply {
 	pub cid: String,

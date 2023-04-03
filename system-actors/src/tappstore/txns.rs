@@ -318,7 +318,6 @@ pub enum TappstoreTxn {
 	},
 	ActivateActor {
 		token_id: TokenId,
-		filename: String,
 	},
 }
 
