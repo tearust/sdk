@@ -55,6 +55,8 @@ members = [
     "system-actors",
     "utils/*",
     "actorx2",
+    "actorx2/core",
+    "actorx2/worker",
     "actorx2/examples/*",
 ]
 
