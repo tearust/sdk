@@ -299,7 +299,9 @@ pub enum TappstoreTxn {
 		version: String,
 		auth_b64: String,
 	},
-	DoubleCheckTopup,
+	DoubleCheckTopup {
+		timestamp: TimestampShort,
+	},
 	AdminUpdateTxnGasFee {
 		auth_b64: String,
 		txn_name: String,
