@@ -72,6 +72,7 @@ message CommonSqlQueryRequest {
     QueryActiveMetadata QueryActiveMetadata = 12;
     QueryTxnGasFeeRequest QueryTxnGasFeeRequest = 13;
     QueryDevTappsRequest QueryDevTappsRequest = 14;
+    QueryDevTappItemByNameRequest QueryDevTappItemByNameRequest = 15;
   }
 }
 
@@ -112,6 +113,9 @@ message QueryFluencerRefcodeRequest {}
 message QueryTxnGasFeeRequest {}
 message QueryDevTappsRequest {
   string owner = 1;
+}
+message QueryDevTappItemByNameRequest {
+  string name = 1;
 }
 
 message CommonSqlQueryResponse {

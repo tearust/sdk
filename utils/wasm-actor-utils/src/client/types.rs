@@ -2,6 +2,17 @@ use crate::client::api;
 use crate::client::error::Result;
 pub use crate::enclave::action::HttpRequest;
 
+use serde::{Deserialize, Serialize};
+use tea_codec::{pricing::Priced, serde::TypeId};
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1)]
+#[response(Vec<u8>)]
+pub struct ClientTxnCbRequest {
+	pub action: String,
+	pub payload: Vec<u8>,
+}
+
 pub type Callback = dyn Fn(Vec<u8>, String) -> Result<Vec<u8>> + Sync + Send + 'static;
 pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
 	let res = match action {

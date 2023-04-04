@@ -21,3 +21,11 @@ pub struct HttpRequest {
 	pub action: String,
 	pub payload: Vec<u8>,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct HttpActorNotFoundRequest {
+	pub actor: String,
+	pub action: String,
+}

@@ -113,3 +113,12 @@ pub struct TxnGasFeeItem {
 	pub txn_name: String,
 	pub fee: String,
 }
+
+const USER_DEV_TAPP_PREFIX: &'static str = "com.developer.";
+pub fn from_dev_tapp_name(tapp_name: &str) -> String {
+	str::replace(tapp_name, USER_DEV_TAPP_PREFIX, "")
+}
+
+pub fn to_dev_tapp_name(ori_name: &str) -> String {
+	format!("{USER_DEV_TAPP_PREFIX}{ori_name}")
+}

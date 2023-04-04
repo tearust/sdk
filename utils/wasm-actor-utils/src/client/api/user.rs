@@ -432,6 +432,8 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 							"status": true,
 						});
 						help::cache_json_with_uuid(&uuid, x).await?;
+
+					// TODO trigger txn cb
 					} else {
 						info!("Txn hash no error. but not success. wait for next loop...");
 
