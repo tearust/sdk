@@ -1,0 +1,46 @@
+[package]
+name = "tea-actorx2"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+authors = { workspace = true }
+license-file = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+tea-codec = { version = "0.2.0-dev.5", path = "../codecs/tea-codec" }
+tea-actorx2-core = { version = "0.2.0-dev.5", path = "core" }
+
+serde = { workspace = true }
+tokio = { workspace = true, features = ["rt", "macros"], optional = true }
+command-fds = { version = "0.2.2", features = ["tokio"], optional = true }
+tokio-util = { workspace = true, features = ["io", "io-util"], optional = true }
+bincode = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+futures = { version = "0.3.28", optional = true }
+
+tea-actorx2-worker = { version = "0.2.0-dev.5", artifact = "bin", path = "worker", optional = true }
+
+[features]
+host = [
+    "tea-actorx2-worker",
+    "tea-actorx2-core/host",
+    "tokio",
+    "tokio/rt-multi-thread",
+    "tokio/io-util",
+    "tokio/fs",
+    "tokio/net",
+    "tokio/parking_lot",
+    "tokio/process",
+    "tokio/time",
+    "tokio/sync",
+    "tokio-util",
+    "command-fds",
+]
+wasm = ["futures"]
+llvm = ["tea-actorx2-worker/llvm"]

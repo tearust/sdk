@@ -1,0 +1,30 @@
+[package]
+name = "tea-actorx2-core"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+authors = { workspace = true }
+license-file = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+
+[dependencies]
+tea-codec = { version = "0.2.0-dev.5", path = "../../codecs/tea-codec" }
+serde = { workspace = true }
+tokio = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+primitive-types = { workspace = true }
+openssl = { workspace = true, optional = true }
+leb128 = { workspace = true, optional = true }
+zstd = { workspace = true, optional = true }
+bincode = { workspace = true }
+wasmparser = { workspace = true, optional = true }
+
+[features]
+default = []
+sign = ["openssl", "zstd", "leb128"]
+host = ["tokio/io-util"]
+worker = ["wasmparser"]

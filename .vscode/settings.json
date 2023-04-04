@@ -1,10 +1,10 @@
 {
-    "rust-analyzer.check.command": "clippy",
-    "rust-analyzer.check.overrideCommand": [
-        "cargo",
-        "clippy"
-    ],
     "editor.formatOnSave": true,
     "editor.formatOnPaste": true,
     "editor.formatOnType": true,
+    "rust-analyzer.cargo.features": [
+        "host",
+        "wasm"
+    ],
+    "rust-analyzer.showUnlinkedFileNotification": false,
 }
