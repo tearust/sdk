@@ -71,3 +71,9 @@ pub struct IsFileExistResponse(pub bool);
 pub struct SetDownloaded {
 	pub cid: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GetDownloadPathRequest;
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetDownloadPathResponse(pub String);
