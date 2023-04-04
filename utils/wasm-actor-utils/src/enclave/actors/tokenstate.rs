@@ -283,7 +283,7 @@ pub async fn api_deposit(
 			"actor_statemachine api_deposit error {}",
 			operate_error.to_string()
 		);
-		Err(operate_error.into())
+		Err(operate_error)
 	}
 }
 
@@ -310,6 +310,6 @@ pub async fn api_refund(
 			"actor_statemachine api_refund error {}",
 			operate_error.to_string()
 		);
-		Err(operate_error.into())
+		Err(operate_error)
 	}
 }

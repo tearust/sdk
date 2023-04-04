@@ -114,7 +114,7 @@ pub struct TxnGasFeeItem {
 	pub fee: String,
 }
 
-const USER_DEV_TAPP_PREFIX: &'static str = "com.developer.";
+const USER_DEV_TAPP_PREFIX: &str = "com.developer.";
 pub fn from_dev_tapp_name(tapp_name: &str) -> String {
 	str::replace(tapp_name, USER_DEV_TAPP_PREFIX, "")
 }

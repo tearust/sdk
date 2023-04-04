@@ -45,7 +45,7 @@ impl Host {
 
 		Ok(match Self::read_cache(&compiled_path).await {
 			Ok(host) => host,
-			Err(_) => Self::read_new(&bin, &compiled_path).await?,
+			Err(_) => Self::read_new(bin, &compiled_path).await?,
 		})
 	}
 

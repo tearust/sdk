@@ -51,7 +51,7 @@ impl WorkerProcess {
 			.spawn()?;
 		drop(other);
 
-		this.write_all(&source).await?;
+		this.write_all(source).await?;
 		this.flush().await?;
 		let bytes = read_var_bytes(&mut this).await?;
 		let metadata: Result<_> = bincode::deserialize(&bytes)?;

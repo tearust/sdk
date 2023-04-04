@@ -39,7 +39,7 @@ where
 	send_custom_query(
 		from_actor,
 		arg,
-		&tea_system_actors::tappstore::NAME,
+		tea_system_actors::tappstore::NAME,
 		callback,
 	)
 	.await
@@ -112,7 +112,7 @@ pub async fn send_tappstore_txn(
 		req_bytes,
 		serialize(&txn)?,
 		pre_args,
-		&tea_system_actors::tappstore::NAME,
+		tea_system_actors::tappstore::NAME,
 	)
 	.await
 }
