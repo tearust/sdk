@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "actorx-example-actor"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "actorx-example-codec",
  "actorx-example-host",
@@ -15,7 +15,7 @@ dependencies = [
 
 [[package]]
 name = "actorx-example-codec"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "serde",
  "tea-sdk",
@@ -23,7 +23,7 @@ dependencies = [
 
 [[package]]
 name = "actorx-example-host"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "actorx-example-codec",
  "tea-sdk",
@@ -2741,7 +2741,7 @@ checksum = "8ae9980cab1db3fceee2f6c6f643d5d8de2997c58ee8d25fb0cc8a9e9e7348e5"
 
 [[package]]
 name = "tea-actorx-core"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "base64",
  "num-derive",
@@ -2754,7 +2754,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx-host"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "bincode",
  "crossbeam",
@@ -2775,7 +2775,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx-macros"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2784,7 +2784,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx-runtime"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "bincode",
  "lazy_static",
@@ -2799,7 +2799,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx-signer"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "base64",
  "bincode",
@@ -2819,12 +2819,16 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx2"
-version = "0.2.0-dev.14"
+version = "0.2.0-dev.16"
 dependencies = [
+ "base64",
  "bincode",
+ "clap 4.2.1",
  "command-fds",
  "futures",
+ "primitive-types",
  "serde",
+ "serde_yaml",
  "strum",
  "tea-actorx2-core",
  "tea-actorx2-worker",
@@ -2837,7 +2841,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx2-core"
-version = "0.2.0-dev.14"
+version = "0.2.0-dev.16"
 dependencies = [
  "bincode",
  "leb128",
@@ -2853,8 +2857,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "tea-actorx2-examples-actor"
+version = "0.2.0-dev.16"
+dependencies = [
+ "tea-actorx2-examples-codec",
+ "tea-sdk",
+]
+
+[[package]]
+name = "tea-actorx2-examples-codec"
+version = "0.2.0-dev.16"
+dependencies = [
+ "serde",
+ "tea-sdk",
+]
+
+[[package]]
+name = "tea-actorx2-examples-host"
+version = "0.2.0-dev.16"
+dependencies = [
+ "tea-actorx2-examples-codec",
+ "tea-sdk",
+ "tokio",
+]
+
+[[package]]
 name = "tea-actorx2-worker"
-version = "0.2.0-dev.14"
+version = "0.2.0-dev.16"
 dependencies = [
  "bincode",
  "parking_lot 0.12.1",
@@ -2870,7 +2899,7 @@ dependencies = [
 
 [[package]]
 name = "tea-codec"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "base64",
  "bincode",
@@ -2898,7 +2927,7 @@ dependencies = [
 
 [[package]]
 name = "tea-codec-macros"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "convert_case",
  "itertools",
@@ -2909,7 +2938,7 @@ dependencies = [
 
 [[package]]
 name = "tea-runtime-codec"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "base64",
  "bincode",
@@ -2940,13 +2969,14 @@ dependencies = [
 
 [[package]]
 name = "tea-sdk"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "tea-actorx-core",
  "tea-actorx-host",
  "tea-actorx-macros",
  "tea-actorx-runtime",
  "tea-actorx-signer",
+ "tea-actorx2",
  "tea-codec",
  "tea-runtime-codec",
  "tea-system-actors",
@@ -2956,7 +2986,7 @@ dependencies = [
 
 [[package]]
 name = "tea-system-actors"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "serde",
  "strum",
@@ -2967,7 +2997,7 @@ dependencies = [
 
 [[package]]
 name = "tea-wasm-actor-utils"
-version = "0.2.0-dev.15"
+version = "0.2.0-dev.16"
 dependencies = [
  "base64",
  "bytes",

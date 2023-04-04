@@ -4,3 +4,4 @@
 .DS_Store
 .vs_code
 .actorx_worker_host
+.cache

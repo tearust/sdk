@@ -1,5 +1,5 @@
 [package]
-name = "tea-actorx-core"
+name = "tea-actorx2-examples-codec"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -9,16 +9,8 @@ keywords = { workspace = true }
 categories = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
+publish = false
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.16", path = "../../codecs/tea-codec" }
-
+tea-sdk = { path = "../../.." }
 serde = { workspace = true }
-wasmer = { workspace = true, optional = true }
-wasmer-types = { workspace = true, optional = true }
-base64 = { workspace = true }
-num-traits = { workspace = true }
-num-derive = { workspace = true }
-
-[features]
-host = ["wasmer", "wasmer-types"]

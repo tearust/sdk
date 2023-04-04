@@ -37,13 +37,11 @@ pub struct Host {
 }
 
 impl Host {
-	pub async fn new(path: &str) -> Result<Self> {
-		let bin = fs::read(path).await?;
+	pub async fn new(bin: &[u8]) -> Result<Self> {
 		let mut hasher = DefaultHasher::new();
-		path.hash(&mut hasher);
 		bin.hash(&mut hasher);
 		let hash = hasher.finish();
-		let compiled_path = format!("{CACHE_DIR}{hash:x}");
+		let compiled_path = format!("{CACHE_DIR}/{hash:x}");
 
 		Ok(match Self::read_cache(&compiled_path).await {
 			Ok(host) => host,
@@ -164,7 +162,7 @@ fn print(mut env: FunctionEnvMut<&'static mut InstanceState>, ptr: u32, len: u32
 	let result = (|| {
 		let data = memory.read_uninit(ptr as _, &mut data)?;
 		let data = std::str::from_utf8(data)?;
-		println!("{data}");
+		print!("{data}");
 		Ok(()) as Result<()>
 	})();
 
@@ -222,7 +220,7 @@ struct InstanceState {
 	instance: WasmInstance,
 	memory: Memory,
 	init: TypedFunction<(), u32>,
-	init_handle: TypedFunction<(u32, u32), ()>,
+	init_handle: TypedFunction<(u8, u32, u32), ()>,
 	handler: TypedFunction<(), ()>,
 	finish_handle: TypedFunction<(), ()>,
 	abi_ptr: u32,
@@ -272,13 +270,15 @@ impl Instance {
 			Operation::Call { ctx, req } => {
 				self.0
 					.init_handle
-					.call(store, ctx.len() as _, req.len() as _)?;
+					.call(store, 0, ctx.len() as _, req.len() as _)?;
 			}
-			Operation::ReturnOk { resp } => self.0.init_handle.call(store, resp.len() as _, 0)?,
+			Operation::ReturnOk { resp } => {
+				self.0.init_handle.call(store, 1, resp.len() as _, 0)?
+			}
 			Operation::ReturnErr { error } => {
 				self.0
 					.init_handle
-					.call(store, serialized_size(error)? as _, 0)?
+					.call(store, 2, serialized_size(error)? as _, 0)?
 			}
 		}
 

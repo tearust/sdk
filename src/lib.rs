@@ -21,6 +21,8 @@ pub mod actorx {
 	pub use tea_actorx_signer as signer;
 }
 
+pub use tea_actorx2 as actorx2;
+
 #[cfg(feature = "mock")]
 pub use tea_actorx_macros::test;
 

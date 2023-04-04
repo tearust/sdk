@@ -1,5 +1,5 @@
 [package]
-name = "actorx-example-codec"
+name = "tea-actorx2-examples-host"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -12,5 +12,9 @@ repository = { workspace = true }
 publish = false
 
 [dependencies]
-tea-sdk = { version = "0.2.0-dev.16", path = "../../.." }
-serde = { workspace = true }
+tea-sdk = { path = "../../..", features = ["host"] }
+tea-actorx2-examples-codec = { path = "../codec" }
+tokio = { workspace = true, features = ["full"] }
+
+[build-dependencies]
+tea-sdk = { path = "../../..", features = ["sign"] }

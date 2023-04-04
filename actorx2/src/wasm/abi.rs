@@ -1,3 +1,5 @@
+use std::fmt::Arguments;
+
 use tea_actorx2_core::worker_codec::OperationAbi;
 
 use crate::{actor::Actor, error::Result, wasm::runtime::wasm_actor_entry};
@@ -10,9 +12,12 @@ pub unsafe fn init() -> u32 {
 }
 
 #[inline(always)]
-pub unsafe fn init_handle(arg0: u32, arg1: u32) {
+pub unsafe fn init_handle(flag: u8, arg0: u32, arg1: u32) {
+	context().abi.set_flag(flag);
 	context().abi.alloc_0(arg0 as _);
-	context().abi.alloc_1(arg1 as _);
+	if flag == 0 {
+		context().abi.alloc_1(arg1 as _);
+	}
 }
 
 #[inline(always)]
@@ -54,27 +59,66 @@ fn restore_vec(ptr: u32, len: u32) -> Vec<u8> {
 macro_rules! actor {
 	($actor:ty) => {
 		#[no_mangle]
-		#[export_name = "abi_init"]
+		#[export_name = "init"]
 		pub unsafe extern "C" fn abi_init() -> u32 {
 			$crate::abi::init()
 		}
 
 		#[no_mangle]
-		#[export_name = "abi_init_handle"]
-		pub unsafe extern "C" fn abi_init_handle(arg0: u32, arg1: u32) {
-			$crate::abi::init_handle(arg0, arg1)
+		#[export_name = "init_handle"]
+		pub unsafe extern "C" fn abi_init_handle(flag: u8, arg0: u32, arg1: u32) {
+			$crate::abi::init_handle(flag, arg0, arg1)
 		}
 
 		#[no_mangle]
-		#[export_name = "abi_handle"]
+		#[export_name = "handle"]
 		pub unsafe extern "C" fn abi_handle() {
 			$crate::abi::handle::<$actor>()
 		}
 
 		#[no_mangle]
-		#[export_name = "abi_finish_handle"]
+		#[export_name = "finish_handle"]
 		pub unsafe extern "C" fn abi_finish_handle() {
 			$crate::abi::finish_handle()
 		}
+	};
+}
+
+extern "C" {
+	#[link_name = "print"]
+	#[allow(unused)]
+	fn abi_print(ptr: *const u8, len: u32);
+}
+
+#[doc(hidden)]
+//#[cfg(not(feature = "host"))]
+pub fn _print(args: Arguments) {
+	let string = std::fmt::format(args).into_bytes().into_boxed_slice();
+	let len = string.len() as _;
+	let ptr = string.as_ref() as *const [u8] as *const u8;
+	unsafe {
+		abi_print(ptr, len);
+	}
+}
+
+// #[doc(hidden)]
+// #[cfg(feature = "host")]
+// pub fn _print(args: Arguments) {
+// 	use std::io::Write;
+// 	std::io::stdout().write_fmt(args).unwrap();
+// }
+
+#[macro_export]
+macro_rules! print {
+	($($arg: expr),*) => {
+		$crate::abi::_print(format_args!($($arg),*));
+	};
+}
+
+#[macro_export]
+#[allow_internal_unstable(format_args_nl)]
+macro_rules! println {
+	($($arg: expr),*) => {
+		$crate::abi::_print(format_args_nl!($($arg),*))
 	};
 }

@@ -194,11 +194,12 @@ where
 {
 	#[inline(always)]
 	async fn with_actor_host(self) -> Self::Output {
-		self.with_host(Some(Arc::new(Host {
+		let host = Arc::new(Host {
 			actors: RwLock::new(HashMap::new()),
-		})))
-		.with_gas()
-		.await
+		});
+		let r = self.with_host(Some(host.clone())).with_gas().await;
+		drop(host);
+		r
 	}
 }
 

@@ -4,7 +4,9 @@
     "editor.formatOnType": true,
     "rust-analyzer.cargo.features": [
         "host",
-        "wasm"
+        "wasm",
+        "sign",
+        "sign-bin"
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
 }

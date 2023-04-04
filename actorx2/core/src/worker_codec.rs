@@ -1,11 +1,11 @@
 use strum::{Display, FromRepr};
-use tea_sdk::{deserialize, serde::error::InvalidFormat};
+use tea_sdk::{errorx::Scope, serde::error::InvalidFormat};
 #[cfg(feature = "host")]
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use crate::error::{Error, Result};
 
-pub const WORKER_UNIX_SOCKET_FD: i32 = 3;
+pub const WORKER_UNIX_SOCKET_FD: i32 = 1234;
 
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Hash, FromRepr)]
 #[repr(u8)]
@@ -30,7 +30,7 @@ pub enum Operation {
 	ReturnErr { error: Error },
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug)]
 #[repr(C)]
 pub struct OperationAbi {
 	flag: u8,
@@ -41,11 +41,18 @@ pub struct OperationAbi {
 }
 
 impl OperationAbi {
+	pub unsafe fn set_flag(&mut self, flag: u8) {
+		self.flag = flag;
+	}
+
 	pub unsafe fn marshal<S>(
 		&mut self,
 		op: Operation,
 		mut handle_vec: impl FnMut(Vec<u8>, &mut u32, &mut u32) -> Result<(), Error<S>>,
-	) -> Result<()> {
+	) -> Result<()>
+	where
+		S: Scope,
+	{
 		match op {
 			Operation::Call { ctx, req } => {
 				self.flag = 0;
@@ -68,7 +75,10 @@ impl OperationAbi {
 	pub unsafe fn unmarshal<S>(
 		&self,
 		mut handle_vec: impl FnMut(u32, u32) -> Result<Vec<u8>, Error<S>>,
-	) -> Result<Operation> {
+	) -> Result<Operation>
+	where
+		S: Scope,
+	{
 		let vec_0 = handle_vec(self.data_0, self.len_0)?;
 		match self.flag {
 			0 => Ok(Operation::Call {
@@ -77,7 +87,7 @@ impl OperationAbi {
 			}),
 			1 => Ok(Operation::ReturnOk { resp: vec_0 }),
 			2 => Ok(Operation::ReturnErr {
-				error: deserialize(&vec_0)?,
+				error: bincode::deserialize(&vec_0)?,
 			}),
 			_ => Err(InvalidFormat.into()),
 		}
@@ -96,7 +106,7 @@ impl OperationAbi {
 		let mut vec = Vec::<u8>::with_capacity(len);
 		vec.set_len(len);
 		self.data_1 = Box::into_raw(vec.into_boxed_slice()) as *mut u8 as _;
-		self.len_0 = len as _;
+		self.len_1 = len as _;
 	}
 
 	pub unsafe fn dealloc(&mut self) {
@@ -175,7 +185,7 @@ impl Operation {
 				write_var_bytes(write, resp).await?;
 			}
 			Operation::ReturnErr { error } => {
-				write.write_u8(MasterOpCode::ReturnOk as _).await?;
+				write.write_u8(MasterOpCode::ReturnErr as _).await?;
 				write.write_u64_le(cid).await?;
 				write.write_u64_le(gas).await?;
 				write_var_bytes(write, &bincode::serialize(error)?).await?;

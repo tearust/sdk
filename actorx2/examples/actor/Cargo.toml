@@ -1,5 +1,5 @@
 [package]
-name = "actorx-example-codec"
+name = "tea-actorx2-examples-actor"
 version = { workspace = true }
 edition = { workspace = true }
 description = { workspace = true }
@@ -11,6 +11,9 @@ homepage = { workspace = true }
 repository = { workspace = true }
 publish = false
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
-tea-sdk = { version = "0.2.0-dev.16", path = "../../.." }
-serde = { workspace = true }
+tea-sdk = { path = "../../..", features = ["wasm"] }
+tea-actorx2-examples-codec = { path = "../codec" }

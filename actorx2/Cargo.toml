@@ -10,12 +10,22 @@ categories = { workspace = true }
 homepage = { workspace = true }
 repository = { workspace = true }
 
+[[bin]]
+name = "sign"
+required-features = ["sign-bin"]
+
 [dependencies]
-tea-codec = { version = "0.2.0-dev.5", path = "../codecs/tea-codec" }
-tea-actorx2-core = { version = "0.2.0-dev.5", path = "core" }
+tea-codec = { version = "0.2.0-dev.16", path = "../codecs/tea-codec" }
+tea-actorx2-core = { version = "0.2.0-dev.16", path = "core" }
+tea-actorx2-worker = { version = "0.2.0-dev.16", artifact = "bin", path = "worker", optional = true }
 
 serde = { workspace = true }
-tokio = { workspace = true, features = ["rt", "macros"], optional = true }
+tokio = { workspace = true, features = [
+    "rt",
+    "macros",
+    "rt-multi-thread",
+    "fs",
+], optional = true }
 command-fds = { version = "0.2.2", features = ["tokio"], optional = true }
 tokio-util = { workspace = true, features = ["io", "io-util"], optional = true }
 bincode = { workspace = true }
@@ -23,17 +33,17 @@ strum = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 futures = { version = "0.3.28", optional = true }
-
-tea-actorx2-worker = { version = "0.2.0-dev.5", artifact = "bin", path = "worker", optional = true }
+primitive-types = { workspace = true, optional = true }
+base64 = { workspace = true, optional = true }
+serde_yaml = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
 
 [features]
 host = [
     "tea-actorx2-worker",
     "tea-actorx2-core/host",
     "tokio",
-    "tokio/rt-multi-thread",
     "tokio/io-util",
-    "tokio/fs",
     "tokio/net",
     "tokio/parking_lot",
     "tokio/process",
@@ -43,4 +53,6 @@ host = [
     "command-fds",
 ]
 wasm = ["futures"]
+sign = ["tea-actorx2-core/sign", "primitive-types", "base64", "serde_yaml"]
+sign-bin = ["sign", "clap", "tokio"]
 llvm = ["tea-actorx2-worker/llvm"]

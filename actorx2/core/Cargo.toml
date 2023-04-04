@@ -11,7 +11,7 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.5", path = "../../codecs/tea-codec" }
+tea-codec = { version = "0.2.0-dev.16", path = "../../codecs/tea-codec" }
 serde = { workspace = true }
 tokio = { workspace = true }
 strum = { workspace = true }

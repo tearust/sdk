@@ -4,8 +4,10 @@
 #![feature(negative_impls)]
 #![feature(type_alias_impl_trait)]
 #![feature(downcast_unchecked)]
+#![cfg_attr(feature = "sign", feature(iterator_try_collect))]
 #![feature(return_position_impl_trait_in_trait)]
 #![feature(async_fn_in_trait)]
+#![feature(allow_internal_unstable)]
 #![allow(incomplete_features)]
 
 extern crate tea_codec as tea_sdk;
@@ -28,6 +30,8 @@ pub use context::{cost, get_gas, set_gas};
 pub mod hooks;
 #[cfg(any(feature = "host", feature = "wasm"))]
 mod invoke;
+#[cfg(any(feature = "host", feature = "wasm"))]
+pub use invoke::ActorIdExt;
 
 #[cfg(feature = "host")]
 mod host;
@@ -36,6 +40,8 @@ pub use host::{spawn, ActorExt, HostActorIdExt, WasmActor, WithActorHost};
 
 #[cfg(feature = "wasm")]
 mod wasm;
-
 #[cfg(feature = "wasm")]
 pub use wasm::abi;
+
+#[cfg(feature = "sign")]
+pub mod sign;

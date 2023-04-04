@@ -11,13 +11,12 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.15", path = "../../codecs/tea-codec" }
-tea-actorx-core = { version = "0.2.0-dev.15", path = "../../actorx/actorx-core" }
-tea-actorx-host = { version = "0.2.0-dev.15", path = "../../actorx/actorx-host", optional = true }
-tea-actorx-runtime = { version = "0.2.0-dev.15", path = "../../actorx/actorx-runtime" }
-tea-runtime-codec = { version = "0.2.0-dev.15", path = "../../codecs/runtime-codec" }
-tea-system-actors = { version = "0.2.0-dev.15", path = "../../system-actors" }
-
+tea-codec = { version = "0.2.0-dev.16", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.16", path = "../../actorx/actorx-core" }
+tea-actorx-host = { version = "0.2.0-dev.16", path = "../../actorx/actorx-host", optional = true }
+tea-actorx-runtime = { version = "0.2.0-dev.16", path = "../../actorx/actorx-runtime" }
+tea-runtime-codec = { version = "0.2.0-dev.16", path = "../../codecs/runtime-codec" }
+tea-system-actors = { version = "0.2.0-dev.16", path = "../../system-actors" }
 base64 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -138,21 +138,24 @@ impl Serialize for CallingStack {
 	where
 		S: Serializer,
 	{
-		let mut seq = serializer.serialize_seq(None)?;
 		fn rev_stack<S>(
-			seq: &mut <S as serde::Serializer>::SerializeSeq,
+			serializer: S,
 			current: &CallingStack,
-		) -> Result<(), S::Error>
+			count: usize,
+		) -> Result<<S as serde::Serializer>::SerializeSeq, S::Error>
 		where
 			S: serde::Serializer,
 		{
-			if let Some(caller) = &current.caller {
-				rev_stack::<S>(seq, caller)?;
-			}
-			seq.serialize_element(current.current.as_ref())
+			let count = count + 1;
+			let mut seq = if let Some(caller) = &current.caller {
+				rev_stack::<S>(serializer, caller, count)?
+			} else {
+				serializer.serialize_seq(Some(count))?
+			};
+			seq.serialize_element(current.current.as_ref())?;
+			Ok(seq)
 		}
-		rev_stack::<S>(&mut seq, self)?;
-		seq.end()
+		rev_stack::<S>(serializer, self, 0)?.end()
 	}
 }
 

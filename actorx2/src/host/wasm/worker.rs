@@ -28,17 +28,17 @@ pub struct WorkerProcess {
 	_proc: Child,
 	metadata: Arc<Metadata>,
 	write: Mutex<OwnedWriteHalf>,
-	read: Mutex<WorkerRead>,
+	read: Mutex<OwnedReadHalf>,
+	channels: Mutex<WorkerChannels>,
 }
 
-struct WorkerRead {
-	stream: OwnedReadHalf,
+struct WorkerChannels {
 	channels: HashMap<u64, Sender<(Operation, u64)>>,
 	current_id: u64,
 }
 
 impl WorkerProcess {
-	pub async fn new(wasm_path: &str) -> Result<Arc<Self>> {
+	pub async fn new(source: &[u8]) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
 
 		let (mut this, other) = UnixStream::pair()?;
@@ -51,7 +51,8 @@ impl WorkerProcess {
 			.spawn()?;
 		drop(other);
 
-		write_var_bytes(&mut this, wasm_path.as_bytes()).await?;
+		this.write_all(&source).await?;
+		this.flush().await?;
 		let bytes = read_var_bytes(&mut this).await?;
 		let metadata: Result<_> = bincode::deserialize(&bytes)?;
 		let metadata = metadata?;
@@ -62,8 +63,8 @@ impl WorkerProcess {
 			_proc: proc,
 			metadata,
 			write: Mutex::new(write),
-			read: Mutex::new(WorkerRead {
-				stream: read,
+			read: Mutex::new(read),
+			channels: Mutex::new(WorkerChannels {
 				channels: HashMap::new(),
 				current_id: 0,
 			}),
@@ -102,26 +103,33 @@ impl WorkerProcess {
 
 	async fn read_loop(this: Weak<Self>) {
 		while let Some(this) = this.upgrade() {
-			let mut read = this.read.lock().await;
-			if let Err(_e) = Self::read_tick(&mut read, &this.metadata).await {
+			if let Err(_e) = this.read_tick().await {
 				break;
 			}
 		}
 	}
 
-	async fn read_tick(read: &mut WorkerRead, metadata: &Metadata) -> Result<()> {
-		match Operation::read(&mut read.stream).await? {
+	async fn read_tick(self: &Arc<Self>) -> Result<()> {
+		let mut read = self.read.lock().await;
+		let input = Operation::read(&mut *read).await?;
+		drop(read);
+		match input {
 			Ok((op, cid, gas)) => {
-				let channel = read
+				let channels = self.channels.lock().await;
+				let channel = channels
 					.channels
 					.get(&cid)
-					.ok_or_else(|| BadWorkerOutput::ChannelNotExist(cid, metadata.id.clone()))?;
+					.ok_or_else(|| BadWorkerOutput::ChannelNotExist(cid, self.metadata.id.clone()))?
+					.clone();
+				drop(channels);
 				if let Err(e) = channel.send((op, gas)) {
 					warn!("Channel dropped when receiving from worker: {e}");
 				}
 			}
 			Err(code) => {
-				return Err(BadWorkerOutput::UnknownMasterCommand(code, metadata.id.clone()).into())
+				return Err(
+					BadWorkerOutput::UnknownMasterCommand(code, self.metadata.id.clone()).into(),
+				)
 			}
 		};
 		Ok(())
@@ -134,19 +142,19 @@ pub struct Worker {
 }
 
 impl Worker {
-	pub async fn new(path: &str) -> Result<Self> {
+	pub async fn new(source: &[u8]) -> Result<Self> {
 		Ok(Self {
-			proc: WorkerProcess::new(path).await?,
+			proc: WorkerProcess::new(source).await?,
 		})
 	}
 
 	pub async fn open(self) -> Channel {
 		let (tx, rx) = unbounded_channel();
-		let mut read = self.proc.read.lock().await;
-		let id = read.current_id;
-		read.channels.insert(id, tx);
-		read.current_id = read.current_id.wrapping_add(1);
-		drop(read);
+		let mut channels = self.proc.channels.lock().await;
+		let id = channels.current_id;
+		channels.channels.insert(id, tx);
+		channels.current_id = channels.current_id.wrapping_add(1);
+		drop(channels);
 		Channel {
 			proc: self.proc,
 			rx,
@@ -169,6 +177,7 @@ impl Channel {
 	pub async fn invoke(&mut self, operation: Operation) -> Result<Operation> {
 		let mut write = self.proc.write.lock().await;
 		operation.write(&mut *write, self.id, get_gas()?).await?;
+		write.flush().await?;
 		drop(write);
 		let (result, gas) = self.rx.recv().await.ok_or(WorkerCrashed)?;
 		set_gas(gas)?;

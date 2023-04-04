@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{mem::size_of, sync::Arc};
 
 use tea_actorx2_core::{
 	actor::ActorId,
@@ -22,7 +22,7 @@ pub mod worker;
 
 pub struct WasmActor {
 	state: Mutex<State>,
-	wasm_path: String,
+	source: Vec<u8>,
 	id: ActorId,
 }
 
@@ -35,8 +35,24 @@ struct State {
 const MAX_COUNT: usize = 128;
 
 impl WasmActor {
-	pub async fn new(wasm_path: String) -> Result<Self> {
-		let worker = Worker::new(&wasm_path).await?;
+	pub async fn new(wasm_path: &str) -> Result<Self> {
+		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
+		source.push(0);
+		source.extend_from_slice(&(wasm_path.len() as u64).to_le_bytes());
+		source.extend_from_slice(wasm_path.as_bytes());
+		Self::new_source(source).await
+	}
+
+	pub async fn from_binary(wasm_binary: &[u8]) -> Result<Self> {
+		let mut source = Vec::with_capacity(wasm_binary.len() + size_of::<u64>() + 1);
+		source.push(1);
+		source.extend_from_slice(&(wasm_binary.len() as u64).to_le_bytes());
+		source.extend_from_slice(wasm_binary);
+		Self::new_source(source).await
+	}
+
+	async fn new_source(source: Vec<u8>) -> Result<Self> {
+		let worker = Worker::new(&source).await?;
 		let id = worker.metadata().id.clone();
 		Ok(Self {
 			state: Mutex::new(State {
@@ -44,7 +60,7 @@ impl WasmActor {
 				count: 0,
 				loading: None,
 			}),
-			wasm_path,
+			source,
 			id,
 		})
 	}
@@ -61,8 +77,8 @@ impl WasmActor {
 		if INC {
 			state.count += 1;
 			if state.count > MAX_COUNT {
-				let path = self.wasm_path.clone();
-				state.loading = Some(tokio::spawn(async move { Worker::new(&path).await }));
+				let source = self.source.clone();
+				state.loading = Some(tokio::spawn(async move { Worker::new(&source).await }));
 				state.count = 0;
 			}
 		}
@@ -117,7 +133,7 @@ impl WasmActor {
 		ctx: Vec<u8>,
 		req: Vec<u8>,
 	) -> Result<Operation> {
-		let target: ActorId = bincode::deserialize(&ctx)?;
+		let target: ActorId = ctx.into();
 
 		#[allow(clippy::nonminimal_bool)]
 		let permitted = metadata.claims.iter().any(|x| {

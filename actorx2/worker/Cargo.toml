@@ -11,8 +11,8 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.5", path = "../../codecs/tea-codec" }
-tea-actorx2-core = { version = "0.2.0-dev.5", path = "../core", features = [
+tea-codec = { version = "0.2.0-dev.16", path = "../../codecs/tea-codec" }
+tea-actorx2-core = { version = "0.2.0-dev.16", path = "../core", features = [
     "sign",
     "host",
     "worker",
