@@ -34,7 +34,7 @@ num_enum = { workspace = true, optional = true }
 chrono = { workspace = true, optional = true }
 clap = { workspace = true, optional = true }
 
-tea-codec = { version = "0.2.0-dev.14", path = "../tea-codec" }
+tea-codec = { version = "0.2.0-dev.15", path = "../tea-codec" }
 
 [dev-dependencies]
 structopt = "0.3.12"
