@@ -317,6 +317,8 @@ pub enum TappstoreTxn {
 		actor_version: Option<u64>,
 		state_actor_version: Option<u64>,
 		dev_status: Option<String>,
+		actor_name: Option<String>,
+		state_actor_name: Option<String>,
 	},
 	ActivateActor {
 		token_id: TokenId,

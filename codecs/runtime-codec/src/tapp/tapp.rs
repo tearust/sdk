@@ -43,6 +43,7 @@ pub struct TappItem {
 
 	pub account_balance: AccountBalance,
 	pub cid: String,
+	pub dev_status: String,
 }
 
 impl TappItem {
@@ -65,6 +66,8 @@ pub struct DevTappItem {
 	pub actor_version: Option<u64>,
 	pub state_actor_cid: Option<String>,
 	pub state_actor_version: Option<u64>,
+	pub actor_name: Option<String>,
+	pub state_actor_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
