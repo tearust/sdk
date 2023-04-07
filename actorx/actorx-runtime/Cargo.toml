@@ -11,9 +11,9 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.17", path = "../../codecs/tea-codec" }
-tea-actorx-core = { version = "0.2.0-dev.17", path = "../actorx-core" }
-tea-actorx-host = { version = "0.2.0-dev.17", path = "../actorx-host", optional = true }
+tea-codec = { version = "0.2.0-dev.18", path = "../../codecs/tea-codec" }
+tea-actorx-core = { version = "0.2.0-dev.18", path = "../actorx-core" }
+tea-actorx-host = { version = "0.2.0-dev.18", path = "../actorx-host", optional = true }
 
 serde = { workspace = true }
 bincode = { workspace = true }

@@ -11,13 +11,13 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.17", path = "../../codecs/tea-codec", features = [
+tea-codec = { version = "0.2.0-dev.18", path = "../../codecs/tea-codec", features = [
     "runtime",
 ] }
-tea-actorx-core = { version = "0.2.0-dev.17", path = "../actorx-core", features = [
+tea-actorx-core = { version = "0.2.0-dev.18", path = "../actorx-core", features = [
     "host",
 ] }
-tea-actorx-signer = { version = "0.2.0-dev.17", path = "../actorx-signer" }
+tea-actorx-signer = { version = "0.2.0-dev.18", path = "../actorx-signer" }
 
 tokio = { workspace = true, features = ["full"] }
 futures = { workspace = true }
