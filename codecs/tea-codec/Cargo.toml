@@ -31,7 +31,7 @@ tracing = { workspace = true }
 regex = { workspace = true }
 impl-trait-for-tuples = { workspace = true }
 
-tea-codec-macros = { version = "0.2.0-dev.16", path = "macros" }
+tea-codec-macros = { version = "0.2.0-dev.17", path = "macros" }
 
 [dependencies.tokio]
 version = "1"
