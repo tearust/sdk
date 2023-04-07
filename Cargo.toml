@@ -31,7 +31,7 @@ exclude = ["actorx/*", "rust-toolchain.toml", ".rustfmt.toml", ".gitignore"]
 [dependencies]
 tea-codec = { version = "0.2.0-dev.16", path = "codecs/tea-codec" }
 
-tea-actorx2 = { version = "0.2.0-dev.16", path = "actorx2" }
+tea-actorx2 = { version = "0.2.0-dev.16", path = "actorx2", features = ["sdk"] }
 
 tea-actorx-core = { version = "0.2.0-dev.16", path = "actorx/actorx-core" }
 tea-actorx-host = { version = "0.2.0-dev.16", path = "actorx/actorx-host", optional = true }
@@ -55,8 +55,6 @@ members = [
     "system-actors",
     "utils/*",
     "actorx2",
-    "actorx2/core",
-    "actorx2/worker",
     "actorx2/examples/*",
 ]
 

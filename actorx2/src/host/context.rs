@@ -4,7 +4,7 @@ use std::{
 	sync::{Arc, Weak},
 };
 
-use tea_actorx2_core::error::GasFeeExhausted;
+use crate::error::GasFeeExhausted;
 use tokio::task_local;
 
 use crate::{

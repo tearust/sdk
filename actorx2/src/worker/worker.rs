@@ -3,8 +3,8 @@ use std::{
 	sync::Arc,
 };
 
-use crate::{error::Result, wasm::Host};
-use tea_actorx2_core::worker_codec::{read_var_bytes, write_var_bytes, Operation};
+use crate::core::worker_codec::{read_var_bytes, write_var_bytes, Operation};
+use crate::worker::{error::Result, wasm::Host};
 use tokio::{
 	io::{AsyncReadExt, AsyncWriteExt},
 	net::{

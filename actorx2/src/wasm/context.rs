@@ -1,8 +1,6 @@
 use std::{any::Any, cell::UnsafeCell, pin::Pin};
 
-use tea_actorx2_core::worker_codec::OperationAbi;
-
-use crate::{context::CallingStack, error::Result};
+use crate::{core::worker_codec::OperationAbi, error::Result, sdk::context::CallingStack};
 
 static CONTEXT: ContextCell = ContextCell(UnsafeCell::new(Context {
 	calling_stack: None,

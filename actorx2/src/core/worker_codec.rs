@@ -1,23 +1,19 @@
+#[cfg(any(feature = "host", feature = "worker"))]
 use strum::{Display, FromRepr};
+#[cfg(any(feature = "wasm", feature = "worker"))]
 use tea_sdk::{errorx::Scope, serde::error::InvalidFormat};
-#[cfg(feature = "host")]
+#[cfg(any(feature = "host", feature = "worker"))]
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use crate::error::{Error, Result};
 
+#[cfg(any(feature = "host", feature = "worker"))]
 pub const WORKER_UNIX_SOCKET_FD: i32 = 1234;
 
+#[cfg(any(feature = "host", feature = "worker"))]
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Hash, FromRepr)]
 #[repr(u8)]
-pub enum WorkerOpCode {
-	Call = 0,
-	ReturnOk = 1,
-	ReturnErr = 2,
-}
-
-#[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Hash, FromRepr)]
-#[repr(u8)]
-pub enum MasterOpCode {
+pub enum OpCode {
 	Call = 0,
 	ReturnOk = 1,
 	ReturnErr = 2,
@@ -30,6 +26,7 @@ pub enum Operation {
 	ReturnErr { error: Error },
 }
 
+#[cfg(any(feature = "wasm", feature = "worker"))]
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
 pub struct OperationAbi {
@@ -40,7 +37,9 @@ pub struct OperationAbi {
 	len_1: u32,
 }
 
+#[cfg(any(feature = "wasm", feature = "worker"))]
 impl OperationAbi {
+	#[cfg(feature = "wasm")]
 	pub unsafe fn set_flag(&mut self, flag: u8) {
 		self.flag = flag;
 	}
@@ -93,6 +92,7 @@ impl OperationAbi {
 		}
 	}
 
+	#[cfg(feature = "wasm")]
 	#[allow(clippy::uninit_vec)]
 	pub unsafe fn alloc_0(&mut self, len: usize) {
 		let mut vec = Vec::<u8>::with_capacity(len);
@@ -101,6 +101,7 @@ impl OperationAbi {
 		self.len_0 = len as _;
 	}
 
+	#[cfg(feature = "wasm")]
 	#[allow(clippy::uninit_vec)]
 	pub unsafe fn alloc_1(&mut self, len: usize) {
 		let mut vec = Vec::<u8>::with_capacity(len);
@@ -109,6 +110,7 @@ impl OperationAbi {
 		self.len_1 = len as _;
 	}
 
+	#[cfg(feature = "wasm")]
 	pub unsafe fn dealloc(&mut self) {
 		match self.flag {
 			0 => drop(Box::from_raw(std::slice::from_raw_parts_mut(
@@ -126,6 +128,7 @@ impl OperationAbi {
 	}
 }
 
+#[cfg(any(feature = "wasm", feature = "worker"))]
 impl const Default for OperationAbi {
 	fn default() -> Self {
 		Self {
@@ -138,7 +141,7 @@ impl const Default for OperationAbi {
 	}
 }
 
-#[cfg(feature = "host")]
+#[cfg(any(feature = "host", feature = "worker"))]
 impl Operation {
 	pub async fn read<R>(mut read: R) -> Result<Result<(Self, u64, u64), u8>>
 	where
@@ -148,14 +151,14 @@ impl Operation {
 		let cid = read.read_u64_le().await?;
 		let gas = read.read_u64_le().await?;
 		let data_0 = read_var_bytes(&mut read).await?;
-		Ok(match MasterOpCode::from_repr(code) {
-			Some(MasterOpCode::Call) => {
+		Ok(match OpCode::from_repr(code) {
+			Some(OpCode::Call) => {
 				let ctx = data_0;
 				let req = read_var_bytes(read).await?;
 				Ok((Self::Call { ctx, req }, cid, gas))
 			}
-			Some(MasterOpCode::ReturnOk) => Ok((Self::ReturnOk { resp: data_0 }, cid, gas)),
-			Some(MasterOpCode::ReturnErr) => Ok((
+			Some(OpCode::ReturnOk) => Ok((Self::ReturnOk { resp: data_0 }, cid, gas)),
+			Some(OpCode::ReturnErr) => Ok((
 				Self::ReturnErr {
 					error: bincode::deserialize(&data_0)?,
 				},
@@ -172,20 +175,20 @@ impl Operation {
 	{
 		match self {
 			Operation::Call { ctx, req } => {
-				write.write_u8(MasterOpCode::Call as _).await?;
+				write.write_u8(OpCode::Call as _).await?;
 				write.write_u64_le(cid).await?;
 				write.write_u64_le(gas).await?;
 				write_var_bytes(&mut write, ctx).await?;
 				write_var_bytes(write, req).await?;
 			}
 			Operation::ReturnOk { resp } => {
-				write.write_u8(MasterOpCode::ReturnOk as _).await?;
+				write.write_u8(OpCode::ReturnOk as _).await?;
 				write.write_u64_le(cid).await?;
 				write.write_u64_le(gas).await?;
 				write_var_bytes(write, resp).await?;
 			}
 			Operation::ReturnErr { error } => {
-				write.write_u8(MasterOpCode::ReturnErr as _).await?;
+				write.write_u8(OpCode::ReturnErr as _).await?;
 				write.write_u64_le(cid).await?;
 				write.write_u64_le(gas).await?;
 				write_var_bytes(write, &bincode::serialize(error)?).await?;
@@ -195,7 +198,7 @@ impl Operation {
 	}
 }
 
-#[cfg(feature = "host")]
+#[cfg(any(feature = "host", feature = "worker"))]
 #[allow(clippy::uninit_vec)]
 pub async fn read_var_bytes<R>(mut read: R) -> Result<Vec<u8>>
 where
@@ -210,7 +213,7 @@ where
 	Ok(buf)
 }
 
-#[cfg(feature = "host")]
+#[cfg(any(feature = "host", feature = "worker"))]
 pub async fn write_var_bytes<W>(mut write: W, bytes: &[u8]) -> Result<()>
 where
 	W: AsyncWrite + Unpin,

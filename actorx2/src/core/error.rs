@@ -2,7 +2,7 @@ use tea_codec::define_scope;
 use tea_sdk::serde::error::Serde;
 use thiserror::Error;
 
-use crate::actor::ActorId;
+use crate::core::actor::ActorId;
 
 define_scope! {
 	ActorX2Core: Serde {

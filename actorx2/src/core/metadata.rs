@@ -1,7 +1,7 @@
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 
-use crate::actor::ActorId;
+use crate::core::actor::ActorId;
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Metadata {
@@ -10,6 +10,7 @@ pub struct Metadata {
 	pub claims: Vec<Claim>,
 }
 
+#[cfg(any(feature = "sdk"))]
 impl Metadata {
 	pub fn get_token_id(&self) -> Option<H160> {
 		self.claims.iter().find_map(|x| {

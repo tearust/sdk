@@ -3,9 +3,9 @@ use std::sync::Arc;
 use tea_codec::ResultExt;
 
 use crate::{
-	context::host,
 	error::{OutOfActorHostContext, Result},
 	host::Host,
+	sdk::context::host,
 };
 
 #[inline(always)]

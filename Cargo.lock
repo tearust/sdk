@@ -2826,33 +2826,19 @@ dependencies = [
  "clap 4.2.1",
  "command-fds",
  "futures",
+ "leb128",
+ "openssl",
  "primitive-types",
  "serde",
  "serde_yaml",
  "strum",
- "tea-actorx2-core",
- "tea-actorx2-worker",
  "tea-codec",
  "thiserror",
  "tokio",
  "tokio-util",
  "tracing",
-]
-
-[[package]]
-name = "tea-actorx2-core"
-version = "0.2.0-dev.16"
-dependencies = [
- "bincode",
- "leb128",
- "openssl",
- "primitive-types",
- "serde",
- "strum",
- "tea-codec",
- "thiserror",
- "tokio",
- "wasmparser",
+ "wasmer",
+ "wasmer-middlewares",
  "zstd",
 ]
 
@@ -2879,22 +2865,6 @@ dependencies = [
  "tea-actorx2-examples-codec",
  "tea-sdk",
  "tokio",
-]
-
-[[package]]
-name = "tea-actorx2-worker"
-version = "0.2.0-dev.16"
-dependencies = [
- "bincode",
- "parking_lot 0.12.1",
- "strum",
- "tea-actorx2-core",
- "tea-codec",
- "thiserror",
- "tokio",
- "tracing",
- "wasmer",
- "wasmer-middlewares",
 ]
 
 [[package]]

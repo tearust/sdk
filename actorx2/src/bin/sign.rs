@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use clap::Parser;
-use tea_actorx2::{error::Result, sign::sign_file};
+use tea_actorx2::sign::{error::Result, sign_file};
 
 #[derive(Debug, Parser)]
 struct Cli {

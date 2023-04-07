@@ -1,10 +1,10 @@
 use tea_codec::define_scope;
 use thiserror::Error;
 
-use crate::error::ActorX2Core;
+use crate::error::ActorX2;
 
 define_scope! {
-	Signer: ActorX2Core {
+	Signer: ActorX2 {
 		openssl::error::ErrorStack => OpenSsl, @Display, @Debug;
 		SignatureMismatch => Signature, @Display, @Debug;
 		InvalidSignatureFormat => InvalidSignatureFormat, @Display, @Debug;

@@ -6,7 +6,8 @@
         "host",
         "wasm",
         "sign",
-        "sign-bin"
+        "sign-bin",
+        "worker"
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
 }

@@ -1,19 +1,22 @@
 #[cfg(feature = "host")]
 use command_fds::FdMappingCollision;
-use tea_actorx2_core::{actor::ActorId, error::ActorX2Core};
 use tea_codec::define_scope;
 #[cfg(feature = "host")]
 use tea_sdk::errorx::{Descriptor, Scope};
+use tea_sdk::serde::error::Serde;
 use thiserror::Error;
 
+use crate::core::actor::ActorId;
+
 define_scope! {
-	ActorX2: ActorX2Core {
+	ActorX2: Serde {
 		BadWorkerOutput => BadWorkerOutput;
 		WorkerCrashed => WorkerCrashed;
 		AccessNotPermitted => AccessNotPermitted;
 		ActorNotExist => ActorNotExist;
 		NotSupported => NotSupported;
 		ActorDeactivating => ActorDeactivating;
+		GasFeeExhausted => GasFeeExhausted;
 	}
 }
 
@@ -27,6 +30,10 @@ impl Descriptor<FdMappingCollision> for ActorX2 {
 		Some(std::any::TypeId::of::<FdMappingCollision>())
 	}
 }
+
+#[derive(Debug, Error)]
+#[error("Gas fee is exhausted within wasm actor {0}")]
+pub struct GasFeeExhausted(pub ActorId);
 
 #[derive(Debug, Error)]
 pub enum BadWorkerOutput {

@@ -6,7 +6,7 @@ use std::{
 	sync::Arc,
 };
 
-use tea_actorx2_core::actor::ActorId;
+use crate::core::actor::ActorId;
 use tea_codec::{
 	errorx::Global,
 	serde::{get_type_id, ToBytes, TypeId},
@@ -18,17 +18,21 @@ use tokio::{
 };
 
 use crate::{
-	actor::{ActorSend, DynActorSend},
-	context::{current, current_ref, host, WithGas, WithHost},
 	error::{ActorDeactivating, ActorNotExist, OutOfActorHostContext, Result},
-	hooks::{Activate, Deactivate},
+	sdk::{
+		actor::{ActorSend, DynActorSend},
+		context::{current, current_ref, host, WithGas, WithHost},
+		hooks::{Activate, Deactivate},
+	},
 };
 
 mod wasm;
-
 pub use wasm::*;
 
-pub struct Host {
+pub mod context;
+pub mod invoke;
+
+pub(crate) struct Host {
 	actors: RwLock<HashMap<ActorId, Arc<ActorAgent>>>,
 }
 

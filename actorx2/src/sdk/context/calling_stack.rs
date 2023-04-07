@@ -2,12 +2,12 @@
 use std::future::Future;
 use std::{ops::Deref, sync::Arc};
 
+use crate::core::actor::ActorId;
 use serde::{
 	de::{SeqAccess, Visitor},
 	ser::SerializeSeq,
 	Deserialize, Serialize, Serializer,
 };
-use tea_actorx2_core::actor::ActorId;
 #[cfg(feature = "host")]
 use tokio::task_local;
 

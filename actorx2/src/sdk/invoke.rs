@@ -1,20 +1,20 @@
 use std::{borrow::Borrow, future::Future};
 
-use tea_actorx2_core::actor::ActorId;
+use crate::core::actor::ActorId;
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	ResultExt,
 };
 
-#[cfg(feature = "host")]
-use crate::context::WithCallingStack;
 use crate::error::Result;
+#[cfg(feature = "host")]
+use crate::sdk::context::WithCallingStack;
 
 #[cfg(feature = "host")]
-mod host;
-#[cfg(feature = "wasm")]
-#[allow(dead_code)]
-mod wasm;
+use crate::host::invoke as host;
+
+#[cfg(not(feature = "host"))]
+use crate::wasm::invoke as wasm;
 
 pub trait ActorIdExt {
 	fn invoke_raw<'a>(&self, req: &'a [u8]) -> impl Future<Output = Result<Vec<u8>>> + Send + 'a;

@@ -1,10 +1,3 @@
-#![feature(min_specialization)]
-#![feature(const_trait_impl)]
-#![feature(auto_traits)]
-#![feature(negative_impls)]
-
-extern crate tea_codec as tea_sdk;
-
 pub mod actor;
 pub mod error;
 pub mod metadata;
@@ -12,6 +5,7 @@ pub mod metadata;
 pub mod sign;
 
 #[doc(hidden)]
+#[cfg(any(feature = "worker", feature = "host", feature = "wasm"))]
 pub mod worker_codec;
 
 #[macro_export]

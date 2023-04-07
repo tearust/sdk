@@ -1,13 +1,17 @@
+pub use crate::core::actor::*;
+
 use std::{borrow::Cow, future::Future, pin::Pin, sync::Arc};
 
-use tea_actorx2_core::{actor::ActorId, metadata::Metadata};
 use tea_codec::{
 	errorx::Scope,
 	serde::{error::Serde, handle2::HandleBytes},
 	ResultExt,
 };
 
-use crate::error::{Error, NotSupported, Result};
+use crate::{
+	core::metadata::Metadata,
+	error::{Error, NotSupported, Result},
+};
 
 pub trait Actor: 'static {
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>, Error<impl Scope>>;

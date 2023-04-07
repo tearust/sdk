@@ -5,43 +5,52 @@
 #![feature(type_alias_impl_trait)]
 #![feature(downcast_unchecked)]
 #![cfg_attr(feature = "sign", feature(iterator_try_collect))]
+#![cfg_attr(feature = "worker", feature(new_uninit))]
 #![feature(return_position_impl_trait_in_trait)]
 #![feature(async_fn_in_trait)]
 #![feature(allow_internal_unstable)]
 #![allow(incomplete_features)]
 
 extern crate tea_codec as tea_sdk;
-#[cfg(feature = "host")]
+#[cfg(any(feature = "host", feature = "worker"))]
 #[macro_use]
 extern crate tracing;
 
-pub use tea_actorx2_core::{actor::ActorId, metadata};
-mod actor;
-pub mod error;
-pub use actor::{Actor, ActorSend, HandlerActor};
-
-#[cfg(any(feature = "host", feature = "wasm"))]
-mod context;
-#[cfg(any(feature = "host", feature = "wasm"))]
-pub use context::{caller, calling_stack, current, CallingStack};
-#[cfg(feature = "host")]
-pub use context::{cost, get_gas, set_gas};
-
-pub mod hooks;
-#[cfg(any(feature = "host", feature = "wasm"))]
-mod invoke;
-#[cfg(any(feature = "host", feature = "wasm"))]
-pub use invoke::ActorIdExt;
-
-#[cfg(feature = "host")]
-mod host;
-#[cfg(feature = "host")]
-pub use host::{spawn, ActorExt, HostActorIdExt, WasmActor, WithActorHost};
+#[cfg(any(feature = "sdk", feature = "sign", feature = "worker"))]
+mod core;
 
 #[cfg(feature = "wasm")]
 mod wasm;
-#[cfg(feature = "wasm")]
-pub use wasm::abi;
+
+#[cfg(feature = "host")]
+mod host;
 
 #[cfg(feature = "sign")]
 pub mod sign;
+
+#[cfg(feature = "worker")]
+pub mod worker;
+
+#[cfg(feature = "sdk")]
+mod sdk;
+#[cfg(feature = "sdk")]
+pub use sdk::*;
+
+#[cfg(any(feature = "sdk", feature = "sign", feature = "worker",))]
+pub mod error;
+
+mod export {
+	#[cfg(any(feature = "sdk", feature = "sign", feature = "worker"))]
+	pub use crate::core::metadata;
+
+	#[cfg(feature = "host")]
+	pub use crate::host::{spawn, ActorExt, WasmActor, WithActorHost};
+
+	#[cfg(feature = "wasm")]
+	pub use crate::wasm::abi;
+
+	#[cfg(any(feature = "host", feature = "wasm"))]
+	pub use crate::sdk::{actor::*, hooks, invoke::*};
+}
+
+pub use export::*;

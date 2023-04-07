@@ -1,8 +1,8 @@
 use std::fmt::Arguments;
 
-use tea_actorx2_core::worker_codec::OperationAbi;
+use crate::core::worker_codec::OperationAbi;
 
-use crate::{actor::Actor, error::Result, wasm::runtime::wasm_actor_entry};
+use crate::{error::Result, sdk::actor::Actor, wasm::runtime::wasm_actor_entry};
 
 use super::context::context;
 

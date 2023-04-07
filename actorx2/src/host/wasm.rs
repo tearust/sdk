@@ -1,6 +1,6 @@
 use std::{mem::size_of, sync::Arc};
 
-use tea_actorx2_core::{
+use crate::core::{
 	actor::ActorId,
 	metadata::{Claim, Metadata},
 	worker_codec::Operation,
@@ -9,11 +9,8 @@ use tea_codec::serde::{get_type_id, TypeId};
 use tokio::{sync::Mutex, task::JoinHandle};
 
 use crate::{
-	actor::Actor,
-	context::calling_stack,
 	error::{AccessNotPermitted, Result},
-	hooks::Deactivate,
-	invoke::ActorIdExt,
+	sdk::{actor::Actor, context::calling_stack, hooks::Deactivate, invoke::ActorIdExt},
 };
 
 use self::worker::{Channel, Worker};

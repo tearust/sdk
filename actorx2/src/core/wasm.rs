@@ -1,4 +1,4 @@
-use wasmparser::Operator;
+use wasmer::wasmparser::Operator;
 
 pub fn pricing(_op: &Operator) -> u64 {
 	1

@@ -1,3 +1,4 @@
+use crate::core::{metadata::Metadata, worker_codec::*};
 use crate::{
 	context::{get_gas, set_gas},
 	error::{BadWorkerOutput, Result, WorkerCrashed},
@@ -9,7 +10,6 @@ use std::{
 	path::Path,
 	sync::{Arc, Weak},
 };
-use tea_actorx2_core::{metadata::Metadata, worker_codec::*};
 use tokio::{
 	fs::{canonicalize, OpenOptions},
 	io::AsyncWriteExt,
@@ -23,6 +23,8 @@ use tokio::{
 		Mutex, RwLock,
 	},
 };
+
+const WORKER_BINARY: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/worker"));
 
 pub struct WorkerProcess {
 	_proc: Child,
@@ -76,7 +78,6 @@ impl WorkerProcess {
 	}
 
 	async fn create_file() -> Result<Arc<Path>> {
-		const WORKER_BINARY: &[u8] = include_bytes!(env!("CARGO_BIN_FILE_TEA_ACTORX2_WORKER"));
 		const WORKER_PATH: &str = ".actorx_worker_host";
 		static WORKER_REAL_PATH: RwLock<Option<Arc<Path>>> = RwLock::const_new(None);
 

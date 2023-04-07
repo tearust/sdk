@@ -5,15 +5,17 @@ use std::{
 	sync::Arc,
 };
 
-use crate::{error::Result, wasm::memory::MemoryLimit};
-use bincode::serialized_size;
-use tea_actorx2_core::{
-	error::GasFeeExhausted,
-	metadata::Metadata,
+use crate::{
+	core::{
+		error::GasFeeExhausted,
+		metadata::Metadata,
+		wasm::{pricing, MEMORY_LIMIT},
+		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
+	},
 	sign::verify,
-	wasm::{pricing, MEMORY_LIMIT},
-	worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
+	worker::{error::Result, wasm::memory::MemoryLimit},
 };
+use bincode::serialized_size;
 use tokio::fs;
 use wasmer::{
 	imports, CompilerConfig, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
