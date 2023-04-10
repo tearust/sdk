@@ -48,6 +48,7 @@ wasmer = { workspace = true, optional = true }
 wasmer-middlewares = { workspace = true, optional = true }
 
 [features]
+default = ["sdk"]
 sdk = []
 worker = [
     "sign",

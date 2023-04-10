@@ -14,6 +14,7 @@ fn main() {
 		.arg("tea-actorx2")
 		.arg("--bin")
 		.arg("worker")
+		.arg("--no-default-features")
 		.arg("--features")
 		.arg("worker")
 		.arg("--target-dir")
