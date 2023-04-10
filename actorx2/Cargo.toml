@@ -19,7 +19,7 @@ name = "worker"
 required-features = ["worker"]
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.18", path = "../codecs/tea-codec" }
+tea-codec = { version = "0.2.0-dev.19", path = "../codecs/tea-codec" }
 
 serde = { workspace = true }
 bincode = { workspace = true }
