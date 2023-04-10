@@ -1,3 +1,4 @@
+#[doc(hidden)]
 pub mod abi;
 mod actor;
 pub(crate) mod context;

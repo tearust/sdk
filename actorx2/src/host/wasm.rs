@@ -10,7 +10,7 @@ use tokio::{sync::Mutex, task::JoinHandle};
 
 use crate::{
 	error::{AccessNotPermitted, Result},
-	sdk::{actor::Actor, context::calling_stack, hooks::Deactivate, invoke::ActorIdExt},
+	sdk::{actor::Actor, context::calling_stack, hooks::Deactivate},
 };
 
 use self::worker::{Channel, Worker};

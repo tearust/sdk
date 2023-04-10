@@ -8,7 +8,7 @@ use tea_actorx2_examples_codec::{
 	NATIVE_ID, WASM_ID,
 };
 use tea_sdk::{
-	actorx2::{actor, println, ActorId, ActorIdExt, HandlerActor},
+	actorx2::{actor, println, ActorId, HandlerActor},
 	serde::handle2::{Handle, Handles},
 	Handle,
 };

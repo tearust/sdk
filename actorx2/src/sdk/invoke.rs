@@ -16,29 +16,16 @@ use crate::host::invoke as host;
 #[cfg(not(feature = "host"))]
 use crate::wasm::invoke as wasm;
 
-pub trait ActorIdExt {
-	fn invoke_raw<'a>(&self, req: &'a [u8]) -> impl Future<Output = Result<Vec<u8>>> + Send + 'a;
-
-	fn call<Req>(
-		&self,
-		req: impl Borrow<Req>,
-	) -> impl Future<Output = Result<Req::Response>> + Send + 'static
-	where
-		Req: Request + ToBytes,
-		Req::Response: for<'x> FromBytes<'x>;
-
-	fn activate(&self) -> impl Future<Output = Result<()>> + Send + 'static;
-
-	fn deactivate(&self) -> impl Future<Output = Result<()>> + Send + 'static;
-}
-
-impl ActorIdExt for ActorId {
+impl ActorId {
 	#[inline(always)]
-	fn invoke_raw<'a>(&self, req: &'a [u8]) -> impl Future<Output = Result<Vec<u8>>> + Send + 'a {
+	pub fn invoke_raw<'a>(
+		&self,
+		req: &'a [u8],
+	) -> impl Future<Output = Result<Vec<u8>>> + Send + 'a {
 		invoke(self.clone(), req)
 	}
 
-	fn call<Req>(
+	pub fn call<Req>(
 		&self,
 		req: impl Borrow<Req>,
 	) -> impl Future<Output = Result<Req::Response>> + Send + 'static
@@ -55,11 +42,11 @@ impl ActorIdExt for ActorId {
 		}
 	}
 
-	fn activate(&self) -> impl Future<Output = Result<()>> + Send + 'static {
+	pub fn activate(&self) -> impl Future<Output = Result<()>> + Send + 'static {
 		activate(self.clone())
 	}
 
-	fn deactivate(&self) -> impl Future<Output = Result<()>> + Send + 'static {
+	pub fn deactivate(&self) -> impl Future<Output = Result<()>> + Send + 'static {
 		deactivate(self.clone())
 	}
 }

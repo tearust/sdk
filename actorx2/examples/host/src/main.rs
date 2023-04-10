@@ -7,7 +7,7 @@ mod time_actor;
 
 use error::Result;
 use tea_actorx2_examples_codec::{AddRequest, AddResponse, GreetingsRequest, WASM_ID};
-use tea_sdk::actorx2::{get_gas, set_gas, ActorExt, ActorIdExt, WasmActor, WithActorHost};
+use tea_sdk::actorx2::{get_gas, set_gas, ActorExt, WasmActor, WithActorHost};
 
 #[tokio::main]
 async fn main() -> Result<()> {

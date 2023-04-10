@@ -33,7 +33,7 @@ where
 			context().execution = Some(execution);
 		}
 		Operation::ReturnOk { resp } => context().input = Some(Ok(resp)),
-		Operation::ReturnErr { error } => context().input = Some(Err(error.into())),
+		Operation::ReturnErr { error } => context().input = Some(Err(error)),
 	}
 
 	let execution = unsafe {

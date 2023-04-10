@@ -6,7 +6,7 @@ use std::{
 	sync::Arc,
 };
 
-use crate::core::actor::ActorId;
+use crate::{core::actor::ActorId, metadata::Metadata};
 use tea_codec::{
 	errorx::Global,
 	serde::{get_type_id, ToBytes, TypeId},
@@ -98,6 +98,11 @@ enum Status {
 }
 
 impl ActorAgent {
+	#[inline(always)]
+	async fn metadata(&self) -> Result<Arc<Metadata>> {
+		self.actor.metadata().await.err_into()
+	}
+
 	async fn activate(&self) -> Result<()> {
 		let is_active = self.is_active.read().await;
 		match *is_active {
@@ -225,13 +230,16 @@ where
 	}
 }
 
-pub trait HostActorIdExt {
-	async fn iter() -> Result<Iter>;
-}
-
-impl HostActorIdExt for ActorId {
+impl ActorId {
 	#[inline(always)]
-	async fn iter() -> Result<Iter> {
+	pub async fn metadata(&self) -> Result<Arc<Metadata>> {
+		let host = host().ok_or(OutOfActorHostContext)?;
+		let actors = host.actors.read().await;
+		actors.get(self).ok_or(ActorNotExist)?.metadata().await
+	}
+
+	#[inline(always)]
+	pub async fn iter() -> Result<Iter> {
 		use std::mem::transmute;
 		let host = host().ok_or(OutOfActorHostContext)?;
 		let actors = unsafe {
