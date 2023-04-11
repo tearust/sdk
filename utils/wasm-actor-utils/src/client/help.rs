@@ -77,7 +77,8 @@ pub async fn cache_json_with_uuid(uuid: &str, val: serde_json::Value) -> Result<
 pub async fn set_query_cache(key: &str, val: serde_json::Value) -> Result<()> {
 	let key = format!("cache_{key}");
 	let val = serde_json::to_vec(&val)?;
-	kvp::set(&key, &val, 900).await?;
+	let new_val = serde_json::json!({ "cache": val });
+	kvp::set(&key, &new_val, 900).await?;
 	Ok(())
 }
 pub async fn get_query_cache(key: &str) -> Result<Option<Vec<u8>>> {
