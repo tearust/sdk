@@ -323,6 +323,16 @@ pub enum TappstoreTxn {
 	ActivateActor {
 		token_id: TokenId,
 	},
+	AddErrorLogForTApp {
+		token_id: TokenId,
+		actor_type: String,
+		tea_id: Option<Vec<u8>>,
+		details: String,
+	},
+	RemoveErrorLogForTApp {
+		token_id: TokenId,
+		actor_type: String,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

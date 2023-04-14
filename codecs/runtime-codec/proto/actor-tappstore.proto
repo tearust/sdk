@@ -73,6 +73,7 @@ message CommonSqlQueryRequest {
     QueryTxnGasFeeRequest QueryTxnGasFeeRequest = 13;
     QueryDevTappsRequest QueryDevTappsRequest = 14;
     QueryDevTappItemByNameRequest QueryDevTappItemByNameRequest = 15;
+    QueryDevTappErrorLog QueryDevTappErrorLog = 16;
   }
 }
 
@@ -116,6 +117,9 @@ message QueryDevTappsRequest {
 }
 message QueryDevTappItemByNameRequest {
   string name = 1;
+}
+message QueryDevTappErrorLog {
+  string token_id = 1;
 }
 
 message CommonSqlQueryResponse {
