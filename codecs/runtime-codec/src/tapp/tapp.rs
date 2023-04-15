@@ -71,6 +71,16 @@ pub struct DevTappItem {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TappErrorLog {
+	pub token_id: TokenId,
+	pub actor_type: String,
+	pub error_type: String,
+	pub tea_id: Option<String>,
+	pub details: String,
+	pub create_at: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct LeaderboardItem {
 	pub address: String,
 	pub init_asset_add: String,
