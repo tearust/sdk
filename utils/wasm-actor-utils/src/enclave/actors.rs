@@ -1,5 +1,3 @@
-pub use tea_actorx_runtime::call;
-
 pub mod adapter;
 pub mod crypto;
 pub mod enclave;

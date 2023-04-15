@@ -15,8 +15,7 @@ use crate::enclave::{
 };
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx_core::RegId;
-use tea_actorx_runtime::{call, post};
+use tea_actorx2::ActorId;
 use tea_codec::serialize;
 use tea_runtime_codec::tapp::Hash;
 use tea_runtime_codec::vmh::message::{
@@ -31,6 +30,7 @@ use tea_runtime_codec::{
 	},
 	tapp::Ts,
 };
+use tea_sdk::ResultExt;
 use tea_system_actors::replica::{
 	GetExecCursorRequest, ReceiveFollowupRequest, ReceiveTxnRequest, ReportTxnExecErrorRequest,
 	NAME,
@@ -189,14 +189,12 @@ pub async fn send_transaction_locally_ex(
 		}
 	);
 
-	let tsid = call(
-		RegId::Static(NAME).inst(0),
-		ReceiveTxnRequest(encode_protobuf(replica::ReceiveTxn {
+	let tsid = ActorId::Static(NAME)
+		.call(ReceiveTxnRequest(encode_protobuf(replica::ReceiveTxn {
 			txn_bytes,
 			args: args.as_ref().map(serialize).transpose()?,
-		})?),
-	)
-	.await?;
+		})?))
+		.await?;
 
 	if gen_followup {
 		let followup: Vec<u8> = serialize(&Followup {
@@ -207,11 +205,11 @@ pub async fn send_transaction_locally_ex(
 			hash: txn_hash,
 			sender: get_my_tea_id().await?.as_slice().try_into()?,
 		})?;
-		let fol_rtn = call(
-			RegId::Static(NAME).inst(0),
-			ReceiveFollowupRequest(encode_protobuf(replica::ReceiveFollowup { followup })?),
-		)
-		.await?;
+		let fol_rtn = ActorId::Static(NAME)
+			.call(ReceiveFollowupRequest(encode_protobuf(
+				replica::ReceiveFollowup { followup },
+			)?))
+			.await?;
 
 		if fol_rtn.0.is_some() {
 			return Ok(fol_rtn.0);
@@ -222,51 +220,51 @@ pub async fn send_transaction_locally_ex(
 }
 
 pub async fn report_txn_error(txn_hash: Vec<u8>, error_msg: String) -> Result<()> {
-	post(
-		RegId::Static(NAME).inst(0),
-		ReportTxnExecErrorRequest(txn_hash.as_slice().try_into()?, error_msg),
-	)
-	.await?;
+	ActorId::Static(NAME)
+		.call(ReportTxnExecErrorRequest(
+			txn_hash.as_slice().try_into()?,
+			error_msg,
+		))
+		.await?;
 	Ok(())
 }
 
 pub async fn import_round_table(round_table_serial: Vec<u8>) -> Result<()> {
-	call(
-		RegId::Static(tea_system_actors::replica_service::NAME).inst(0),
-		tea_system_actors::replica_service::ImportRoundTableRequest(round_table_serial),
-	)
-	.await
+	ActorId::Static(tea_system_actors::replica_service::NAME)
+		.call(tea_system_actors::replica_service::ImportRoundTableRequest(
+			round_table_serial,
+		))
+		.await
+		.err_into()
 }
 
 pub async fn export_round_table(tsid: &Option<Tsid>) -> Result<Vec<u8>> {
-	let res = call(
-		RegId::Static(tea_system_actors::replica_service::NAME).inst(0),
-		tea_system_actors::replica_service::ExportRoundTableRequest(*tsid),
-	)
-	.await?;
+	let res = ActorId::Static(tea_system_actors::replica_service::NAME)
+		.call(tea_system_actors::replica_service::ExportRoundTableRequest(
+			*tsid,
+		))
+		.await?;
 	Ok(res.0)
 }
 
 pub async fn is_in_round_table_async(tea_id: &[u8]) -> Result<bool> {
-	let v = call(
-		RegId::Static(tea_system_actors::replica_service::NAME).inst(0),
-		tea_system_actors::replica_service::IsInRoundTableRequest(tea_id.try_into()?),
-	)
-	.await?;
+	let v = ActorId::Static(tea_system_actors::replica_service::NAME)
+		.call(tea_system_actors::replica_service::IsInRoundTableRequest(
+			tea_id.try_into()?,
+		))
+		.await?;
 	Ok(v.0)
 }
 
 pub async fn get_exec_cursor() -> Result<Option<Tsid>> {
-	let tsid = call(RegId::Static(NAME).inst(0), GetExecCursorRequest).await?;
+	let tsid = ActorId::Static(NAME).call(GetExecCursorRequest).await?;
 	Ok(tsid.0)
 }
 
 pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, String)>>> {
-	let msg = call(
-		RegId::Static(tea_system_actors::replica_service::NAME).inst(0),
-		tea_system_actors::replica_service::ValidatorsMembersRequest,
-	)
-	.await?;
+	let msg = ActorId::Static(tea_system_actors::replica_service::NAME)
+		.call(tea_system_actors::replica_service::ValidatorsMembersRequest)
+		.await?;
 
 	let res = replica::ValidatorMembersResponse::decode(msg.0.as_slice())?;
 	match res.validator_members {
@@ -288,11 +286,9 @@ pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, Stri
 }
 
 pub async fn fetch_validator_state_async() -> Result<Option<replica::ValidatorsState>> {
-	let buf = call(
-		RegId::Static(tea_system_actors::replica_service::NAME).inst(0),
-		tea_system_actors::replica_service::ValidatorsStateRequest,
-	)
-	.await?;
+	let buf = ActorId::Static(tea_system_actors::replica_service::NAME)
+		.call(tea_system_actors::replica_service::ValidatorsStateRequest)
+		.await?;
 	let res = replica::ValidatorsStateResponse::decode(buf.0.as_slice())?;
 	Ok(res.validators_state)
 }
@@ -319,11 +315,9 @@ pub async fn random_select_connect_peers(
 }
 
 pub async fn has_replica_service_init() -> Result<bool> {
-	let b = call(
-		RegId::Static(tea_system_actors::replica_service::NAME).inst(0),
-		tea_system_actors::replica_service::HasInitRequest,
-	)
-	.await?;
+	let b = ActorId::Static(tea_system_actors::replica_service::NAME)
+		.call(tea_system_actors::replica_service::HasInitRequest)
+		.await?;
 	Ok(b.0)
 }
 

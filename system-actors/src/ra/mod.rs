@@ -1,6 +1,6 @@
 use crate::nitro::{AttestationDocRequest, RaPeerRequest};
 use serde::{Deserialize, Serialize};
-use tea_actorx_core::RegId;
+use tea_actorx2::ActorId;
 use tea_codec::serde::TypeId;
 
 pub mod error;
@@ -11,7 +11,7 @@ pub const NAME: &[u8] = b"com.tea.ra-actor";
 pub struct VerifyPeer {
 	pub data: RaPeerRequest,
 	pub seq_number: u64,
-	pub source: RegId,
+	pub source: ActorId,
 	pub is_seat: bool,
 }
 

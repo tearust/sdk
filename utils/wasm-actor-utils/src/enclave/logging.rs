@@ -1,7 +1,5 @@
 use std::io::Write;
 
-use tea_actorx_runtime::print_bytes;
-
 pub fn set_logging(file: bool, timestamp: bool) {
 	let config = tracing_subscriber::fmt()
 		.with_writer(|| Logger)
@@ -20,7 +18,8 @@ struct Logger;
 
 impl Write for Logger {
 	fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-		print_bytes(buf);
+		// TODO: print to stdout
+		// print_bytes(buf);
 		Ok(buf.len())
 	}
 

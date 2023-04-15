@@ -2961,6 +2961,7 @@ dependencies = [
  "serde",
  "strum",
  "tea-actorx-core",
+ "tea-actorx2",
  "tea-codec",
  "tea-runtime-codec",
 ]
@@ -2985,7 +2986,7 @@ dependencies = [
  "serde_json",
  "tea-actorx-core",
  "tea-actorx-host",
- "tea-actorx-runtime",
+ "tea-actorx2",
  "tea-codec",
  "tea-runtime-codec",
  "tea-system-actors",

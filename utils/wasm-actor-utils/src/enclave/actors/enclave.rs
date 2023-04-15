@@ -3,13 +3,13 @@ use crate::enclave::{
 	actors::libp2p::libp2p_seq_number,
 	error::{Errors, Result},
 };
-use tea_actorx_core::RegId;
-use tea_actorx_runtime::{call, post};
+use tea_actorx2::ActorId;
 use tea_codec::deserialize;
+use tea_sdk::ResultExt;
 use tea_system_actors::nitro::*;
 
 pub async fn get_my_tea_id() -> Result<Vec<u8>> {
-	let res_vec = call(RegId::Static(NAME).inst(0), GetTeaIdRequest).await?;
+	let res_vec = ActorId::Static(NAME).call(GetTeaIdRequest).await?;
 	if res_vec.0.is_empty() {
 		Err(Errors::UninitializedTeaId.into())
 	} else {
@@ -18,7 +18,7 @@ pub async fn get_my_tea_id() -> Result<Vec<u8>> {
 }
 
 pub async fn get_my_ephemeral_id() -> Result<Vec<u8>> {
-	let res_vec = call(RegId::Static(NAME).inst(0), EphemeralPubkeyRequest).await?;
+	let res_vec = ActorId::Static(NAME).call(EphemeralPubkeyRequest).await?;
 	if res_vec.0.is_empty() {
 		Err(Errors::UninitializedEphemeralPublicKey.into())
 	} else {
@@ -27,7 +27,7 @@ pub async fn get_my_ephemeral_id() -> Result<Vec<u8>> {
 }
 
 pub async fn get_my_ephemeral_key() -> Result<Vec<u8>> {
-	let res_vec = call(RegId::Static(NAME).inst(0), EphemeralKeyRequest).await?;
+	let res_vec = ActorId::Static(NAME).call(EphemeralKeyRequest).await?;
 	if res_vec.0.is_empty() {
 		Err(Errors::UninitializedEphemeralKey.into())
 	} else {
@@ -36,7 +36,7 @@ pub async fn get_my_ephemeral_key() -> Result<Vec<u8>> {
 }
 
 pub async fn generate_uuid() -> Result<String> {
-	let uuid = call(RegId::Static(NAME).inst(0), GenerateUuidRequest).await?;
+	let uuid = ActorId::Static(NAME).call(GenerateUuidRequest).await?;
 	Ok(uuid.0)
 }
 
@@ -49,14 +49,16 @@ pub async fn random_u64() -> Result<u64> {
 }
 
 pub async fn generate_random(len: u32) -> Result<Vec<u8>> {
-	let res = call(RegId::Static(NAME).inst(0), GenerateRandomRequest(len)).await?;
+	let res = ActorId::Static(NAME)
+		.call(GenerateRandomRequest(len))
+		.await?;
 	Ok(res)
 }
 
 pub async fn verify_peer<T>(
 	doc_request: AttestationDocRequest,
 	conn_id: &str,
-	source: RegId,
+	source: ActorId,
 	callback: T,
 	is_seat: bool,
 ) -> Result<()>
@@ -74,9 +76,8 @@ where
 	})
 	.await?;
 
-	post(
-		RegId::Static(NAME).inst(0),
-		VerifyPeer {
+	ActorId::Static(NAME)
+		.call(VerifyPeer {
 			data: RaPeerRequest {
 				seq_number: 0,
 				conn_id: conn_id.to_string(),
@@ -85,29 +86,27 @@ where
 			seq_number,
 			source,
 			is_seat,
-		},
-	)
-	.await
+		})
+		.await
+		.err_into()
 }
 
 pub async fn nitro_encrypt(tag: &str, data: Vec<u8>) -> Result<Vec<u8>> {
-	call(
-		RegId::Static(NAME).inst(0),
-		NitroEncryptRequest {
+	ActorId::Static(NAME)
+		.call(NitroEncryptRequest {
 			tag: tag.to_string(),
 			data,
-		},
-	)
-	.await
+		})
+		.await
+		.err_into()
 }
 
 pub async fn nitro_decrypt(tag: &str, encrypted_data: Vec<u8>) -> Result<Vec<u8>> {
-	call(
-		RegId::Static(NAME).inst(0),
-		NitroDecryptRequest {
+	ActorId::Static(NAME)
+		.call(NitroDecryptRequest {
 			tag: tag.to_string(),
 			cipher_data: encrypted_data,
-		},
-	)
-	.await
+		})
+		.await
+		.err_into()
 }

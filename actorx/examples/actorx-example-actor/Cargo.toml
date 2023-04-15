@@ -15,7 +15,9 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
-tea-sdk = { version = "0.2.0-dev.22", path = "../../..", features = ["wasm"] }
+tea-sdk = { version = "0.2.0-dev.22", path = "../../..", features = [
+	"wasm_old",
+] }
 actorx-example-codec = { version = "0.2.0-dev.22", path = "../actorx-example-codec" }
 
 [dev-dependencies]

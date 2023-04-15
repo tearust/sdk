@@ -1,6 +1,7 @@
 use crate::enclave::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
+use tea_actorx2::ActorId;
 use tea_codec::OptionExt;
 use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic},
@@ -18,14 +19,9 @@ pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>
 
 #[cfg(not(feature = "__test"))]
 pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>> {
-	use tea_actorx_core::RegId;
-	use tea_actorx_runtime::call;
-
-	let rtn = call(
-		RegId::Static(tea_system_actors::env::NAME).inst(0),
-		tea_system_actors::env::GetMiningStartupRequest,
-	)
-	.await?;
+	let rtn = ActorId::Static(tea_system_actors::env::NAME)
+		.call(tea_system_actors::env::GetMiningStartupRequest)
+		.await?;
 	Ok(rtn
 		.0
 		.into_iter()
@@ -67,37 +63,29 @@ pub async fn get_tapp_startup_nodes(
 pub async fn get_tapp_startup_nodes(
 	at_height: Option<BlockNumber>,
 ) -> Result<Vec<(Vec<u8>, CmlId, String)>> {
-	use tea_actorx_core::RegId;
-	use tea_actorx_runtime::{call, post};
 	use tea_runtime_codec::solc::queries::AsyncQuery;
 
 	if at_height.is_none() {
 		// only try get cache if at_height is none
-		let cached_startup = call(
-			RegId::Static(NAME).inst(0),
-			TappStartupNodesFromCacheRequest,
-		)
-		.await?;
+		let cached_startup = ActorId::Static(NAME)
+			.call(TappStartupNodesFromCacheRequest)
+			.await?;
 		if let Some(cached_startup) = cached_startup.0 {
 			return Ok(cached_startup);
 		}
 	}
 
-	let nodes = call(
-		RegId::Static(NAME).inst(0),
-		TappStartupNodesRequest(AsyncQuery {
+	let nodes = ActorId::Static(NAME)
+		.call(TappStartupNodesRequest(AsyncQuery {
 			at_height,
 			..Default::default()
-		}),
-	)
-	.await?;
+		}))
+		.await?;
 	let startup_nodes = complete_stateup_nodes_info(nodes.0);
 	if let Ok(n) = startup_nodes.as_ref() {
-		post(
-			RegId::Static(NAME).inst(0),
-			UpdateTappStartupNodesRequest(n.clone()),
-		)
-		.await?;
+		ActorId::Static(NAME)
+			.call(UpdateTappStartupNodesRequest(n.clone()))
+			.await?;
 	}
 	startup_nodes
 }
@@ -138,8 +126,6 @@ pub async fn cmls_info_from_layer1(
 	cml_ids: Vec<CmlId>,
 	at_height: Option<BlockNumber>,
 ) -> Result<Vec<CmlIntrinsic>> {
-	use tea_actorx_core::RegId;
-	use tea_actorx_runtime::call;
 	use tea_runtime_codec::solc::queries::{AsyncQuery, QueryType};
 
 	let (cached_cmls, missing_cml_ids): (Vec<CmlIntrinsic>, Vec<CmlId>) = if at_height.is_none() {
@@ -152,14 +138,12 @@ pub async fn cmls_info_from_layer1(
 		(vec![], cml_ids)
 	};
 
-	let mut cmls = call(
-		RegId::Static(NAME).inst(0),
-		GetCmlInfoRequest(AsyncQuery {
+	let mut cmls = ActorId::Static(NAME)
+		.call(GetCmlInfoRequest(AsyncQuery {
 			at_height,
 			query_type: QueryType::CmlInfo(missing_cml_ids),
-		}),
-	)
-	.await?;
+		}))
+		.await?;
 	update_cml_cache(&cmls.0).await?;
 	cmls.0.extend(cached_cmls);
 	Ok(cmls.0)
@@ -169,13 +153,12 @@ pub async fn cmls_info_from_layer1(
 async fn get_cached_cmls(cml_ids: &[CmlId]) -> Result<(Vec<CmlIntrinsic>, Vec<CmlId>)> {
 	// only try get cache if at_height is none
 
-	use tea_actorx_core::RegId;
-	use tea_actorx_runtime::call;
 	let mut cached_cmls = vec![];
 	let mut missing_cml_ids = vec![];
 	for id in cml_ids {
-		let cached_cml_info =
-			call(RegId::Static(NAME).inst(0), CmlInfoFromCacheRequest(*id)).await?;
+		let cached_cml_info = ActorId::Static(NAME)
+			.call(CmlInfoFromCacheRequest(*id))
+			.await?;
 		if let Some(info) = cached_cml_info.0 {
 			cached_cmls.push(info);
 		} else {
@@ -188,31 +171,22 @@ async fn get_cached_cmls(cml_ids: &[CmlId]) -> Result<(Vec<CmlIntrinsic>, Vec<Cm
 
 #[cfg(not(feature = "__test"))]
 async fn update_cml_cache(cmls: &[CmlIntrinsic]) -> Result<()> {
-	use tea_actorx_core::RegId;
-	use tea_actorx_runtime::post;
-
-	post(
-		RegId::Static(NAME).inst(0),
-		UpdateCmlInfoRequest(cmls.to_vec()),
-	)
-	.await?;
+	ActorId::Static(NAME)
+		.call(UpdateCmlInfoRequest(cmls.to_vec()))
+		.await?;
 	Ok(())
 }
 
 #[cfg(not(feature = "__test"))]
 pub async fn appstore_owner_account(at_height: Option<BlockNumber>) -> Result<Account> {
-	use tea_actorx_core::RegId;
-	use tea_actorx_runtime::call;
 	use tea_runtime_codec::solc::queries::AsyncQuery;
 
-	let res = call(
-		RegId::Static(NAME).inst(0),
-		TappstoreOwnerRequest(AsyncQuery {
+	let res = ActorId::Static(NAME)
+		.call(TappstoreOwnerRequest(AsyncQuery {
 			at_height,
 			query_type: Default::default(),
-		}),
-	)
-	.await?;
+		}))
+		.await?;
 	Ok(res.0)
 }
 

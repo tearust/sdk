@@ -60,12 +60,8 @@ members = [
 
 [features]
 default = []
-wasm = [
-    "tea-actorx-runtime",
-    "system-actors",
-    "tea-wasm-actor-utils",
-    "tea-actorx2/wasm",
-]
+wasm = ["system-actors", "tea-wasm-actor-utils", "tea-actorx2/wasm"]
+wasm_old = ["tea-actorx-runtime"]
 host = ["tea-actorx-host", "system-actors", "tea-actorx2/host"]
 sign = ["tea-actorx2/sign"]
 system-actors = ["tea-system-actors", "vmh"]
@@ -74,7 +70,6 @@ signer = ["tea-actorx-signer"]
 mock = ["wasm", "tea-actorx-runtime/mock", "tea-actorx-macros", "tokio"]
 unlimited = ["tea-actorx-host/unlimited"]
 nitro = ["tea-runtime-codec/nitro", "tea-system-actors/nitro"]
-simulator = ["tea-runtime-codec/simulator", "tea-system-actors/simulator"]
 dev = ["tea-runtime-codec/dev"]
 __test = [
     "tea-runtime-codec/__test",
