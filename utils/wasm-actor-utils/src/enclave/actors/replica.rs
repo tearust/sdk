@@ -18,15 +18,18 @@ use std::collections::HashSet;
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::serialize;
-use tea_runtime_codec::actor_txns::{
-	pre_args::{Arg, ArgSlots},
-	tsid::Tsid,
-	Followup, TxnSerial,
-};
 use tea_runtime_codec::tapp::Hash;
 use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{replica, tokenstate},
+};
+use tea_runtime_codec::{
+	actor_txns::{
+		pre_args::{Arg, ArgSlots},
+		tsid::Tsid,
+		Followup, TxnSerial,
+	},
+	tapp::Ts,
 };
 use tea_system_actors::replica::{
 	GetExecCursorRequest, ReceiveFollowupRequest, ReceiveTxnRequest, ReportTxnExecErrorRequest,
@@ -162,7 +165,7 @@ where
 	let txn_serial = txn_serial.clone();
 	process_pre_args(pre_args, move |args| {
 		Box::pin(async move {
-			let rtn = send_transaction_locally_ex(&txn_serial, args, gen_followup).await?;
+			let rtn = send_transaction_locally_ex(&txn_serial, args, gen_followup, None).await?;
 			callback(rtn).await
 		})
 	})
@@ -173,6 +176,7 @@ pub async fn send_transaction_locally_ex(
 	txn_serial: &TxnSerial,
 	args: Option<ArgSlots>,
 	gen_followup: bool,
+	ts: Option<Ts>,
 ) -> Result<Option<Tsid>> {
 	let txn_bytes = serialize(txn_serial)?;
 	let txn_hash: Hash = sha256(txn_bytes.clone()).await?.as_slice().try_into()?;
@@ -196,7 +200,10 @@ pub async fn send_transaction_locally_ex(
 
 	if gen_followup {
 		let followup: Vec<u8> = serialize(&Followup {
-			ts: system_time_as_nanos().await?,
+			ts: match ts {
+				Some(ts) => ts,
+				None => system_time_as_nanos().await?,
+			},
 			hash: txn_hash,
 			sender: get_my_tea_id().await?.as_slice().try_into()?,
 		})?;
