@@ -4,15 +4,10 @@ use crate::error::Result;
 use tea_actorx2_examples_codec::{GetSystemTimeRequest, GetSystemTimeResponse, NATIVE_ID};
 use tea_sdk::{
 	actorx2::{ActorId, HandlerActor},
-	serde::handle2::{Handle, Handles},
-	Handle,
+	serde::handle::handles,
 };
 
 pub struct Actor;
-
-impl Handles for Actor {
-	type List = Handle![GetSystemTimeRequest];
-}
 
 impl HandlerActor for Actor {
 	fn id(&self) -> Option<ActorId> {
@@ -20,10 +15,15 @@ impl HandlerActor for Actor {
 	}
 }
 
-impl Handle<GetSystemTimeRequest> for Actor {
-	async fn handle(&self, _: GetSystemTimeRequest) -> Result<GetSystemTimeResponse> {
-		Ok(GetSystemTimeResponse(
-			SystemTime::now().duration_since(UNIX_EPOCH)?.as_millis(),
-		))
+#[handles]
+impl Actor {
+	// Handles GetSystemTimeRequest
+	async fn handle(&self, _: GetSystemTimeRequest) -> Result<_> {
+		Ok(GetSystemTimeResponse(Self::to_millis(SystemTime::now())?))
+	}
+
+	// Ordinary associated functions
+	fn to_millis(time: SystemTime) -> Result<u128> {
+		Ok(time.duration_since(UNIX_EPOCH)?.as_millis())
 	}
 }

@@ -9,6 +9,8 @@ use super::{
 	get_type_id, FromBytes, ToBytes,
 };
 
+pub use tea_codec_macros::handles;
+
 pub trait Request {
 	type Response;
 }

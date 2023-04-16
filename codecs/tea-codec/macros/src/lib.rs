@@ -2,10 +2,12 @@
 
 use proc_macro::TokenStream;
 mod errorx;
+mod handle;
 mod pricing;
 mod serde;
 
 use errorx::emit::{emit, emit_all};
+use quote::ToTokens;
 use syn::parse_macro_input;
 
 #[proc_macro]
@@ -48,4 +50,10 @@ pub fn derive_type_id(input: TokenStream) -> TokenStream {
 pub fn derive_priced(input: TokenStream) -> TokenStream {
 	let input: pricing::ast::Input = parse_macro_input!(input);
 	pricing::emit::emit(input).into()
+}
+
+#[proc_macro_attribute]
+pub fn handles(_args: TokenStream, input: TokenStream) -> TokenStream {
+	let input: handle::HandlesImpl = parse_macro_input!(input);
+	input.to_token_stream().into()
 }
