@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tea_actorx_core::ActorId;
-use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::actor_txns::{
 	pre_args::{Arg, ArgSlots},
@@ -184,8 +183,7 @@ pub struct ProcessPreArgsRequest(pub Vec<Arg>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ProcessPreArgsResponse(pub ArgSlots);
 
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(0)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryLastFreezeRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryLastFreezeResponse(pub Option<FreezeRequest>);
@@ -194,3 +192,17 @@ pub struct QueryLastFreezeResponse(pub Option<FreezeRequest>);
 pub struct ListAvailablePcrsRequest(pub EnclaveType);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ListAvailablePcrsResponse(pub Vec<HashMap<PcrType, Vec<u8>>>);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+#[response(())]
+pub struct HandleTappAddErrorLogRequest {
+	pub token_id: TokenId,
+	pub actor_type: String,
+	pub details: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+#[response(())]
+pub struct HandleTappRemoveErrorLogRequest {
+	pub token_id: TokenId,
+	pub actor_type: String,
+}

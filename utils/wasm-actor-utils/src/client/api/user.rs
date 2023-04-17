@@ -337,6 +337,13 @@ pub async fn query_tapp_metadata(payload: Vec<u8>, from_actor: String) -> Result
 	let req: QueryTappMetadataRequest = serde_json::from_slice(&payload)?;
 	info!("query_tapp_metadata... => {:?}", req);
 
+	let cache_key = "query_tapp_metadata";
+	if let Ok(x) = help::get_query_cache(cache_key).await {
+		if let Some(val) = x {
+			return Ok(val);
+		}
+	}
+
 	let uuid = req.uuid;
 	let query_data = tappstore::CommonSqlQueryRequest {
 		msg: Some(
@@ -365,7 +372,10 @@ pub async fn query_tapp_metadata(payload: Vec<u8>, from_actor: String) -> Result
 						tea_codec::deserialize(&r.data)?;
 					info!("query_tapp_metadata => {:?}", &data);
 
-					json!({ "sql_query_result": data })
+					let json = json!({ "sql_query_result": data });
+					help::set_query_cache(&cache_key, json.clone()).await?;
+
+					json
 				};
 				help::cache_json_with_uuid(&uuid, x).await?;
 				Ok(())
@@ -469,6 +479,13 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 	let req: QuerySystemVersionRequest = serde_json::from_slice(&payload)?;
 	info!("query_system_version...");
 
+	let cache_key = "query_system_version";
+	if let Ok(x) = help::get_query_cache(cache_key).await {
+		if let Some(val) = x {
+			return Ok(val);
+		}
+	}
+
 	let uuid = req.uuid;
 
 	request::send_tappstore_query(
@@ -483,6 +500,7 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 					"enclave_version": r.enclave.version,
 					"enclave_url": r.enclave.url,
 				});
+				help::set_query_cache(&cache_key, x.clone()).await?;
 				help::cache_json_with_uuid(&uuid, x).await?;
 				Ok(())
 			})
