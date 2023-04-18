@@ -18,7 +18,7 @@ use tokio::{
 };
 
 use crate::{
-	error::{ActorDeactivating, ActorNotExist, OutOfActorHostContext, Result},
+	error::{ActorDeactivating, ActorNotExist, Result},
 	sdk::{
 		actor::{ActorSend, DynActorSend},
 		context::{current, current_ref, host, WithGas, WithHost},
@@ -177,10 +177,7 @@ impl ActorAgent {
 
 	#[inline(always)]
 	async fn remove_self(&self) -> Result<()> {
-		host()
-			.ok_or(OutOfActorHostContext)?
-			.remove(&current()?)
-			.await
+		host()?.remove(&current()?).await
 	}
 }
 
@@ -190,7 +187,7 @@ where
 	T: Future + Send + 'static,
 	T::Output: Send + 'static,
 {
-	tokio::spawn(future.with_host(host()).with_gas())
+	tokio::spawn(future.with_host(host().ok()).with_gas())
 }
 
 pub trait WithActorHost: Future {
@@ -222,10 +219,7 @@ where
 {
 	#[inline(always)]
 	async fn register(self) -> Result<()> {
-		host()
-			.ok_or(crate::error::OutOfActorHostContext)?
-			.register(self)
-			.await;
+		host()?.register(self).await;
 		Ok(())
 	}
 }
@@ -233,7 +227,7 @@ where
 impl ActorId {
 	#[inline(always)]
 	pub async fn metadata(&self) -> Result<Arc<Metadata>> {
-		let host = host().ok_or(OutOfActorHostContext)?;
+		let host = host()?;
 		let actors = host.actors.read().await;
 		actors.get(self).ok_or(ActorNotExist)?.metadata().await
 	}
@@ -241,7 +235,7 @@ impl ActorId {
 	#[inline(always)]
 	pub async fn iter() -> Result<Iter> {
 		use std::mem::transmute;
-		let host = host().ok_or(OutOfActorHostContext)?;
+		let host = host()?;
 		let actors = unsafe {
 			transmute::<_, RwLockReadGuard<'static, HashMap<ActorId, Arc<ActorAgent>>>>(
 				host.actors.read().await,

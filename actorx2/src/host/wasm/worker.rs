@@ -11,7 +11,7 @@ use std::{
 	sync::{Arc, Weak},
 };
 use tokio::{
-	fs::{canonicalize, OpenOptions},
+	fs::{canonicalize, remove_file, OpenOptions},
 	io::AsyncWriteExt,
 	net::{
 		unix::{OwnedReadHalf, OwnedWriteHalf},
@@ -90,12 +90,14 @@ impl WorkerProcess {
 		if let Some(path) = &*path {
 			return Ok(path.clone());
 		}
+		_ = remove_file(WORKER_PATH).await;
 		let mut file = OpenOptions::new()
 			.mode(0o755)
 			.write(true)
 			.create(true)
 			.open(WORKER_PATH)
 			.await?;
+		file.sync_all().await?;
 		file.write_all(WORKER_BINARY).await?;
 		let result = Arc::from(canonicalize(WORKER_PATH).await?);
 		*path = Some(Arc::clone(&result));

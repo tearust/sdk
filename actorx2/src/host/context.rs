@@ -4,7 +4,8 @@ use std::{
 	sync::{Arc, Weak},
 };
 
-use crate::error::GasFeeExhausted;
+use crate::error::{ActorHostDropped, GasFeeExhausted};
+use tea_sdk::ResultExt;
 use tokio::task_local;
 
 use crate::{
@@ -16,8 +17,9 @@ task_local! {
 	static HOST: Weak<Host>;
 }
 
-pub(crate) fn host() -> Option<Arc<Host>> {
-	HOST.try_with(|x| x.upgrade()).ok().flatten()
+pub(crate) fn host() -> Result<Arc<Host>> {
+	HOST.try_with(|x| x.upgrade().ok_or(ActorHostDropped).err_into())
+		.expect("Invoking an actor requires an actor host context set for the current task")
 }
 
 pub(crate) trait WithHost: Future {

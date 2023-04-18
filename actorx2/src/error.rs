@@ -17,6 +17,8 @@ define_scope! {
 		NotSupported => NotSupported;
 		ActorDeactivating => ActorDeactivating;
 		GasFeeExhausted => GasFeeExhausted;
+		OutOfActorHostContext => OutOfActorHostContext;
+		ActorHostDropped => ActorHostDropped;
 	}
 }
 
@@ -63,6 +65,10 @@ pub struct NotSupported(pub &'static str);
 #[derive(Debug, Error)]
 #[error("Invoking an actor requires an actor host context set for the current task")]
 pub struct OutOfActorHostContext;
+
+#[derive(Debug, Error)]
+#[error("The actor host is dropped for the future with with_actor_host is complete")]
+pub struct ActorHostDropped;
 
 #[derive(Debug, Error)]
 #[error("Actor {0} is deactivating")]
