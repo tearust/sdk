@@ -1,5 +1,5 @@
 [workspace.package]
-version = "0.2.0-dev.21"
+version = "0.2.0-dev.22"
 edition = "2021"
 description = "The TEA SDK"
 authors = [
@@ -29,19 +29,19 @@ repository = { workspace = true }
 exclude = ["actorx/*", "rust-toolchain.toml", ".rustfmt.toml", ".gitignore"]
 
 [dependencies]
-tea-codec = { version = "0.2.0-dev.21", path = "codecs/tea-codec" }
+tea-codec = { version = "0.2.0-dev.22", path = "codecs/tea-codec" }
 
-tea-actorx2 = { version = "0.2.0-dev.21", path = "actorx2", features = ["sdk"] }
+tea-actorx2 = { version = "0.2.0-dev.22", path = "actorx2", features = ["sdk"] }
 
-tea-actorx-core = { version = "0.2.0-dev.21", path = "actorx/actorx-core" }
-tea-actorx-host = { version = "0.2.0-dev.21", path = "actorx/actorx-host", optional = true }
-tea-actorx-runtime = { version = "0.2.0-dev.21", path = "actorx/actorx-runtime", optional = true }
-tea-actorx-signer = { version = "0.2.0-dev.21", path = "actorx/actorx-signer", optional = true }
-tea-actorx-macros = { version = "0.2.0-dev.21", path = "actorx/actorx-macros", optional = true }
+tea-actorx-core = { version = "0.2.0-dev.22", path = "actorx/actorx-core" }
+tea-actorx-host = { version = "0.2.0-dev.22", path = "actorx/actorx-host", optional = true }
+tea-actorx-runtime = { version = "0.2.0-dev.22", path = "actorx/actorx-runtime", optional = true }
+tea-actorx-signer = { version = "0.2.0-dev.22", path = "actorx/actorx-signer", optional = true }
+tea-actorx-macros = { version = "0.2.0-dev.22", path = "actorx/actorx-macros", optional = true }
 
-tea-runtime-codec = { version = "0.2.0-dev.21", path = "codecs/runtime-codec" }
-tea-system-actors = { version = "0.2.0-dev.21", path = "system-actors", optional = true }
-tea-wasm-actor-utils = { version = "0.2.0-dev.21", path = "utils/wasm-actor-utils", optional = true }
+tea-runtime-codec = { version = "0.2.0-dev.22", path = "codecs/runtime-codec" }
+tea-system-actors = { version = "0.2.0-dev.22", path = "system-actors", optional = true }
+tea-wasm-actor-utils = { version = "0.2.0-dev.22", path = "utils/wasm-actor-utils", optional = true }
 
 tokio = { workspace = true, features = ["macros"], optional = true }
 

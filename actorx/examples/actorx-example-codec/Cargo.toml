@@ -12,5 +12,5 @@ repository = { workspace = true }
 publish = false
 
 [dependencies]
-tea-sdk = { version = "0.2.0-dev.21", path = "../../.." }
+tea-sdk = { version = "0.2.0-dev.22", path = "../../.." }
 serde = { workspace = true }
