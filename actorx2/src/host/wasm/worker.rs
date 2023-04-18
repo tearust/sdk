@@ -4,14 +4,18 @@ use crate::{
 	error::{BadWorkerOutput, Result, WorkerCrashed},
 };
 use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
+use std::env::current_exe;
+use std::fs::Permissions;
+use std::os::unix::prelude::PermissionsExt;
 use std::{
 	collections::HashMap,
 	os::fd::AsRawFd,
 	path::Path,
 	sync::{Arc, Weak},
 };
+use tokio::fs::set_permissions;
 use tokio::{
-	fs::{canonicalize, remove_file, OpenOptions},
+	fs::{remove_file, OpenOptions},
 	io::AsyncWriteExt,
 	net::{
 		unix::{OwnedReadHalf, OwnedWriteHalf},
@@ -90,16 +94,26 @@ impl WorkerProcess {
 		if let Some(path) = &*path {
 			return Ok(path.clone());
 		}
-		_ = remove_file(WORKER_PATH).await;
+
+		let mut result = current_exe()?;
+		result.pop();
+		result.push(WORKER_PATH);
+
+		info!(
+			"Actor host emitting worker executable file as {}",
+			result.display()
+		);
+
+		_ = remove_file(&result).await;
 		let mut file = OpenOptions::new()
-			.mode(0o755)
 			.write(true)
 			.create(true)
-			.open(WORKER_PATH)
+			.open(&result)
 			.await?;
-		file.sync_all().await?;
 		file.write_all(WORKER_BINARY).await?;
-		let result = Arc::from(canonicalize(WORKER_PATH).await?);
+		drop(file);
+		set_permissions(&result, Permissions::from_mode(0o755)).await?;
+		let result = Arc::from(result);
 		*path = Some(Arc::clone(&result));
 		Ok(result)
 	}
