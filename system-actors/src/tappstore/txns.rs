@@ -221,7 +221,7 @@ pub enum TappstoreTxn {
 	PaymentGasFromBillingActor {
 		list: Vec<(AccountId, Balance)>,
 		from_miner: bool,
-		tea_id: Option<String>,
+		tea_id: Vec<u8>,
 	},
 	AdminGenerateNewSeed {
 		performance: u64,
