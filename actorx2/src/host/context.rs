@@ -8,10 +8,7 @@ use crate::error::{ActorHostDropped, GasFeeExhausted};
 use tea_sdk::ResultExt;
 use tokio::task_local;
 
-use crate::{
-	error::{OutOfActorHostContext, Result},
-	host::Host,
-};
+use crate::{error::Result, host::Host};
 
 task_local! {
 	static HOST: Weak<Host>;
@@ -46,21 +43,21 @@ task_local! {
 	static GAS: Cell<u64>;
 }
 
-pub fn get_gas() -> Result<u64> {
+pub fn get_gas() -> u64 {
 	GAS.try_with(|x| x.get())
-		.map_err(|_| OutOfActorHostContext.into())
+		.expect("Invoking an actor requires an actor host context set for the current task")
 }
 
-pub fn set_gas(gas: u64) -> Result<()> {
+pub fn set_gas(gas: u64) {
 	GAS.try_with(|x| x.set(gas))
-		.map_err(|_| OutOfActorHostContext.into())
+		.expect("Invoking an actor requires an actor host context set for the current task")
 }
 
 pub fn cost(cost: u64) -> Result<()> {
-	if let Some(r) = get_gas()?.checked_sub(cost) {
-		set_gas(r)
+	if let Some(r) = get_gas().checked_sub(cost) {
+		Ok(set_gas(r))
 	} else {
-		set_gas(0)?;
+		set_gas(0);
 		Err(GasFeeExhausted.into())
 	}
 }

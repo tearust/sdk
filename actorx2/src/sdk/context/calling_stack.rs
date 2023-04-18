@@ -11,7 +11,7 @@ use serde::{
 #[cfg(feature = "host")]
 use tokio::task_local;
 
-use crate::error::{OutOfActorHostContext, Result};
+use crate::error::{MissingCallingStack, Result};
 
 #[cfg(feature = "host")]
 task_local! {
@@ -38,13 +38,13 @@ pub(crate) fn current_ref<O>(f: impl FnOnce(&ActorId) -> O) -> Result<O> {
 		.try_with(|x| x.as_ref().map(|x| f(&x.current)))
 		.ok()
 		.flatten()
-		.ok_or_else(|| OutOfActorHostContext.into());
+		.ok_or_else(|| MissingCallingStack::Current.into());
 	#[cfg(not(feature = "host"))]
 	return crate::wasm::context::context()
 		.calling_stack
 		.as_ref()
 		.map(|x| f(&x.current))
-		.ok_or_else(|| OutOfActorHostContext.into());
+		.ok_or_else(|| MissingCallingStack::Current.into());
 }
 
 #[inline(always)]
@@ -57,7 +57,7 @@ pub fn caller() -> Result<Option<ActorId>> {
 		})
 		.ok()
 		.flatten()
-		.ok_or_else(|| OutOfActorHostContext.into());
+		.ok_or_else(|| MissingCallingStack::Caller.into());
 	#[cfg(not(feature = "host"))]
 	return Ok(crate::wasm::context::context()
 		.calling_stack

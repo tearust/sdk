@@ -179,11 +179,11 @@ pub struct Channel {
 impl Channel {
 	pub async fn invoke(&mut self, operation: Operation) -> Result<Operation> {
 		let mut write = self.proc.write.lock().await;
-		operation.write(&mut *write, self.id, get_gas()?).await?;
+		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
 		let (result, gas) = self.rx.recv().await.ok_or(WorkerCrashed)?;
-		set_gas(gas)?;
+		set_gas(gas);
 		Ok(result)
 	}
 }

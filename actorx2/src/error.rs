@@ -17,7 +17,7 @@ define_scope! {
 		NotSupported => NotSupported;
 		ActorDeactivating => ActorDeactivating;
 		GasFeeExhausted => GasFeeExhausted;
-		OutOfActorHostContext => OutOfActorHostContext;
+		MissingCallingStack => MissingCallingStack;
 		ActorHostDropped => ActorHostDropped;
 	}
 }
@@ -63,8 +63,12 @@ pub struct ActorNotExist(pub ActorId);
 pub struct NotSupported(pub &'static str);
 
 #[derive(Debug, Error)]
-#[error("Invoking an actor requires an actor host context set for the current task")]
-pub struct OutOfActorHostContext;
+pub enum MissingCallingStack {
+	#[error("The operation must be within a current actor context")]
+	Current,
+	#[error("The operation must be called with an actor caller")]
+	Caller,
+}
 
 #[derive(Debug, Error)]
 #[error("The actor host is dropped for the future with with_actor_host is complete")]

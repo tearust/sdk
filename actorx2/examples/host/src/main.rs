@@ -30,15 +30,15 @@ async fn init() -> Result<()> {
 async fn run() -> Result<()> {
 	init().await?;
 
-	set_gas(1000000)?;
-	println!("gas: {}", get_gas()?);
+	set_gas(1000000);
+	println!("gas: {}", get_gas());
 
 	WASM_ID.call(GreetingsRequest("Alice".to_string())).await?;
-	println!("gas: {}", get_gas()?);
+	println!("gas: {}", get_gas());
 
 	let AddResponse(r) = WASM_ID.call(AddRequest(123, 456)).await?;
 	println!("r = {r}");
-	println!("gas: {}", get_gas()?);
+	println!("gas: {}", get_gas());
 
 	Ok(())
 }
