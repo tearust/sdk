@@ -1,5 +1,6 @@
 use std::{
 	future::Future,
+	mem::swap,
 	sync::Arc,
 	time::{Duration, SystemTime},
 };
@@ -20,6 +21,12 @@ struct State {
 	expiry: SystemTime,
 }
 
+impl State {
+	fn reset_expriy(&mut self) {
+		self.expiry = SystemTime::now() + Duration::from_secs(30);
+	}
+}
+
 impl Tracker {
 	pub const fn new() -> Self {
 		Self {
@@ -38,19 +45,32 @@ impl Tracker {
 		let (tx, rx) = oneshot::channel();
 		let mut state = self.state.lock().await;
 		let is_first = state.canceller.is_none();
-		state.canceller = Some(tx);
-		state.expiry = SystemTime::now() + Duration::from_secs(30);
+		let prev_canceller = {
+			let mut canceller = Some(tx);
+			swap(&mut canceller, &mut state.canceller);
+			canceller
+		};
+		state.reset_expriy();
 		drop(state);
 		if is_first {
 			tokio::spawn(self.clone().timer());
 		}
 		tokio::pin!(f);
 		let f2 = &mut f;
-		tokio::select! {
+		let result = tokio::select! {
 			r = f2 => r,
 			Ok(_) = rx => Err(InvocationTimeout(calling_stack().expect("internal error: no calling stack")).into()),
 			else => f.await
+		};
+		let mut state = self.state.lock().await;
+		let is_timeout = state.canceller.is_none();
+		state.canceller = prev_canceller;
+		state.reset_expriy();
+		drop(state);
+		if is_timeout {
+			tokio::spawn(self.clone().timer());
 		}
+		result
 	}
 
 	async fn timer(self: Arc<Self>) {

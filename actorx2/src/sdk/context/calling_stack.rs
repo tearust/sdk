@@ -78,7 +78,6 @@ pub fn caller() -> Result<Option<ActorId>> {
 
 #[cfg(feature = "host")]
 pub(crate) trait WithCallingStack: Future {
-	async fn with_calling_stack(self, value: Option<CallingStack>) -> Self::Output;
 	async fn invoke_target(self, value: ActorId) -> Self::Output;
 }
 
@@ -88,11 +87,6 @@ where
 	T: Future<Output = Result<R, Error<S>>>,
 	S: Scope,
 {
-	#[inline(always)]
-	async fn with_calling_stack(self, value: Option<CallingStack>) -> Self::Output {
-		CALLING_STACK.scope(value, self).await
-	}
-
 	#[inline(always)]
 	async fn invoke_target(self, value: ActorId) -> Self::Output {
 		let stack = CallingStack::step(value);
