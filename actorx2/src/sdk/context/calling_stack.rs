@@ -1,21 +1,32 @@
 #[cfg(feature = "host")]
-use std::future::Future;
-use std::{ops::Deref, sync::Arc};
+use ::{std::future::Future, tea_sdk::errorx::Scope, tokio::task_local};
 
-use crate::core::actor::ActorId;
-use serde::{
-	de::{SeqAccess, Visitor},
-	ser::SerializeSeq,
-	Deserialize, Serialize, Serializer,
+use ::{
+	serde::{
+		de::{SeqAccess, Visitor},
+		ser::SerializeSeq,
+		Deserialize, Serialize, Serializer,
+	},
+	std::{
+		fmt::{Debug, Display},
+		iter::FusedIterator,
+		ops::Deref,
+		sync::Arc,
+	},
 };
-#[cfg(feature = "host")]
-use tokio::task_local;
 
-use crate::error::{MissingCallingStack, Result};
+#[cfg(feature = "host")]
+use crate::{context::tracker::Tracker, error::Error};
+
+use crate::{
+	core::actor::ActorId,
+	error::{MissingCallingStack, Result},
+};
 
 #[cfg(feature = "host")]
 task_local! {
 	static CALLING_STACK: Option<CallingStack>;
+	static TRACKER: Arc<Tracker>;
 }
 
 #[inline(always)]
@@ -72,25 +83,38 @@ pub(crate) trait WithCallingStack: Future {
 }
 
 #[cfg(feature = "host")]
-impl<T> WithCallingStack for T
+impl<T, R, S> WithCallingStack for T
 where
-	T: Future,
+	T: Future<Output = Result<R, Error<S>>>,
+	S: Scope,
 {
+	#[inline(always)]
 	async fn with_calling_stack(self, value: Option<CallingStack>) -> Self::Output {
 		CALLING_STACK.scope(value, self).await
 	}
 
+	#[inline(always)]
 	async fn invoke_target(self, value: ActorId) -> Self::Output {
-		CALLING_STACK
-			.scope(Some(CallingStack::step(value)), self)
-			.await
+		let stack = CallingStack::step(value);
+		let is_first = stack.0.caller.is_none();
+		let f = async move {
+			let tracker = TRACKER.with(Arc::clone);
+			tracker.track(self).await
+		};
+		let fut = CALLING_STACK.scope(Some(stack), f);
+		if is_first {
+			TRACKER.scope(Arc::new(Tracker::new()), fut).await
+		} else {
+			fut.await
+		}
 	}
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct CallingStack(Arc<CallingNode>);
 
 impl CallingStack {
+	#[inline(always)]
 	pub fn step(current: ActorId) -> Self {
 		Self(Arc::new(CallingNode {
 			current,
@@ -101,6 +125,8 @@ impl CallingStack {
 
 impl Deref for CallingStack {
 	type Target = CallingNode;
+
+	#[inline(always)]
 	fn deref(&self) -> &Self::Target {
 		&self.0
 	}
@@ -113,10 +139,12 @@ pub struct CallingNode {
 }
 
 #[derive(Clone, Debug)]
-pub struct Iter(Option<CallingStack>);
+pub struct IntoIter(Option<CallingStack>);
 
-impl Iterator for Iter {
+impl Iterator for IntoIter {
 	type Item = ActorId;
+
+	#[inline(always)]
 	fn next(&mut self) -> Option<Self::Item> {
 		self.0.take().map(|v| {
 			self.0 = v.caller.clone();
@@ -125,9 +153,40 @@ impl Iterator for Iter {
 	}
 }
 
+impl FusedIterator for IntoIter {}
+
+#[derive(Clone, Debug)]
+pub struct Iter<'a>(Option<&'a CallingStack>);
+
+impl<'a> Iterator for Iter<'a> {
+	type Item = &'a ActorId;
+
+	#[inline(always)]
+	fn next(&mut self) -> Option<Self::Item> {
+		self.0.take().map(|v| {
+			self.0 = v.caller.as_ref();
+			&v.current
+		})
+	}
+}
+
+impl FusedIterator for Iter<'_> {}
+
 impl IntoIterator for CallingStack {
 	type Item = ActorId;
-	type IntoIter = Iter;
+	type IntoIter = IntoIter;
+
+	#[inline(always)]
+	fn into_iter(self) -> Self::IntoIter {
+		IntoIter(Some(self))
+	}
+}
+
+impl<'a> IntoIterator for &'a CallingStack {
+	type Item = &'a ActorId;
+	type IntoIter = Iter<'a>;
+
+	#[inline(always)]
 	fn into_iter(self) -> Self::IntoIter {
 		Iter(Some(self))
 	}
@@ -191,5 +250,23 @@ impl<'de> Deserialize<'de> for CallingStack {
 		}
 
 		deserializer.deserialize_seq(CallingStackVisitor)
+	}
+}
+
+impl Display for CallingStack {
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		let mut list = f.debug_list();
+		for actor in self {
+			list.entry(actor);
+		}
+		list.finish()
+	}
+}
+
+impl Debug for CallingStack {
+	#[inline(always)]
+	fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+		Display::fmt(&self, f)
 	}
 }

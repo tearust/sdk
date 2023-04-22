@@ -10,6 +10,8 @@ use tokio::task_local;
 
 use crate::{error::Result, host::Host};
 
+pub(crate) mod tracker;
+
 task_local! {
 	static HOST: Weak<Host>;
 }
@@ -55,7 +57,8 @@ pub fn set_gas(gas: u64) {
 
 pub fn cost(cost: u64) -> Result<()> {
 	if let Some(r) = get_gas().checked_sub(cost) {
-		Ok(set_gas(r))
+		set_gas(r);
+		Ok(())
 	} else {
 		set_gas(0);
 		Err(GasFeeExhausted.into())

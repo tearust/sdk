@@ -6,10 +6,10 @@ use tea_sdk::errorx::{Descriptor, Scope};
 use tea_sdk::serde::error::Serde;
 use thiserror::Error;
 
-use crate::core::actor::ActorId;
+use crate::core::{actor::ActorId, error::ActorX2Core};
 
 define_scope! {
-	ActorX2: Serde {
+	ActorX2: pub ActorX2Core, Serde {
 		BadWorkerOutput => BadWorkerOutput;
 		WorkerCrashed => WorkerCrashed;
 		AccessNotPermitted => AccessNotPermitted;
@@ -19,6 +19,7 @@ define_scope! {
 		GasFeeExhausted => GasFeeExhausted;
 		MissingCallingStack => MissingCallingStack;
 		ActorHostDropped => ActorHostDropped;
+		InvocationTimeout => InvocationTimeout;
 	}
 }
 
@@ -77,3 +78,16 @@ pub struct ActorHostDropped;
 #[derive(Debug, Error)]
 #[error("Actor {0} is deactivating")]
 pub struct ActorDeactivating(pub ActorId);
+
+#[derive(Debug, Error)]
+#[cfg_attr(
+	any(feature = "host", feature = "wasm"),
+	error("The invocation is timed out, calling stack: {0}")
+)]
+#[cfg_attr(
+	not(any(feature = "host", feature = "wasm")),
+	error("The invocation is timed out.")
+)]
+pub struct InvocationTimeout(
+	#[cfg(any(feature = "host", feature = "wasm"))] pub crate::CallingStack,
+);

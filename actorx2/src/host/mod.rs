@@ -6,12 +6,16 @@ use std::{
 	sync::Arc,
 };
 
-use crate::{calling_stack, context::WithCallingStack, core::actor::ActorId, metadata::Metadata};
+use crate::{
+	calling_stack, context::WithCallingStack, core::actor::ActorId, error::Error,
+	metadata::Metadata,
+};
 use tea_codec::{
 	errorx::Global,
 	serde::{get_type_id, ToBytes, TypeId},
 	ResultExt,
 };
+use tea_sdk::errorx::Scope;
 use tokio::{
 	sync::{RwLock, RwLockReadGuard},
 	task::JoinHandle,
@@ -191,10 +195,12 @@ where
 }
 
 #[inline(always)]
-pub fn spawn_with_calling_stack<T>(future: T) -> JoinHandle<T::Output>
+pub fn spawn_with_calling_stack<F, T, S>(future: F) -> JoinHandle<F::Output>
 where
-	T: Future + Send + 'static,
-	T::Output: Send + 'static,
+	F: Future<Output = Result<T, Error<S>>> + Send + 'static,
+	F::Output: Send + 'static,
+	T: 'static,
+	S: Scope,
 {
 	tokio::spawn(
 		future
