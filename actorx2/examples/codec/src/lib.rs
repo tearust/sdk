@@ -21,3 +21,9 @@ pub struct GetSystemTimeRequest;
 
 #[derive(Serialize, Deserialize, TypeId)]
 pub struct GetSystemTimeResponse(pub u128);
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct FactorialRequest(pub u64);
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct FactorialResponse(pub u64);

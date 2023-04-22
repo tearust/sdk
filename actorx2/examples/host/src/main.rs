@@ -6,7 +6,9 @@ pub mod error;
 mod time_actor;
 
 use error::Result;
-use tea_actorx2_examples_codec::{AddRequest, AddResponse, GreetingsRequest, WASM_ID};
+use tea_actorx2_examples_codec::{
+	AddRequest, AddResponse, FactorialRequest, FactorialResponse, GreetingsRequest, WASM_ID,
+};
 use tea_sdk::actorx2::{get_gas, set_gas, ActorExt, WasmActor, WithActorHost};
 
 #[tokio::main]
@@ -37,6 +39,10 @@ async fn run() -> Result<()> {
 	println!("gas: {}", get_gas());
 
 	let AddResponse(r) = WASM_ID.call(AddRequest(123, 456)).await?;
+	println!("r = {r}");
+	println!("gas: {}", get_gas());
+
+	let FactorialResponse(r) = WASM_ID.call(FactorialRequest(5)).await?;
 	println!("r = {r}");
 	println!("gas: {}", get_gas());
 

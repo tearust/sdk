@@ -133,16 +133,17 @@ impl WasmActor {
 		let target: ActorId = ctx.into();
 
 		#[allow(clippy::nonminimal_bool)]
-		let permitted = metadata.claims.iter().any(|x| {
+		let permitted = (metadata.claims.iter().any(|x| {
 			if let Claim::ActorAccess(id) = x {
 				&target == id
 			} else {
 				false
 			}
-		}) && !(get_type_id(&req) == Ok(Deactivate::TYPE_ID)
-			&& !calling_stack()
-				.map(|x| x.current == target)
-				.unwrap_or(false));
+		}) || target == metadata.id)
+			&& !(get_type_id(&req) == Ok(Deactivate::TYPE_ID)
+				&& !calling_stack()
+					.map(|x| x.current == target)
+					.unwrap_or(false));
 
 		let resp = if permitted {
 			match target.invoke_raw(&req).await {
