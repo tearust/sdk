@@ -1,5 +1,6 @@
 use super::{
 	enclave::generate_uuid,
+	env::system_time_as_nanos,
 	replica::{random_select_validators_locally, IntelliSendMode},
 };
 use crate::enclave::{
@@ -81,6 +82,8 @@ pub async fn send_message(
 	}
 
 	let seq_number = libp2p_seq_number().await?;
+	let uuid = generate_uuid().await?;
+	let start_ts = serialize(&system_time_as_nanos().await?)?;
 	post(
 		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		tea_system_actors::libp2p::SendMessageRequest(
@@ -96,6 +99,8 @@ pub async fn send_message(
 					target_address: Some(target_address),
 					content,
 				}),
+				uuid,
+				start_ts,
 			})?,
 			seq_number,
 		),
@@ -299,6 +304,8 @@ where
 	T: FnOnce(Vec<u8>) -> CallbackReturn + Send + Sync + 'static,
 {
 	let seq_number = libp2p_seq_number().await?;
+	let uuid = generate_uuid().await?;
+	let start_ts = serialize(&system_time_as_nanos().await?)?;
 	post(
 		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
 		tea_system_actors::libp2p::SendMessageRequest(
@@ -317,6 +324,8 @@ where
 					}),
 					content: encode_protobuf(msg)?,
 				}),
+				uuid,
+				start_ts,
 			})?,
 			seq_number,
 		),

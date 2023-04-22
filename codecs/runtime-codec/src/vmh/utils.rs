@@ -28,6 +28,15 @@ pub fn remote_url(host: &HostType, port: u32) -> String {
 	format!("{host}:{port}")
 }
 
+pub fn last_mills(start: u128) -> u64 {
+	let now = system_time_as_nanos(SystemTime::now()).unwrap_or(start);
+	if now > start {
+		((now - start) / 1_000_000) as u64
+	} else {
+		0
+	}
+}
+
 pub fn system_time_as_nanos(time: SystemTime) -> Result<u128> {
 	Ok(time
 		.duration_since(std::time::SystemTime::UNIX_EPOCH)?

@@ -42,6 +42,8 @@ message GeneralRequest {
 	string targetConnId = 2;
 	RuntimeMessage runtimeMessage = 3;
   uint64 seqNumber = 4;
+	string uuid = 5;
+	bytes startTs = 6;
 }
 
 message PubMessage {

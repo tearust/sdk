@@ -7,7 +7,8 @@
         "wasm",
         "sign",
         "sign-bin",
-        "worker"
+        "worker",
+        "vmh"
     ],
     "rust-analyzer.showUnlinkedFileNotification": false,
 }
