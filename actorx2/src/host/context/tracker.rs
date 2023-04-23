@@ -44,7 +44,6 @@ impl Tracker {
 	{
 		let (tx, rx) = oneshot::channel();
 		let mut state = self.state.lock().await;
-		let is_first = state.canceller.is_none();
 		let prev_canceller = {
 			let mut canceller = Some(tx);
 			swap(&mut canceller, &mut state.canceller);
@@ -52,7 +51,7 @@ impl Tracker {
 		};
 		state.reset_expriy();
 		drop(state);
-		if is_first {
+		if prev_canceller.is_none() {
 			tokio::spawn(self.clone().timer());
 		}
 		tokio::pin!(f);
@@ -62,6 +61,10 @@ impl Tracker {
 			Ok(_) = rx => Err(InvocationTimeout(calling_stack().expect("internal error: no calling stack")).into()),
 			else => f.await
 		};
+
+		if prev_canceller.is_none() {
+			return result;
+		}
 		let mut state = self.state.lock().await;
 		let is_timeout = state.canceller.is_none();
 		state.canceller = prev_canceller;
