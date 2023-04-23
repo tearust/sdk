@@ -6,6 +6,7 @@ use crate::enclave::{
 		replica::{intelli_send_txn, IntelliSendMode},
 	},
 };
+use std::str::FromStr;
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize, ResultExt,
@@ -13,6 +14,7 @@ use tea_codec::{
 use tea_runtime_codec::actor_txns::pre_args::Arg;
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 
+use self::http::RequestExt;
 use crate::client::help;
 use crate::client::Result;
 
@@ -125,4 +127,22 @@ pub fn cb_key_to_uuid(key: &str, stype: &str) -> String {
 	let ss = format!("{stype}_msg_");
 
 	str::replace(key, &ss, "")
+}
+
+pub async fn http_get(
+	url: &str,
+	headers_vec: Option<Vec<(String, String)>>,
+) -> Result<serde_json::Value> {
+	let mut builder = http::Request::builder().method("GET").uri(url);
+	let headers = builder.headers_mut().unwrap();
+	if headers_vec.is_some() {
+		for (key, val) in headers_vec.unwrap() {
+			headers.insert(
+				http::HeaderName::from_str(&key)?,
+				http::HeaderValue::from_str(&val)?,
+			);
+		}
+	}
+	let res = builder.request::<serde_json::Value>().await?;
+	Ok(res.into_body())
 }
