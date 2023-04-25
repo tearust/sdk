@@ -1,4 +1,5 @@
 use std::io::Write;
+use tea_actorx2::println;
 
 pub fn set_logging(file: bool, timestamp: bool) {
 	let config = tracing_subscriber::fmt()
@@ -18,8 +19,7 @@ struct Logger;
 
 impl Write for Logger {
 	fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-		// TODO: print to stdout
-		// print_bytes(buf);
+		println!("{}", String::from_utf8_lossy(buf));
 		Ok(buf.len())
 	}
 
