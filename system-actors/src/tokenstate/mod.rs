@@ -58,11 +58,6 @@ pub struct RegisterRandomTickRequest(pub RandomTickArgs);
 pub struct RegisterCronjobRequest(pub CronjobArgs);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(0)]
-#[response(())]
-pub struct InternalTickRequest(pub InternalTickArgs);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct QueryStateTsidRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
