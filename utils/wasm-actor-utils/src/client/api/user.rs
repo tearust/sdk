@@ -1,6 +1,7 @@
 use crate::client::error::Result;
 use crate::client::help;
 use crate::client::request;
+use crate::client::types::txn_callback;
 
 use crate::enclave::actors::enclave::get_my_tea_id;
 use crate::enclave::actors::util as actor_util;
@@ -16,6 +17,7 @@ use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
 };
+use tea_sdk::ResultExt;
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 use tea_system_actors::tappstore::CheckUserSessionRequest;
 use tea_system_actors::tappstore::CommonSqlQueryRequest;
@@ -418,6 +420,8 @@ pub struct QueryHashRequest {
 	pub hash: String,
 	pub ts: String,
 }
+
+#[allow(unused_must_use)]
 pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
 	let req: QueryHashRequest = serde_json::from_slice(&payload)?;
 	info!("begin to query hash result...");
@@ -429,7 +433,7 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 	let query_data = replica::FindExecutedTxnRequest { txn_hash, ts };
 
 	request::send_tappstore_query(
-		&from_actor,
+		&from_actor.clone(),
 		FindExecutedTxnRequest(encode_protobuf(query_data)?),
 		move |res| {
 			Box::pin(async move {
@@ -438,12 +442,34 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 				if r.success {
 					if r.executed_txn.is_some() {
 						info!("Txn hash return success. go to next step...");
-						let x = json!({
-							"status": true,
-						});
-						help::cache_json_with_uuid(&uuid, x).await?;
 
-					// TODO trigger txn cb
+						let x = {
+							let x_bytes = txn_callback(&uuid, from_actor).await;
+							if let Err(e) = x_bytes {
+								if e.name() == tea_codec::errorx::Global::UnexpectedType {
+									json!({
+										"status": true,
+									})
+								} else {
+									json!({
+										"status": false,
+										"error": e.to_string(),
+									})
+								}
+							} else {
+								let x_bytes = x_bytes.unwrap();
+								if x_bytes.is_empty() {
+									// no cb
+									json!({
+										"status": true,
+									})
+								} else {
+									serde_json::from_slice(&x_bytes)?
+								}
+							}
+						};
+
+						help::cache_json_with_uuid(&uuid, x).await?;
 					} else {
 						info!("Txn hash no error. but not success. wait for next loop...");
 

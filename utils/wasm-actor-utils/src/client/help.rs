@@ -44,7 +44,8 @@ pub async fn get_aes_key(tapp_id_b64: &str) -> Result<Vec<u8>> {
 
 pub fn result_ok() -> Result<Vec<u8>> {
 	let json = serde_json::json!({
-		"data": "ok"
+		"data": "ok",
+		"status": true,
 	});
 	Ok(serde_json::to_vec(&json)?)
 }

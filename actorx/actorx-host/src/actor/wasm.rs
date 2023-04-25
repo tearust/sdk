@@ -240,12 +240,12 @@ impl WasmActor {
 			match kind {
 				OutputMessageKind::HostCall | OutputMessageKind::HostPost => {
 					let (target_id, msg) = decode_invoke(payload)?;
-
 					if !self.metadata.claims.iter().any(|x| {
 						if let Claim::ActorAccess(id) = x {
 							target_id.reg == id.as_slice()
 						} else {
-							false
+							// if actor call itself, pass.
+							self.context.id.reg == target_id.reg
 						}
 					}) {
 						return Err(AccessNotPermitted(target_id.reg.to_owned()).into());

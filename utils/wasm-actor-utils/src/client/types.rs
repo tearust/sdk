@@ -1,19 +1,34 @@
 use crate::client::api;
 use crate::client::error::Result;
+use crate::client::help;
+use crate::client::request::uuid_cb_key;
 pub use crate::enclave::action::HttpRequest;
+use futures::Future;
+use lazy_static::lazy_static;
+use std::sync::Mutex;
+use std::{collections::HashMap, pin::Pin};
+use tea_actorx_runtime::{call, RegId};
 
 use serde::{Deserialize, Serialize};
-use tea_codec::{pricing::Priced, serde::TypeId};
+use tea_codec::serde::TypeId;
 
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(1)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(Vec<u8>)]
 pub struct ClientTxnCbRequest {
 	pub action: String,
 	pub payload: Vec<u8>,
+	pub from_actor: String,
+	pub uuid: String,
 }
 
-pub type Callback = dyn Fn(Vec<u8>, String) -> Result<Vec<u8>> + Sync + Send + 'static;
+type CBD = Pin<Box<dyn Future<Output = Result<Vec<u8>>> + Send>>;
+pub type CallbackCB = dyn Fn(Vec<u8>, String) -> CBD + Sync + Send + 'static;
+
+lazy_static! {
+	pub static ref HANDLER_CB_MAP: Mutex<HashMap<String, Box<CallbackCB>>> =
+		Mutex::new(HashMap::new());
+}
+
 pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
 	let res = match action {
 		"login" => api::user::txn_login(arg, from_actor).await?,
@@ -32,6 +47,46 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 		_ => vec![],
 	};
 	Ok(res)
+}
+
+pub async fn map_cb_handler(action: &str, _arg: Vec<u8>, _from_actor: String) -> Result<Vec<u8>> {
+	let res = match action {
+		_ => vec![],
+	};
+	Ok(res)
+}
+
+pub fn add_cb_handler<C>(action_name: &str, handler_cb: C) -> Result<()>
+where
+	C: Fn(Vec<u8>, String) -> CBD + Send + Sync + 'static,
+{
+	HANDLER_CB_MAP
+		.lock()
+		.unwrap()
+		.insert(action_name.to_string(), Box::new(handler_cb));
+
+	Ok(())
+}
+
+pub async fn txn_callback(uuid: &str, from_actor: String) -> Result<Vec<u8>> {
+	info!("txn_callback => {:?}", uuid);
+	let target_actor = Box::leak(from_actor.clone().into_boxed_str());
+	let ori_uuid = str::replace(uuid, "hash_", "");
+	let action_key = uuid_cb_key(&ori_uuid, "action_name");
+	let req_key = uuid_cb_key(&ori_uuid, "action_req");
+
+	let tmp = help::get_mem_cache(&action_key).await?;
+	let action_name: String = tea_codec::deserialize(tmp)?;
+	let req_bytes = help::get_mem_cache(&req_key).await?;
+
+	let req = ClientTxnCbRequest {
+		from_actor: from_actor,
+		action: action_name,
+		payload: req_bytes,
+		uuid: ori_uuid,
+	};
+	let rs = call(RegId::Static(target_actor.as_bytes()).inst(0), req).await?;
+	Ok(rs)
 }
 
 pub fn map_fn_list() -> Vec<&'static str> {
