@@ -200,4 +200,9 @@ impl Channel {
 		set_gas(gas);
 		Ok(result)
 	}
+
+	pub async fn close(self) {
+		let channels = self.proc.channels.lock().await;
+		channels.channels.remove(&self.id);
+	}
 }
