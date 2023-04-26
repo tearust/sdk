@@ -17,7 +17,6 @@ use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
 };
-use tea_sdk::ResultExt;
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 use tea_system_actors::tappstore::CheckUserSessionRequest;
 use tea_system_actors::tappstore::CommonSqlQueryRequest;

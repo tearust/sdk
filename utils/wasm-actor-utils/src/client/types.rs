@@ -7,7 +7,7 @@ use futures::Future;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use std::{collections::HashMap, pin::Pin};
-use tea_actorx_runtime::{call, RegId};
+use tea_actorx2::ActorId;
 
 use serde::{Deserialize, Serialize};
 use tea_codec::serde::TypeId;
@@ -85,7 +85,8 @@ pub async fn txn_callback(uuid: &str, from_actor: String) -> Result<Vec<u8>> {
 		payload: req_bytes,
 		uuid: ori_uuid,
 	};
-	let rs = call(RegId::Static(target_actor.as_bytes()).inst(0), req).await?;
+	let actor_id: ActorId = target_actor.as_bytes().into();
+	let rs = actor_id.call(req).await?;
 	Ok(rs)
 }
 
