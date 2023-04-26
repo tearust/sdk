@@ -106,9 +106,20 @@ impl Worker {
 				Ok(resp) => resp,
 				Err(e) => Operation::ReturnErr { error: e.into() },
 			};
+			let is_completed = !matches!(resp, Operation::Call { .. });
+			if is_completed {
+				let slf = self.clone();
+				tokio::spawn(async move {
+					let mut channels = slf.channels.lock().await;
+					channels.remove(&cid);
+				});
+			}
 			let mut write = self.write.lock().await;
 			resp.write(&mut *write, cid, gas).await?;
 			write.flush().await?;
+			if is_completed {
+				break;
+			}
 		}
 		Ok(())
 	}

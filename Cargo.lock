@@ -3,37 +3,6 @@
 version = 3
 
 [[package]]
-name = "actorx-example-actor"
-version = "0.2.0-dev.22"
-dependencies = [
- "actorx-example-codec",
- "actorx-example-host",
- "tea-sdk",
- "tokio",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "actorx-example-codec"
-version = "0.2.0-dev.22"
-dependencies = [
- "serde",
- "tea-sdk",
-]
-
-[[package]]
-name = "actorx-example-host"
-version = "0.2.0-dev.22"
-dependencies = [
- "actorx-example-codec",
- "tea-sdk",
- "tokio",
- "tracing",
- "tracing-subscriber",
- "wasmer",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -762,19 +731,6 @@ dependencies = [
  "darling_core",
  "quote",
  "syn 1.0.109",
-]
-
-[[package]]
-name = "dashmap"
-version = "5.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "907076dfda823b0b36d2a1bb5f90c96660a5bbcd7729e10727f07858f22c4edc"
-dependencies = [
- "cfg-if",
- "hashbrown 0.12.3",
- "lock_api",
- "once_cell",
- "parking_lot_core 0.9.7",
 ]
 
 [[package]]
@@ -2740,84 +2696,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ae9980cab1db3fceee2f6c6f643d5d8de2997c58ee8d25fb0cc8a9e9e7348e5"
 
 [[package]]
-name = "tea-actorx-core"
-version = "0.2.0-dev.22"
-dependencies = [
- "base64",
- "num-derive",
- "num-traits",
- "serde",
- "tea-codec",
- "wasmer",
- "wasmer-types",
-]
-
-[[package]]
-name = "tea-actorx-host"
-version = "0.2.0-dev.22"
-dependencies = [
- "bincode",
- "crossbeam",
- "dashmap",
- "futures",
- "parking_lot 0.12.1",
- "serde",
- "smallvec",
- "tea-actorx-core",
- "tea-actorx-signer",
- "tea-codec",
- "thiserror",
- "tokio",
- "tracing",
- "wasmer",
- "wasmer-middlewares",
-]
-
-[[package]]
-name = "tea-actorx-macros"
-version = "0.2.0-dev.22"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
-name = "tea-actorx-runtime"
-version = "0.2.0-dev.22"
-dependencies = [
- "bincode",
- "lazy_static",
- "once_cell",
- "serde",
- "tea-actorx-core",
- "tea-actorx-host",
- "tea-codec",
- "thiserror",
- "tokio",
-]
-
-[[package]]
-name = "tea-actorx-signer"
-version = "0.2.0-dev.22"
-dependencies = [
- "base64",
- "bincode",
- "clap 4.2.1",
- "leb128",
- "openssl",
- "primitive-types",
- "rustc-hex",
- "serde",
- "serde_yaml",
- "tea-actorx-core",
- "tea-codec",
- "thiserror",
- "tokio",
- "zstd",
-]
-
-[[package]]
 name = "tea-actorx2"
 version = "0.2.0-dev.22"
 dependencies = [
@@ -2941,11 +2819,6 @@ dependencies = [
 name = "tea-sdk"
 version = "0.2.0-dev.22"
 dependencies = [
- "tea-actorx-core",
- "tea-actorx-host",
- "tea-actorx-macros",
- "tea-actorx-runtime",
- "tea-actorx-signer",
  "tea-actorx2",
  "tea-codec",
  "tea-runtime-codec",
@@ -2960,7 +2833,7 @@ version = "0.2.0-dev.22"
 dependencies = [
  "serde",
  "strum",
- "tea-actorx-core",
+ "tea-actorx2",
  "tea-codec",
  "tea-runtime-codec",
 ]
@@ -2983,9 +2856,7 @@ dependencies = [
  "prost",
  "serde",
  "serde_json",
- "tea-actorx-core",
- "tea-actorx-host",
- "tea-actorx-runtime",
+ "tea-actorx2",
  "tea-codec",
  "tea-runtime-codec",
  "tea-system-actors",

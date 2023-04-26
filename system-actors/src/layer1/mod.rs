@@ -1,6 +1,6 @@
 use crate::tappstore::txns::TopupEventItem;
 use serde::{Deserialize, Serialize};
-use tea_actorx_core::ActorId;
+use tea_actorx2::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::solc::{

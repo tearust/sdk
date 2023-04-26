@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tea_actorx_core::ActorId;
+use tea_actorx2::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::{defs::FreezeTimeSettings, serde::TypeId};
 use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, TxnSerial};
@@ -56,11 +56,6 @@ pub struct RegisterRandomTickRequest(pub RandomTickArgs);
 #[price(0)]
 #[response(())]
 pub struct RegisterCronjobRequest(pub CronjobArgs);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(0)]
-#[response(())]
-pub struct InternalTickRequest(pub InternalTickArgs);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

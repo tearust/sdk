@@ -11,16 +11,6 @@ pub use tea_runtime_codec::{actor_txns, solc, tapp};
 #[doc(hidden)]
 pub mod third;
 
-pub mod actorx {
-	pub use tea_actorx_core::*;
-	#[cfg(feature = "host")]
-	pub use tea_actorx_host as host;
-	#[cfg(feature = "wasm")]
-	pub use tea_actorx_runtime as runtime;
-	#[cfg(feature = "signer")]
-	pub use tea_actorx_signer as signer;
-}
-
 pub use tea_actorx2 as actorx2;
 
 #[cfg(feature = "mock")]

@@ -46,5 +46,4 @@ prost-build = { version = "0.11.1", optional = true }
 dev = []
 vmh = ["serde_yaml", "num_enum", "chrono", "clap", "prost-build"]
 nitro = []
-simulator = []
 __test = []

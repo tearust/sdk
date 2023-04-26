@@ -2,8 +2,7 @@ use crate::enclave::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use std::{collections::HashMap, time::SystemTime};
-use tea_actorx_core::RegId;
-use tea_actorx_runtime::{call, post};
+use tea_actorx2::ActorId;
 use tea_codec::ResultExt;
 use tea_runtime_codec::tapp::{BlockNumber, TokenId};
 use tea_system_actors::env::*;
@@ -11,7 +10,7 @@ use tea_system_actors::env::*;
 pub use tea_system_actors::tokenstate::{CronjobArgs, RandomTickArgs};
 
 pub async fn get_system_time() -> Result<SystemTime> {
-	let time = call(RegId::Static(NAME).inst(0), GetSystemTimeRequest).await?;
+	let time = ActorId::Static(NAME).call(GetSystemTimeRequest).await?;
 	Ok(time.0)
 }
 
@@ -20,34 +19,42 @@ pub async fn system_time_as_nanos() -> Result<u128> {
 }
 
 pub async fn is_replica_test_mode() -> Result<bool> {
-	let b = call(RegId::Static(NAME).inst(0), GetReplicaTestModeRequest).await?;
+	let b = ActorId::Static(NAME)
+		.call(GetReplicaTestModeRequest)
+		.await?;
 	Ok(b.0)
 }
 
 pub async fn apply_validator() -> Result<bool> {
-	let v = call(RegId::Static(NAME).inst(0), GetApplyValidatorRequest).await?;
+	let v = ActorId::Static(NAME).call(GetApplyValidatorRequest).await?;
 	Ok(v.0)
 }
 
 pub async fn is_test_mode() -> Result<bool> {
-	let v = call(RegId::Static(NAME).inst(0), IsTestModeRequest).await?;
+	let v = ActorId::Static(NAME).call(IsTestModeRequest).await?;
 	Ok(v.0)
 }
 
 pub async fn get_current_wasm_actor_token_id() -> Result<Option<String>> {
-	let res = call(RegId::Static(NAME).inst(0), GetWasmActorTokenIdRequest).await?;
+	let res = ActorId::Static(NAME)
+		.call(GetWasmActorTokenIdRequest)
+		.await?;
 	info!("Current caller wasm token_id => {:?}", res.0);
 	Ok(res.0)
 }
 
 pub async fn get_genesis_enclave_pcrs() -> Result<HashMap<String, String>> {
-	let res = call(RegId::Static(NAME).inst(0), GenesisEnclavePcrsRequest).await?;
+	let res = ActorId::Static(NAME)
+		.call(GenesisEnclavePcrsRequest)
+		.await?;
 	Ok(res.0)
 }
 
 #[cfg(not(feature = "__test"))]
 pub async fn tappstore_id() -> Result<TokenId> {
-	let tappstore_id = call(RegId::Static(NAME).inst(0), GetTappstoreTokenIdRequest).await?;
+	let tappstore_id = ActorId::Static(NAME)
+		.call(GetTappstoreTokenIdRequest)
+		.await?;
 	Ok(TokenId::from_hex(tappstore_id.0)?)
 }
 
@@ -69,44 +76,46 @@ pub async fn get_env_var(_env_var: &str) -> Result<String> {
 /// Return empty string is the env var is not set by the OS
 #[cfg(not(feature = "__test"))]
 pub async fn get_env_var(env_var: &str) -> Result<Option<String>> {
-	let v = call(RegId::Static(NAME).inst(0), GetRequest(env_var.to_string())).await?;
+	let v = ActorId::Static(NAME)
+		.call(GetRequest(env_var.to_string()))
+		.await?;
 	Ok(v.0)
 }
 
 pub async fn current_timestamp(precision: Precision, trunc_base: i64) -> Result<i64> {
-	let t = call(
-		RegId::Static(NAME).inst(0),
-		GetCurrentTimestampRequest(precision, trunc_base),
-	)
-	.await?;
+	let t = ActorId::Static(NAME)
+		.call(GetCurrentTimestampRequest(precision, trunc_base))
+		.await?;
 	Ok(t.0)
 }
 
 pub async fn initial_latest_topup_height() -> Result<BlockNumber> {
-	let r = call(RegId::Static(NAME).inst(0), InitialLatestTopupHeightRequest).await?;
+	let r = ActorId::Static(NAME)
+		.call(InitialLatestTopupHeightRequest)
+		.await?;
 	Ok(r.0)
 }
 
 /// register a random tick, `range_start` and `range_end` specifying the min and max tick interval
 /// in milliseconds
 pub async fn register_random_tick(args: RandomTickArgs) -> Result<()> {
-	post(
-		RegId::Static(tea_system_actors::tokenstate::NAME).inst(0),
-		tea_system_actors::tokenstate::RegisterRandomTickRequest(args),
-	)
-	.await
+	ActorId::Static(tea_system_actors::tokenstate::NAME)
+		.call(tea_system_actors::tokenstate::RegisterRandomTickRequest(
+			args,
+		))
+		.await
+		.err_into()
 }
 
 pub async fn register_cron_job(args: CronjobArgs) -> Result<()> {
-	post(
-		RegId::Static(tea_system_actors::tokenstate::NAME).inst(0),
-		tea_system_actors::tokenstate::RegisterCronjobRequest(args),
-	)
-	.await
+	ActorId::Static(tea_system_actors::tokenstate::NAME)
+		.call(tea_system_actors::tokenstate::RegisterCronjobRequest(args))
+		.await
+		.err_into()
 }
 
 pub async fn my_machine_owner() -> Result<String> {
-	let owner = call(RegId::Static(NAME).inst(0), GetMachineOwnerRequest).await?;
+	let owner = ActorId::Static(NAME).call(GetMachineOwnerRequest).await?;
 	Ok(owner.0)
 }
 

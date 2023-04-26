@@ -8,8 +8,7 @@ use crate::enclave::{
 };
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx_core::RegId;
-use tea_actorx_runtime::{call, post};
+use tea_actorx2::ActorId;
 use tea_codec::{
 	deserialize,
 	serde::{handle::Request, FromBytes, ToBytes},
@@ -31,20 +30,16 @@ use tea_system_actors::libp2p::{
 const INTELLI_CANDIDATES_COUNT: usize = 2;
 
 pub async fn my_conn_id() -> Result<String> {
-	let conn_id = call(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		MyConnIdRequest,
-	)
-	.await?;
+	let conn_id = ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(MyConnIdRequest)
+		.await?;
 	Ok(conn_id.0)
 }
 
 pub async fn is_connection_healthy() -> Result<bool> {
-	let cooldown = call(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		HasCooldownRequest,
-	)
-	.await?;
+	let cooldown = ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(HasCooldownRequest)
+		.await?;
 	if !cooldown.0 {
 		return Ok(false);
 	}
@@ -61,11 +56,9 @@ pub async fn is_connection_healthy() -> Result<bool> {
 }
 
 pub(crate) async fn libp2p_seq_number() -> Result<u64> {
-	let seq_number = call(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		NextSeqNumberRequest,
-	)
-	.await?;
+	let seq_number = ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(NextSeqNumberRequest)
+		.await?;
 	Ok(seq_number.0)
 }
 
@@ -81,9 +74,8 @@ pub async fn send_message(
 	}
 
 	let seq_number = libp2p_seq_number().await?;
-	post(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		tea_system_actors::libp2p::SendMessageRequest(
+	ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(tea_system_actors::libp2p::SendMessageRequest(
 			encode_protobuf(libp2p::GeneralRequest {
 				source_conn_id: Default::default(),
 				target_conn_id,
@@ -98,9 +90,8 @@ pub async fn send_message(
 				}),
 			})?,
 			seq_number,
-		),
-	)
-	.await?;
+		))
+		.await?;
 	Ok(seq_number)
 }
 
@@ -110,9 +101,8 @@ pub async fn pub_message(
 	content: Vec<u8>,
 	topic_name: Option<String>,
 ) -> Result<()> {
-	post(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		PubMessageRequest(encode_protobuf(libp2p::PubMessage {
+	ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(PubMessageRequest(encode_protobuf(libp2p::PubMessage {
 			source_conn_id: Default::default(),
 			topic: topic_name.map(|topic_name| libp2p::Topic { topic_name }),
 			runtime_message: Some(libp2p::RuntimeMessage {
@@ -124,30 +114,25 @@ pub async fn pub_message(
 				target_address: Some(target_address),
 				content,
 			}),
-		})?),
-	)
-	.await?;
+		})?))
+		.await?;
 	Ok(())
 }
 
 pub async fn connected_peers() -> Result<Vec<String>> {
-	let buf = call(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		ListPeersRequest,
-	)
-	.await?;
+	let buf = ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(ListPeersRequest)
+		.await?;
 	let res = libp2p::ListPeersResponse::decode(buf.0.as_slice())?;
 	Ok(res.peers)
 }
 
 pub async fn get_random_peers(peer_count: u32) -> Result<(Vec<String>, bool)> {
-	let buf = call(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		RandomPeersRequest(encode_protobuf(libp2p::RandomPeersRequest {
-			count: peer_count,
-		})?),
-	)
-	.await?;
+	let buf = ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(RandomPeersRequest(encode_protobuf(
+			libp2p::RandomPeersRequest { count: peer_count },
+		)?))
+		.await?;
 	let res = libp2p::RandomoPeersResponse::decode(buf.0.as_slice())?;
 	Ok((res.peers, res.insufficient_peers))
 }
@@ -168,7 +153,7 @@ where
 			send_remote_query_ex(target, arg, &None, Some(INTELLI_CANDIDATES_COUNT), callback).await
 		}
 		IntelliSendMode::LocalOnly => {
-			let rtn = call(RegId::Static(target).inst(0), arg).await?;
+			let rtn = ActorId::Static(target).call(arg).await?;
 			callback(rtn).await
 		}
 		IntelliSendMode::BothOk => compatible_query_ex(target, arg, callback).await,
@@ -203,8 +188,8 @@ where
 	C::Response: for<'a> FromBytes<'a> + Send,
 	T: FnOnce(C::Response) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
-	let actor_id = RegId::Static(target).inst(0);
-	match call(actor_id.clone(), arg.clone()).await {
+	let actor_id = ActorId::Static(target);
+	match actor_id.call(arg.clone()).await {
 		Ok(rtn) => callback(rtn).await,
 		Err(e) => {
 			info!(
@@ -212,7 +197,7 @@ where
 					 because intercom call to {} failed: {:?}",
 				actor_id, e
 			);
-			send_remote_query_ex(target, arg, &Some(e), None, callback).await
+			send_remote_query_ex(target, arg, &Some(e.into()), None, callback).await
 		}
 	}
 }
@@ -299,9 +284,8 @@ where
 	T: FnOnce(Vec<u8>) -> CallbackReturn + Send + Sync + 'static,
 {
 	let seq_number = libp2p_seq_number().await?;
-	post(
-		RegId::Static(tea_system_actors::libp2p::NAME).inst(0),
-		tea_system_actors::libp2p::SendMessageRequest(
+	ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(tea_system_actors::libp2p::SendMessageRequest(
 			encode_protobuf(libp2p::GeneralRequest {
 				source_conn_id: Default::default(),
 				target_conn_id,
@@ -319,9 +303,8 @@ where
 				}),
 			})?,
 			seq_number,
-		),
-	)
-	.await?;
+		))
+		.await?;
 	add_callback(seq_number, callback).await
 }
 
@@ -329,7 +312,7 @@ pub fn can_async_error_be_ignored(e: &Error) -> bool {
 	let name = e.name();
 	name == VmhCodec::IntercomActorNotSupported
 		|| name == VmhCodec::IntercomRequestRejected
-		|| name == tea_actorx_core::error::ActorX::NativeActorNotExists
+		|| name == tea_actorx2::error::ActorX2::ActorNotExist
 }
 
 pub async fn generate_query_message(

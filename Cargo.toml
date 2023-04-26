@@ -33,12 +33,6 @@ tea-codec = { version = "0.2.0-dev.22", path = "codecs/tea-codec" }
 
 tea-actorx2 = { version = "0.2.0-dev.22", path = "actorx2", features = ["sdk"] }
 
-tea-actorx-core = { version = "0.2.0-dev.22", path = "actorx/actorx-core" }
-tea-actorx-host = { version = "0.2.0-dev.22", path = "actorx/actorx-host", optional = true }
-tea-actorx-runtime = { version = "0.2.0-dev.22", path = "actorx/actorx-runtime", optional = true }
-tea-actorx-signer = { version = "0.2.0-dev.22", path = "actorx/actorx-signer", optional = true }
-tea-actorx-macros = { version = "0.2.0-dev.22", path = "actorx/actorx-macros", optional = true }
-
 tea-runtime-codec = { version = "0.2.0-dev.22", path = "codecs/runtime-codec" }
 tea-system-actors = { version = "0.2.0-dev.22", path = "system-actors", optional = true }
 tea-wasm-actor-utils = { version = "0.2.0-dev.22", path = "utils/wasm-actor-utils", optional = true }
@@ -50,8 +44,6 @@ resolver = "2"
 members = [
     "codecs/*",
     "codecs/tea-codec/macros",
-    "actorx/actorx-*",
-    "actorx/examples/*",
     "system-actors",
     "utils/*",
     "actorx2",
@@ -60,21 +52,12 @@ members = [
 
 [features]
 default = []
-wasm = [
-    "tea-actorx-runtime",
-    "system-actors",
-    "tea-wasm-actor-utils",
-    "tea-actorx2/wasm",
-]
-host = ["tea-actorx-host", "system-actors", "tea-actorx2/host"]
+wasm = ["system-actors", "tea-wasm-actor-utils", "tea-actorx2/wasm"]
+host = ["system-actors", "tea-actorx2/host", "tea-codec/runtime"]
 sign = ["tea-actorx2/sign"]
 system-actors = ["tea-system-actors", "vmh"]
 vmh = ["tea-runtime-codec/vmh"]
-signer = ["tea-actorx-signer"]
-mock = ["wasm", "tea-actorx-runtime/mock", "tea-actorx-macros", "tokio"]
-unlimited = ["tea-actorx-host/unlimited"]
 nitro = ["tea-runtime-codec/nitro", "tea-system-actors/nitro"]
-simulator = ["tea-runtime-codec/simulator", "tea-system-actors/simulator"]
 dev = ["tea-runtime-codec/dev"]
 __test = [
     "tea-runtime-codec/__test",

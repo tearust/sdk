@@ -28,7 +28,6 @@ pub struct GetCurrentTimestampRequest(pub Precision, pub i64);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetCurrentTimestampResponse(pub i64);
 
-#[cfg(not(feature = "nitro"))]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]

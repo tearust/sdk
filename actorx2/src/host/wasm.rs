@@ -103,10 +103,12 @@ impl Actor for WasmActor {
 				}
 
 				Operation::ReturnOk { resp } => {
+					tokio::spawn(channel.close());
 					return Ok(resp);
 				}
 
 				Operation::ReturnErr { error } => {
+					tokio::spawn(channel.close());
 					return Err(error.into_scope());
 				}
 			}

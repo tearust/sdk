@@ -1,9 +1,8 @@
 use crate::enclave::actors::env::tappstore_id;
-use crate::enclave::error::{Actor, Error, Errors, GlueSqlErrors, Result};
+use crate::enclave::error::{Error, Errors, GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
-use tea_actorx_core::RegId;
-use tea_actorx_runtime::call;
+use tea_actorx2::ActorId;
 use tea_codec::{deserialize, serialize, ResultExt};
 use tea_runtime_codec::actor_txns::context::TokenContext;
 use tea_runtime_codec::tapp::{Account, Balance, TokenId};
@@ -13,30 +12,30 @@ use tea_system_actors::tokenstate::*;
 const OPERATE_ERROR_SUCCESS_SUMMARY: &str = "OP_101__success_without_context_change";
 
 pub async fn get_magic_number() -> Result<u64> {
-	let n = call(RegId::Static(NAME).inst(0), GetMagicNumberRequest).await?;
+	let n = ActorId::Static(NAME).call(GetMagicNumberRequest).await?;
 	Ok(n.0)
 }
 
 pub async fn is_in_sql_transaction(token_id: TokenId) -> Result<bool> {
-	let buf = call(
-		RegId::Static(NAME).inst(0),
-		SqlIsInTransactionRequest(encode_protobuf(tokenstate::IsInTransactionRequest {
-			token_id: serialize(&token_id)?,
-		})?),
-	)
-	.await?;
+	let buf = ActorId::Static(NAME)
+		.call(SqlIsInTransactionRequest(encode_protobuf(
+			tokenstate::IsInTransactionRequest {
+				token_id: serialize(&token_id)?,
+			},
+		)?))
+		.await?;
 	let res = tokenstate::IsInTransactionResponse::decode(buf.0.as_slice())?;
 	Ok(res.yes)
 }
 
 pub async fn cancel_sql_transaction(token_id: TokenId) -> Result<()> {
-	call(
-		RegId::Static(NAME).inst(0),
-		SqlCancelTransactionRequest(encode_protobuf(tokenstate::CancelTransactionRequest {
-			token_id: serialize(&token_id)?,
-		})?),
-	)
-	.await?;
+	ActorId::Static(NAME)
+		.call(SqlCancelTransactionRequest(encode_protobuf(
+			tokenstate::CancelTransactionRequest {
+				token_id: serialize(&token_id)?,
+			},
+		)?))
+		.await?;
 	Ok(())
 }
 
@@ -131,11 +130,9 @@ pub async fn sql_query(token_id: TokenId, sql: String) -> Result<Vec<Payload>> {
 		sql,
 	};
 
-	let res = call(
-		RegId::Static(NAME).inst(0),
-		ExecGlueQueryRequest(encode_protobuf(req)?),
-	)
-	.await?;
+	let res = ActorId::Static(NAME)
+		.call(ExecGlueQueryRequest(encode_protobuf(req)?))
+		.await?;
 	let res = tokenstate::ExecGlueQueryResponse::decode(res.0.as_slice())?;
 	res.payloads
 		.iter()
@@ -158,12 +155,12 @@ pub async fn mov(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Resu
 		return Ok(ctx);
 	}
 
-	let res: MoveResponse = call::<_, Actor>(
-		RegId::Static(NAME).inst(0),
-		MoveRequest { from, to, amt, ctx },
-	)
-	.await
-	.map_err(|e| Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.into()))?;
+	let res: MoveResponse = ActorId::Static(NAME)
+		.call(MoveRequest { from, to, amt, ctx })
+		.await
+		.map_err(|e| {
+			Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.into())
+		})?;
 	Ok(res.0)
 }
 
@@ -190,27 +187,25 @@ pub async fn cross_move(
 		return Ok((from_ctx_bytes, to_ctx_bytes));
 	}
 
-	let res = call::<_, Actor>(
-		RegId::Static(NAME).inst(0),
-		CrossMoveRequest {
+	let res = ActorId::Static(NAME)
+		.call(CrossMoveRequest {
 			from,
 			to,
 			amt,
 			from_ctx: from_ctx_bytes,
 			to_ctx: to_ctx_bytes,
-		},
-	)
-	.await
-	.map_err(|e| {
-		Errors::StateMachineCrossMoveFailed(
-			from_ctx.tid.to_hex(),
-			from.to_string(),
-			to_ctx.tid.to_hex(),
-			to.to_string(),
-			amt,
-			e.into(),
-		)
-	})?;
+		})
+		.await
+		.map_err(|e| {
+			Errors::StateMachineCrossMoveFailed(
+				from_ctx.tid.to_hex(),
+				from.to_string(),
+				to_ctx.tid.to_hex(),
+				to.to_string(),
+				amt,
+				e.into(),
+			)
+		})?;
 	Ok((res.from_ctx, res.to_ctx))
 }
 
@@ -235,28 +230,26 @@ pub async fn api_cross_move(
 		return Ok((from_ctx_bytes, to_ctx_bytes));
 	}
 
-	let res = call::<_, Actor>(
-		RegId::Static(NAME).inst(0),
-		ApiCrossMoveRequest {
+	let res = ActorId::Static(NAME)
+		.call(ApiCrossMoveRequest {
 			from,
 			to,
 			amt,
 			from_ctx: from_ctx_bytes,
 			to_ctx: to_ctx_bytes,
 			tappstore_id: tappstore_id().await?,
-		},
-	)
-	.await
-	.map_err(|e| {
-		Errors::StateMachineCrossMoveFailed(
-			from_ctx.tid.to_hex(),
-			from.to_string(),
-			to_ctx.tid.to_hex(),
-			to.to_string(),
-			amt,
-			e.into(),
-		)
-	})?;
+		})
+		.await
+		.map_err(|e| {
+			Errors::StateMachineCrossMoveFailed(
+				from_ctx.tid.to_hex(),
+				from.to_string(),
+				to_ctx.tid.to_hex(),
+				to.to_string(),
+				amt,
+				e.into(),
+			)
+		})?;
 	Ok((res.from_ctx, res.to_ctx))
 }
 
@@ -272,7 +265,7 @@ pub async fn api_deposit(
 		ctx: tappstore_ctx,
 		token_ctx,
 	})?;
-	let res_buf = call(RegId::Static(NAME).inst(0), ApiDepositRequest(buf)).await?;
+	let res_buf = ActorId::Static(NAME).call(ApiDepositRequest(buf)).await?;
 	let res = tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
@@ -299,7 +292,7 @@ pub async fn api_refund(
 		ctx: tappstore_ctx,
 		token_ctx,
 	})?;
-	let res_buf = call(RegId::Static(NAME).inst(0), ApiRefundRequest(buf)).await?;
+	let res_buf = ActorId::Static(NAME).call(ApiRefundRequest(buf)).await?;
 	let res = tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice())?;
 	let operate_error: Error = deserialize(&res.operate_error)?;
 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {

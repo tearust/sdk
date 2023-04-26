@@ -17,17 +17,14 @@ pub async fn async_persist_request(
 ) -> Result<persist::PersistResponse> {
 	use crate::enclave::error::Errors;
 	use prost::Message;
-	use tea_actorx_core::RegId;
-	use tea_actorx_runtime::call;
+	use tea_actorx2::ActorId;
 	use tea_runtime_codec::runtime::ops::persist::OP_ASYNC_REQUEST;
 	use tea_runtime_codec::vmh::message::encode_protobuf;
 	use tea_system_actors::persist::*;
 
-	let msg = call(
-		RegId::Static(NAME).inst(0),
-		ProtoRequest(OP_ASYNC_REQUEST.into(), encode_protobuf(req)?),
-	)
-	.await?;
+	let msg = ActorId::Static(NAME)
+		.call(ProtoRequest(OP_ASYNC_REQUEST.into(), encode_protobuf(req)?))
+		.await?;
 	let res = persist::PersistResponse::decode(msg.0.as_slice())?;
 	match res.msg.as_ref() {
 		Some(persist::persist_response::Msg::ErrorMessage(res)) => {

@@ -10,8 +10,7 @@ use crate::enclave::{
 };
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx_core::RegId;
-use tea_actorx_runtime::call;
+use tea_actorx2::ActorId;
 use tea_codec::{deserialize, serialize};
 use tea_runtime_codec::actor_txns::pre_args::{Arg, ArgSlots};
 use tea_runtime_codec::tapp::{
@@ -61,13 +60,13 @@ where
 }
 
 pub async fn has_tappstore_init() -> Result<bool> {
-	let buf = call(
-		RegId::Static(tea_system_actors::tokenstate::NAME).inst(0),
-		HasDbInitRequest(encode_protobuf(tokenstate::HasGlueDbInitRequest {
-			token_id: serialize(&tappstore_id().await?)?,
-		})?),
-	)
-	.await?;
+	let buf = ActorId::Static(tea_system_actors::tokenstate::NAME)
+		.call(HasDbInitRequest(encode_protobuf(
+			tokenstate::HasGlueDbInitRequest {
+				token_id: serialize(&tappstore_id().await?)?,
+			},
+		)?))
+		.await?;
 	let res = tokenstate::HasGlueDbInitResponse::decode(buf.0.as_slice())?;
 	Ok(res.has_init)
 }
@@ -76,14 +75,14 @@ pub async fn random_select_active_seats_locally(
 	count: usize,
 	exclude_tea_id: Option<Vec<u8>>,
 ) -> Result<Vec<(Vec<u8>, String)>> {
-	let maintainers = call(
-		RegId::Static(NAME).inst(0),
-		QueryActiveSeatsRequest(encode_protobuf(tappstore::QueryActiveSeats {
-			has_exclude: exclude_tea_id.is_some(),
-			exclude_tea_id: exclude_tea_id.unwrap_or_default(),
-		})?),
-	)
-	.await?;
+	let maintainers = ActorId::Static(NAME)
+		.call(QueryActiveSeatsRequest(encode_protobuf(
+			tappstore::QueryActiveSeats {
+				has_exclude: exclude_tea_id.is_some(),
+				exclude_tea_id: exclude_tea_id.unwrap_or_default(),
+			},
+		)?))
+		.await?;
 	let connect_peers: HashSet<String> = connected_peers().await?.into_iter().collect();
 	let candidatas = random_select(
 		maintainers
@@ -128,11 +127,9 @@ where
 }
 
 pub async fn query_cml_id_by_tea_id(tea_ids: Vec<ReplicaId>) -> Result<Vec<CmlId>> {
-	let res = call(
-		RegId::Static(NAME).inst(0),
-		QueryCmlIdsByTeaIdsRequest(serialize(&tea_ids)?),
-	)
-	.await?;
+	let res = ActorId::Static(NAME)
+		.call(QueryCmlIdsByTeaIdsRequest(serialize(&tea_ids)?))
+		.await?;
 	Ok(res.0)
 }
 

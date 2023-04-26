@@ -12,9 +12,9 @@ repository = { workspace = true }
 
 [dependencies]
 tea-codec = { version = "0.2.0-dev.22", path = "../../codecs/tea-codec" }
-tea-actorx-core = { version = "0.2.0-dev.22", path = "../../actorx/actorx-core" }
-tea-actorx-host = { version = "0.2.0-dev.22", path = "../../actorx/actorx-host", optional = true }
-tea-actorx-runtime = { version = "0.2.0-dev.22", path = "../../actorx/actorx-runtime" }
+tea-actorx2 = { version = "0.2.0-dev.22", path = "../../actorx2", features = [
+	"wasm",
+] }
 tea-runtime-codec = { version = "0.2.0-dev.22", path = "../../codecs/runtime-codec" }
 tea-system-actors = { version = "0.2.0-dev.22", path = "../../system-actors" }
 base64 = { workspace = true }
@@ -38,7 +38,5 @@ bytes = { workspace = true }
 mocktopus = { workspace = true, optional = true }
 
 [features]
-nitro = []
-simulator = []
-native = ["tea-actorx-host"]
+native = ["tea-actorx2/host"]
 __test = ["tea-runtime-codec/__test"]

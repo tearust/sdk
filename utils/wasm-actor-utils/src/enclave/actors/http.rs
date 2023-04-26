@@ -1,3 +1,4 @@
+use tea_actorx2::ActorId;
 use tea_runtime_codec::runtime::http::{FromHttpBytes, IntoHttpBytes};
 use tea_sdk::ResultExt;
 
@@ -24,13 +25,11 @@ where
 	where
 		T: FromHttpBytes,
 	{
-		tea_actorx_runtime::call(
-			tea_actorx_core::RegId::Static(tea_system_actors::http::NAME).inst(0),
-			tea_system_actors::http::HttpRequest::try_from(self)?,
-		)
-		.await?
-		.try_into()
-		.err_into()
+		ActorId::Static(tea_system_actors::http::NAME)
+			.call(tea_system_actors::http::HttpRequest::try_from(self)?)
+			.await?
+			.try_into()
+			.err_into()
 	}
 
 	async fn request_result<T, E>(self) -> Result<Response<Result<T, E>>>
@@ -38,11 +37,9 @@ where
 		T: FromHttpBytes,
 		E: FromHttpBytes,
 	{
-		let resp = tea_actorx_runtime::call(
-			tea_actorx_core::RegId::Static(tea_system_actors::http::NAME).inst(0),
-			tea_system_actors::http::HttpRequest::try_from(self)?,
-		)
-		.await?;
+		let resp = ActorId::Static(tea_system_actors::http::NAME)
+			.call(tea_system_actors::http::HttpRequest::try_from(self)?)
+			.await?;
 
 		Ok(if resp.status.is_success() {
 			Response::try_from(resp)?.map(Ok)
