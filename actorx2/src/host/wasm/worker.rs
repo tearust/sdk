@@ -202,7 +202,7 @@ impl Channel {
 	}
 
 	pub async fn close(self) {
-		let channels = self.proc.channels.lock().await;
+		let mut channels = self.proc.channels.lock().await;
 		channels.channels.remove(&self.id);
 	}
 }

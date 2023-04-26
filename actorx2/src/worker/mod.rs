@@ -111,7 +111,7 @@ impl Worker {
 				let slf = self.clone();
 				tokio::spawn(async move {
 					let mut channels = slf.channels.lock().await;
-					channels.remove(*cid);
+					channels.remove(&cid);
 				});
 			}
 			let mut write = self.write.lock().await;
