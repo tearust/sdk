@@ -12,7 +12,7 @@ repository = { workspace = true }
 publish = false
 
 [dependencies]
-tea-sdk = { path = "../../..", features = ["host"] }
+tea-sdk = { path = "../../..", features = ["host", "track"] }
 tea-actorx2-examples-codec = { path = "../codec" }
 tokio = { workspace = true, features = ["full"] }
 

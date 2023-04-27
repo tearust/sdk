@@ -5,11 +5,13 @@
 pub mod error;
 mod time_actor;
 
+use std::time::Duration;
+
 use error::Result;
 use tea_actorx2_examples_codec::{
 	AddRequest, AddResponse, FactorialRequest, FactorialResponse, GreetingsRequest, WASM_ID,
 };
-use tea_sdk::actorx2::{get_gas, set_gas, ActorExt, WasmActor, WithActorHost};
+use tea_sdk::actorx2::{context::tracker, get_gas, set_gas, ActorExt, WasmActor, WithActorHost};
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -45,6 +47,10 @@ async fn run() -> Result<()> {
 	let FactorialResponse(r) = WASM_ID.call(FactorialRequest(5)).await?;
 	println!("r = {r}");
 	println!("gas: {}", get_gas());
+
+	tokio::time::sleep(Duration::from_millis(500)).await;
+	let track = tracker()?.capture().await;
+	println!("{track:?}");
 
 	Ok(())
 }

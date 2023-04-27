@@ -54,6 +54,7 @@ members = [
 default = []
 wasm = ["system-actors", "tea-wasm-actor-utils", "tea-actorx2/wasm"]
 host = ["system-actors", "tea-actorx2/host", "tea-codec/runtime"]
+track = ["tea-actorx2/track"]
 sign = ["tea-actorx2/sign"]
 system-actors = ["tea-system-actors", "vmh"]
 vmh = ["tea-runtime-codec/vmh"]

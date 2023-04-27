@@ -34,6 +34,8 @@ pub mod invoke;
 
 pub(crate) struct Host {
 	actors: RwLock<HashMap<ActorId, Arc<ActorAgent>>>,
+	#[cfg(feature = "track")]
+	tracker: tracker::WorkerTracker,
 }
 
 impl Host {
@@ -202,6 +204,8 @@ where
 	async fn with_actor_host(self) -> Self::Output {
 		let host = Arc::new(Host {
 			actors: RwLock::new(HashMap::new()),
+			#[cfg(feature = "track")]
+			tracker: tracker::WorkerTracker::new(),
 		});
 		let r = self.with_host(Some(host.clone())).with_gas().await;
 		drop(host);

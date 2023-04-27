@@ -81,6 +81,14 @@ pub(crate) trait WithCallingStack: Future {
 	async fn invoke_target(self, value: ActorId) -> Self::Output;
 }
 
+#[cfg(all(feature = "host", feature = "track"))]
+#[inline(always)]
+pub(crate) fn full_stack() -> Option<Arc<tokio::sync::RwLock<CallingStack>>> {
+	TRACKER
+		.try_with(|tracker| tracker.full_stack().clone())
+		.ok()
+}
+
 #[cfg(feature = "host")]
 impl<T, R, S> WithCallingStack for T
 where
@@ -95,10 +103,28 @@ where
 			let tracker = TRACKER.with(Arc::clone);
 			tracker.track(self).await
 		};
+		#[cfg(feature = "track")]
+		let fut = CALLING_STACK.scope(Some(stack.clone()), f);
+		#[cfg(not(feature = "track"))]
 		let fut = CALLING_STACK.scope(Some(stack), f);
 		if is_first {
-			TRACKER.scope(Arc::new(Tracker::new()), fut).await
+			TRACKER
+				.scope(
+					Arc::new(Tracker::new(
+						#[cfg(feature = "track")]
+						stack,
+					)),
+					fut,
+				)
+				.await
 		} else {
+			#[cfg(feature = "track")]
+			{
+				*TRACKER
+					.with(|tracker| tracker.full_stack().clone())
+					.write_owned()
+					.await = stack;
+			}
 			fut.await
 		}
 	}

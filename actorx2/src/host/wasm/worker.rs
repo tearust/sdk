@@ -36,6 +36,8 @@ pub struct WorkerProcess {
 	write: Mutex<OwnedWriteHalf>,
 	read: Mutex<OwnedReadHalf>,
 	channels: Mutex<WorkerChannels>,
+	#[cfg(feature = "track")]
+	tracker: Arc<super::tracker::WorkerHandle>,
 }
 
 struct WorkerChannels {
@@ -61,11 +63,13 @@ impl WorkerProcess {
 		this.flush().await?;
 		let bytes = read_var_bytes(&mut this).await?;
 		let metadata: Result<_> = bincode::deserialize(&bytes)?;
-		let metadata = metadata?;
+		let metadata: Arc<Metadata> = metadata?;
 
 		let (read, write) = this.into_split();
 
 		let this = Arc::new(Self {
+			#[cfg(feature = "track")]
+			tracker: crate::context::tracker()?.create_worker(metadata.id.clone()),
 			_proc: proc,
 			metadata,
 			write: Mutex::new(write),
@@ -173,6 +177,8 @@ impl Worker {
 		channels.current_id = channels.current_id.wrapping_add(1);
 		drop(channels);
 		Channel {
+			#[cfg(feature = "track")]
+			_tracker: self.proc.tracker.create_channel(id),
 			proc: self.proc,
 			rx,
 			id,
@@ -188,6 +194,8 @@ pub struct Channel {
 	proc: Arc<WorkerProcess>,
 	rx: Receiver<(Operation, u64)>,
 	id: u64,
+	#[cfg(feature = "track")]
+	_tracker: super::tracker::ChannelHandle,
 }
 
 impl Channel {

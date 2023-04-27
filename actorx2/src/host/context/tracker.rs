@@ -12,8 +12,15 @@ use crate::{
 	error::{Error, InvocationTimeout},
 };
 
+#[cfg(feature = "track")]
+use crate::CallingStack;
+#[cfg(feature = "track")]
+use tokio::sync::RwLock;
+
 pub struct Tracker {
 	state: Mutex<State>,
+	#[cfg(feature = "track")]
+	full_stack: Arc<RwLock<CallingStack>>,
 }
 
 struct State {
@@ -28,13 +35,21 @@ impl State {
 }
 
 impl Tracker {
-	pub const fn new() -> Self {
+	pub fn new(#[cfg(feature = "track")] full_stack: CallingStack) -> Self {
 		Self {
 			state: Mutex::const_new(State {
 				canceller: None,
 				expiry: SystemTime::UNIX_EPOCH,
 			}),
+			#[cfg(feature = "track")]
+			full_stack: Arc::new(RwLock::new(full_stack)),
 		}
+	}
+
+	#[cfg(feature = "track")]
+	#[inline(always)]
+	pub fn full_stack(&self) -> &Arc<RwLock<CallingStack>> {
+		&self.full_stack
 	}
 
 	pub async fn track<F, T, S>(self: &Arc<Self>, f: F) -> Result<T, Error<S>>

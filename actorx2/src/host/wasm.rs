@@ -15,6 +15,8 @@ use crate::{
 
 use self::worker::{Channel, Worker};
 
+#[cfg(feature = "track")]
+pub mod tracker;
 pub mod worker;
 
 pub struct WasmActor {

@@ -21,6 +21,11 @@ pub(crate) fn host() -> Result<Arc<Host>> {
 		.expect("Invoking an actor requires an actor host context set for the current task")
 }
 
+#[cfg(feature = "track")]
+pub fn tracker() -> Result<super::tracker::WorkerTracker> {
+	Ok(host()?.tracker.clone())
+}
+
 pub(crate) trait WithHost: Future {
 	async fn with_host(self, value: Option<Arc<Host>>) -> Self::Output;
 }
