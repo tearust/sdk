@@ -1,5 +1,5 @@
 use std::io::Write;
-use tea_actorx2::println;
+use tea_actorx::println;
 
 pub fn set_logging(file: bool, timestamp: bool) {
 	let config = tracing_subscriber::fmt()

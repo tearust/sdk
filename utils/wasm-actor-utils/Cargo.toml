@@ -12,7 +12,7 @@ repository = { workspace = true }
 
 [dependencies]
 tea-codec = { version = "0.3.0-dev.1", path = "../../codecs/tea-codec" }
-tea-actorx2 = { version = "0.3.0-dev.1", path = "../../actorx2", features = [
+tea-actorx = { version = "0.3.0-dev.1", path = "../../actorx", features = [
 	"wasm",
 ] }
 tea-runtime-codec = { version = "0.3.0-dev.1", path = "../../codecs/runtime-codec" }
@@ -38,5 +38,5 @@ bytes = { workspace = true }
 mocktopus = { workspace = true, optional = true }
 
 [features]
-native = ["tea-actorx2/host"]
+native = ["tea-actorx/host"]
 __test = ["tea-runtime-codec/__test"]

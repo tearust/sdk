@@ -35,7 +35,7 @@ impl TryFrom<ItemImpl> for HandlesImpl {
 						} else {
 							Type::Path(TypePath {
 								qself: None,
-								path: path_handle::<false>(Span::call_site(), |seg| {
+								path: path_handle(Span::call_site(), |seg| {
 									seg.push(PathSegment {
 										ident: Ident::new("Fail", Span::call_site()),
 										arguments: PathArguments::None,
@@ -45,7 +45,7 @@ impl TryFrom<ItemImpl> for HandlesImpl {
 						};
 						Type::Path(TypePath {
 							qself: None,
-							path: path_handle::<false>(ty.span(), |seg| {
+							path: path_handle(ty.span(), |seg| {
 								seg.push(path_seg(ty.span(), "With", |args| {
 									args.push(GenericArgument::Type(Type::clone(&ty)));
 									args.push(GenericArgument::Type(others));
@@ -59,7 +59,7 @@ impl TryFrom<ItemImpl> for HandlesImpl {
 
 					impl_.trait_ = Some((
 						None,
-						path_handle::<true>(impl_.self_ty.span(), |seg| {
+						path_handle(impl_.self_ty.span(), |seg| {
 							seg.push(path_seg_single(impl_.self_ty.span(), "Handle", *ty))
 						}),
 						Token![for](impl_.self_ty.span()),
@@ -86,7 +86,7 @@ impl TryFrom<ItemImpl> for HandlesImpl {
 			}));
 			impl_.trait_ = Some((
 				None,
-				path_handle::<true>(impl_.self_ty.span(), |seg| {
+				path_handle(impl_.self_ty.span(), |seg| {
 					seg.push(PathSegment {
 						ident: Ident::new("Handles", impl_.self_ty.span()),
 						arguments: PathArguments::None,
@@ -180,7 +180,7 @@ impl TryFrom<ImplItemMethod> for HandleImpl {
 								as_token: Some(Token![as](ty.span())),
 								gt_token: Token![>](ty.span()),
 							}),
-							path: path_handle::<false>(ty.span(), |seg| {
+							path: path_handle(ty.span(), |seg| {
 								seg.push(PathSegment {
 									ident: Ident::new("Request", ty.span()),
 									arguments: PathArguments::None,
@@ -234,10 +234,7 @@ fn path_seg_single(span: Span, id: &str, t_arg: Type) -> PathSegment {
 	path_seg(span, id, |args| args.push(GenericArgument::Type(t_arg)))
 }
 
-fn path_handle<const _2: bool>(
-	span: Span,
-	seg: impl FnOnce(&mut Punctuated<PathSegment, Colon2>),
-) -> Path {
+fn path_handle(span: Span, seg: impl FnOnce(&mut Punctuated<PathSegment, Colon2>)) -> Path {
 	Path {
 		leading_colon: Some(Token![::](span)),
 		segments: {
@@ -251,7 +248,7 @@ fn path_handle<const _2: bool>(
 				arguments: PathArguments::None,
 			});
 			segments.push(PathSegment {
-				ident: Ident::new(if _2 { "handle2" } else { "handle" }, span),
+				ident: Ident::new("handle", span),
 				arguments: PathArguments::None,
 			});
 			seg(&mut segments);

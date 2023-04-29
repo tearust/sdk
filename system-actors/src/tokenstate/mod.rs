@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::{defs::FreezeTimeSettings, serde::TypeId};
 use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, TxnSerial};

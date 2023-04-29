@@ -3,7 +3,7 @@ use crate::enclave::{
 	actors::libp2p::libp2p_seq_number,
 	error::{Errors, Result},
 };
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::deserialize;
 use tea_sdk::ResultExt;
 use tea_system_actors::nitro::*;

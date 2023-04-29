@@ -1,4 +1,4 @@
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_runtime_codec::runtime::http::{FromHttpBytes, IntoHttpBytes};
 use tea_sdk::ResultExt;
 

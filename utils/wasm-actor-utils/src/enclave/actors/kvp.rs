@@ -1,6 +1,6 @@
 use crate::enclave::error::Result;
 use serde::{de::DeserializeOwned, Serialize};
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::{deserialize, serialize, ResultExt};
 use tea_system_actors::keyvalue::actions::*;
 

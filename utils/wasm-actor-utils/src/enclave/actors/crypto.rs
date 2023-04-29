@@ -1,6 +1,6 @@
 use crate::enclave::error::Result;
 use prost::Message;
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_runtime_codec::tapp::Account;
 use tea_runtime_codec::vmh::message::{encode_protobuf, structs_proto::crypto};
 use tea_system_actors::crypto::*;

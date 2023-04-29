@@ -8,7 +8,7 @@ use crate::enclave::{
 };
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::{
 	deserialize,
 	serde::{handle::Request, FromBytes, ToBytes},
@@ -312,7 +312,7 @@ pub fn can_async_error_be_ignored(e: &Error) -> bool {
 	let name = e.name();
 	name == VmhCodec::IntercomActorNotSupported
 		|| name == VmhCodec::IntercomRequestRejected
-		|| name == tea_actorx2::error::ActorX2::ActorNotExist
+		|| name == tea_actorx::error::ActorX::ActorNotExist
 }
 
 pub async fn generate_query_message(

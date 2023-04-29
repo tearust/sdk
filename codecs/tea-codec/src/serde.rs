@@ -9,7 +9,6 @@ pub use tea_codec_macros::TypeId;
 
 pub mod error;
 pub mod handle;
-pub mod handle2;
 pub mod layout;
 
 #[rustc_specialization_trait]

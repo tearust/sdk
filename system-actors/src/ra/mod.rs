@@ -1,6 +1,6 @@
 use crate::nitro::{AttestationDocRequest, RaPeerRequest};
 use serde::{Deserialize, Serialize};
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::serde::TypeId;
 
 pub mod error;

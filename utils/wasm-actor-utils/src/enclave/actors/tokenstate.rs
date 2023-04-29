@@ -2,7 +2,7 @@ use crate::enclave::actors::env::tappstore_id;
 use crate::enclave::error::{Error, Errors, GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::{deserialize, serialize, ResultExt};
 use tea_runtime_codec::actor_txns::context::TokenContext;
 use tea_runtime_codec::tapp::{Account, Balance, TokenId};

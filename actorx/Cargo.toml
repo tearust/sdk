@@ -1,0 +1,81 @@
+[package]
+name = "tea-actorx"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+authors = { workspace = true }
+license-file = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+
+[[bin]]
+name = "sign"
+required-features = ["sign-bin"]
+
+[[bin]]
+name = "worker"
+required-features = ["worker"]
+
+[dependencies]
+tea-codec = { version = "0.3.0-dev.1", path = "../codecs/tea-codec" }
+
+serde = { workspace = true }
+bincode = { workspace = true }
+strum = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+primitive-types = { workspace = true }
+
+tokio = { workspace = true, features = [
+    "rt",
+    "macros",
+    "rt-multi-thread",
+    "fs",
+], optional = true }
+command-fds = { version = "0.2.2", features = ["tokio"], optional = true }
+tokio-util = { workspace = true, features = ["io", "io-util"], optional = true }
+futures = { version = "0.3.28", optional = true }
+base64 = { workspace = true, optional = true }
+serde_yaml = { workspace = true, optional = true }
+clap = { workspace = true, optional = true }
+openssl = { workspace = true, optional = true }
+leb128 = { workspace = true, optional = true }
+zstd = { workspace = true, optional = true }
+
+wasmer = { workspace = true, optional = true }
+wasmer-middlewares = { workspace = true, optional = true }
+
+[features]
+default = ["sdk"]
+sdk = []
+worker = [
+    "sign",
+    "wasmer",
+    "wasmer-middlewares",
+    "tokio",
+    "tokio/io-util",
+    "tokio/net",
+    "tokio/time",
+    "tokio/parking_lot",
+    "tokio/sync",
+]
+sign = ["base64", "serde_yaml", "openssl", "leb128", "zstd"]
+sign-bin = ["sign", "clap", "tokio"]
+
+host = [
+    "sdk",
+    "tokio",
+    "tokio/io-util",
+    "tokio/net",
+    "tokio/parking_lot",
+    "tokio/process",
+    "tokio/time",
+    "tokio/sync",
+    "tokio-util",
+    "command-fds",
+]
+wasm = ["sdk", "futures"]
+llvm = ["worker", "wasmer/llvm"]
+track = []

@@ -15,7 +15,7 @@ use crate::enclave::{
 };
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::serialize;
 use tea_runtime_codec::tapp::Hash;
 use tea_runtime_codec::vmh::message::{

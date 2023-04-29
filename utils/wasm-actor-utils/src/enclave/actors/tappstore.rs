@@ -10,7 +10,7 @@ use crate::enclave::{
 };
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 use tea_codec::{deserialize, serialize};
 use tea_runtime_codec::actor_txns::pre_args::{Arg, ArgSlots};
 use tea_runtime_codec::tapp::{

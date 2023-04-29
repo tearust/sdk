@@ -7,7 +7,7 @@ use futures::Future;
 use lazy_static::lazy_static;
 use std::sync::Mutex;
 use std::{collections::HashMap, pin::Pin};
-use tea_actorx2::ActorId;
+use tea_actorx::ActorId;
 
 use serde::{Deserialize, Serialize};
 use tea_codec::serde::TypeId;

@@ -1,8 +1,8 @@
-use tea_actorx2::error::ActorX2;
+use tea_actorx::error::ActorX;
 use tea_codec::define_scope;
 
 define_scope! {
-	TokenstateActor: ActorX2 {
+	TokenstateActor: ActorX {
 		Errors;
 		GluesqlError;
 		IoError;

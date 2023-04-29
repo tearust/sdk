@@ -11,10 +11,7 @@ pub use tea_runtime_codec::{actor_txns, solc, tapp};
 #[doc(hidden)]
 pub mod third;
 
-pub use tea_actorx2 as actorx2;
-
-#[cfg(feature = "mock")]
-pub use tea_actorx_macros::test;
+pub use tea_actorx as actorx;
 
 #[cfg(feature = "system-actors")]
 pub use tea_system_actors as actors;

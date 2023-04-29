@@ -17,7 +17,7 @@ pub async fn async_persist_request(
 ) -> Result<persist::PersistResponse> {
 	use crate::enclave::error::Errors;
 	use prost::Message;
-	use tea_actorx2::ActorId;
+	use tea_actorx::ActorId;
 	use tea_runtime_codec::runtime::ops::persist::OP_ASYNC_REQUEST;
 	use tea_runtime_codec::vmh::message::encode_protobuf;
 	use tea_system_actors::persist::*;
