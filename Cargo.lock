@@ -2709,7 +2709,7 @@ checksum = "8ae9980cab1db3fceee2f6c6f643d5d8de2997c58ee8d25fb0cc8a9e9e7348e5"
 
 [[package]]
 name = "tea-actorx"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "base64",
  "bincode",
@@ -2734,7 +2734,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx-examples-actor"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "tea-actorx-examples-codec",
  "tea-sdk",
@@ -2742,7 +2742,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx-examples-codec"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "serde",
  "tea-sdk",
@@ -2750,7 +2750,7 @@ dependencies = [
 
 [[package]]
 name = "tea-actorx-examples-host"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "tea-actorx-examples-codec",
  "tea-sdk",
@@ -2759,7 +2759,7 @@ dependencies = [
 
 [[package]]
 name = "tea-codec"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "base64",
  "bincode",
@@ -2787,7 +2787,7 @@ dependencies = [
 
 [[package]]
 name = "tea-codec-macros"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "convert_case",
  "itertools",
@@ -2798,7 +2798,7 @@ dependencies = [
 
 [[package]]
 name = "tea-runtime-codec"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "base64",
  "bincode",
@@ -2829,7 +2829,7 @@ dependencies = [
 
 [[package]]
 name = "tea-sdk"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "tea-actorx",
  "tea-codec",
@@ -2841,7 +2841,7 @@ dependencies = [
 
 [[package]]
 name = "tea-system-actors"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "serde",
  "strum",
@@ -2852,7 +2852,7 @@ dependencies = [
 
 [[package]]
 name = "tea-wasm-actor-utils"
-version = "0.3.0-dev.1"
+version = "0.3.0-dev.2"
 dependencies = [
  "base64",
  "bytes",

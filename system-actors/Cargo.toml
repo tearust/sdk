@@ -11,11 +11,11 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.3.0-dev.1", path = "../codecs/tea-codec" }
-tea-runtime-codec = { version = "0.3.0-dev.1", path = "../codecs/runtime-codec", features = [
+tea-codec = { version = "0.3.0-dev.2", path = "../codecs/tea-codec" }
+tea-runtime-codec = { version = "0.3.0-dev.2", path = "../codecs/runtime-codec", features = [
     "vmh",
 ] }
-tea-actorx = { version = "0.3.0-dev.1", path = "../actorx" }
+tea-actorx = { version = "0.3.0-dev.2", path = "../actorx" }
 
 serde = { workspace = true }
 strum = { workspace = true }
