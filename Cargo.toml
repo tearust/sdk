@@ -73,7 +73,7 @@ bytes = "1.4.0"
 chrono = { version = "0.4.23", features = ["serde"] }
 clap = { version = "4.1.8", features = ["derive", "env"] }
 crossbeam = "0.8.2"
-crossbeam-channel = "0.5.7"
+crossbeam-channel = "0.5.8"
 dashmap = "5.4"
 ed25519-dalek = "1.0.1"
 ethereum-types = "0.14.1"
