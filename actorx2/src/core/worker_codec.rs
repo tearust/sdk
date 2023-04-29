@@ -1,4 +1,7 @@
 #[cfg(any(feature = "host", feature = "worker"))]
+use std::time::Duration;
+
+#[cfg(any(feature = "host", feature = "worker"))]
 use strum::{Display, FromRepr};
 #[cfg(any(feature = "wasm", feature = "worker"))]
 use tea_sdk::{errorx::Scope, serde::error::InvalidFormat};
@@ -143,11 +146,10 @@ impl const Default for OperationAbi {
 
 #[cfg(any(feature = "host", feature = "worker"))]
 impl Operation {
-	pub async fn read<R>(mut read: R) -> Result<Result<(Self, u64, u64), u8>>
+	pub async fn read<R>(mut read: R, code: u8) -> Result<Result<(Self, u64, u64), u8>>
 	where
 		R: AsyncRead + Unpin,
 	{
-		let code = read.read_u8().await?;
 		let cid = read.read_u64_le().await?;
 		let gas = read.read_u64_le().await?;
 		let data_0 = read_var_bytes(&mut read).await?;
@@ -166,6 +168,16 @@ impl Operation {
 				gas,
 			)),
 			_ => Err(code),
+		})
+	}
+
+	pub async fn read_code<R>(mut read: R) -> Result<Option<u8>>
+	where
+		R: AsyncRead + Unpin,
+	{
+		Ok(tokio::select! {
+			r = read.read_u8() => Some(r?),
+			_ = tokio::time::sleep(Duration::from_secs(5)) => None,
 		})
 	}
 

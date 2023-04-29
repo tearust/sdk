@@ -127,12 +127,16 @@ impl WorkerProcess {
 			if let Err(_e) = this.read_tick().await {
 				break;
 			}
+			drop(this);
 		}
 	}
 
 	async fn read_tick(self: &Arc<Self>) -> Result<()> {
 		let mut read = self.read.lock().await;
-		let input = Operation::read(&mut *read).await?;
+		let Some(code) = Operation::read_code(&mut *read).await? else {
+			return Ok(());
+		};
+		let input = Operation::read(&mut *read, code).await?;
 		drop(read);
 		match input {
 			Ok((op, cid, gas)) => {

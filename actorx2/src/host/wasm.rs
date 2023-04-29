@@ -26,9 +26,8 @@ pub struct WasmActor {
 }
 
 struct State {
-	current: Worker,
+	current: Result<Worker, JoinHandle<Result<Worker>>>,
 	count: usize,
-	loading: Option<JoinHandle<Result<Worker>>>,
 }
 
 const MAX_COUNT: usize = 128;
@@ -55,9 +54,8 @@ impl WasmActor {
 		let id = worker.metadata().id.clone();
 		Ok(Self {
 			state: Mutex::new(State {
-				current: worker,
+				current: Ok(worker),
 				count: 0,
-				loading: None,
 			}),
 			source,
 			id,
@@ -67,22 +65,33 @@ impl WasmActor {
 	async fn worker<const INC: bool>(&self) -> Result<Worker> {
 		let mut state = self.state.lock().await;
 
-		if state.count == 0 {
-			if let Some(r) = state.loading.as_mut() {
-				state.current = r.await.unwrap()?;
+		let result = match &mut state.current {
+			Ok(r) => r.clone(),
+			Err(task) => {
+				let r = match task.await.unwrap() {
+					Err(e) => {
+						let source = self.source.clone();
+						state.current =
+							Err(crate::spawn(async move { Worker::new(&source).await }));
+						return Err(e);
+					}
+					Ok(r) => r,
+				};
+				state.current = Ok(r.clone());
+				r
 			}
-		}
+		};
 
 		if INC {
 			state.count += 1;
 			if state.count > MAX_COUNT {
 				let source = self.source.clone();
-				state.loading = Some(tokio::spawn(async move { Worker::new(&source).await }));
+				state.current = Err(crate::spawn(async move { Worker::new(&source).await }));
 				state.count = 0;
 			}
 		}
 
-		Ok(state.current.clone())
+		Ok(result)
 	}
 }
 

@@ -57,6 +57,7 @@ worker = [
     "tokio",
     "tokio/io-util",
     "tokio/net",
+    "tokio/time",
     "tokio/parking_lot",
     "tokio/sync",
 ]

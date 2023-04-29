@@ -66,7 +66,8 @@ impl Worker {
 		let mut read = self.read.lock().await;
 		loop {
 			let read = &mut *read;
-			match Operation::read(read).await? {
+			let code = read.read_u8().await?;
+			match Operation::read(read, code).await? {
 				Ok((operation, cid, gas)) => {
 					let mut channels = self.channels.lock().await;
 					let channel = match channels.entry(cid) {
