@@ -302,7 +302,7 @@ pub async fn send_tx_new_auth_key_expired(
 		auth_key: *auth,
 		new_expire,
 	};
-	send_transaction_locally(
+	let tsid = send_transaction_locally(
 		&TxnSerial::new(
 			tea_system_actors::tappstore::NAME.to_vec(),
 			serialize(&txn)?,
@@ -311,14 +311,10 @@ pub async fn send_tx_new_auth_key_expired(
 		),
 		vec![],
 		true,
-		|tsid| {
-			Box::pin(async move {
-				info!("send_tx_new_auth_key_expired result: {:?}", tsid);
-				Ok(())
-			})
-		},
 	)
-	.await
+	.await?;
+	info!("send_tx_new_auth_key_expired result: {:?}", tsid);
+	Ok(())
 }
 
 pub async fn read_bonding_balance(

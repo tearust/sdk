@@ -4,7 +4,6 @@ use super::{
 	util::random_select,
 };
 use crate::enclave::{
-	action::CallbackReturn,
 	actors::env::tappstore_id,
 	error::{Error, Result},
 };
@@ -40,23 +39,19 @@ impl SimpleDate {
 	}
 }
 
-pub async fn node_profiles_by_conn_ids<T>(
+pub async fn node_profiles_by_conn_ids(
 	conn_ids: Vec<String>,
 	mode: IntelliSendMode,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Vec<TeaNodeProfile>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+) -> Result<Vec<TeaNodeProfile>> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		NodeProfileByConnIdsRequest(encode_protobuf(tappstore::QueryNodeProfilesByConnIds {
 			conn_ids,
 		})?),
 		mode,
-		|res| Box::pin(async move { callback(res.0).await }),
 	)
-	.await
+	.await?;
+	Ok(res.0)
 }
 
 pub async fn has_tappstore_init() -> Result<bool> {
@@ -99,16 +94,12 @@ pub async fn random_select_active_seats_locally(
 		.collect())
 }
 
-pub async fn query_tea_balance_async<T>(
+pub async fn query_tea_balance_async(
 	account: &str,
 	auth_key: &[u8],
 	mode: IntelliSendMode,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Balance, Ts) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+) -> Result<(Balance, Ts)> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		QueryTeaBalanceRequest(encode_protobuf(tappstore::TeaBalanceRequest {
 			account: account.to_string(),
@@ -116,14 +107,10 @@ where
 			auth_key: auth_key.to_vec(),
 		})?),
 		mode,
-		|res| {
-			Box::pin(async move {
-				let res = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
-				callback(deserialize(&res.balance)?, deserialize(&res.ts)?).await
-			})
-		},
 	)
-	.await
+	.await?;
+	let res = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
+	Ok((deserialize(&res.balance)?, deserialize(&res.ts)?))
 }
 
 pub async fn query_cml_id_by_tea_id(tea_ids: Vec<ReplicaId>) -> Result<Vec<CmlId>> {
@@ -133,74 +120,55 @@ pub async fn query_cml_id_by_tea_id(tea_ids: Vec<ReplicaId>) -> Result<Vec<CmlId
 	Ok(res.0)
 }
 
-pub async fn query_active_cml_ids<T>(
+pub async fn query_active_cml_ids(
 	exclude_tea_id: Option<Vec<u8>>,
 	mode: IntelliSendMode,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Vec<CmlId>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+) -> Result<Vec<CmlId>> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		QueryActiveCmlsRequest(encode_protobuf(tappstore::QueryActiveNodes {
 			has_exclude: exclude_tea_id.is_some(),
 			exclude_tea_id: exclude_tea_id.unwrap_or_default(),
 		})?),
 		mode,
-		|res| Box::pin(async move { callback(res.0).await }),
 	)
-	.await
+	.await?;
+	Ok(res.0)
 }
 
-pub async fn query_mining_cml_ids<T>(mode: IntelliSendMode, callback: T) -> Result<()>
-where
-	T: FnOnce(Vec<CmlId>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+pub async fn query_mining_cml_ids(mode: IntelliSendMode) -> Result<Vec<CmlId>> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		QueryMiningCmlIdsRequest,
 		mode,
-		|res| Box::pin(async move { callback(res.0).await }),
 	)
-	.await
+	.await?;
+	Ok(res.0)
 }
 
-pub async fn query_hosting_cml_ids<T>(
+pub async fn query_hosting_cml_ids(
 	token_id: TokenId,
 	active_only: bool,
 	mode: IntelliSendMode,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Vec<CmlId>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+) -> Result<Vec<CmlId>> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		QueryHostingCmlsRequest(serialize(&(token_id, active_only))?),
 		mode,
-		|res| Box::pin(async move { callback(res.0).await }),
 	)
-	.await
+	.await?;
+	Ok(res.0)
 }
 
-pub async fn get_statements_async<T>(
+pub async fn get_statements_async(
 	account: Option<Account>,
 	query_date: Option<SimpleDate>,
 	mode: IntelliSendMode,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Vec<(TypedStatement, String, String)>, bool) -> CallbackReturn
-		+ Clone
-		+ Send
-		+ Sync
-		+ 'static,
-{
+) -> Result<(Vec<(TypedStatement, String, String)>, bool)> {
 	// this max size is hard coded according to `MAX_PROTOCOL_SIZE` defined in libp2p general request
 	const MAX_SIZE: u64 = 1024 * 1024;
 
-	intelli_actor_query_ex(
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		GetStatementsRequest(encode_protobuf(persist::GetStatements {
 			max_size: MAX_SIZE,
@@ -218,71 +186,58 @@ where
 			}),
 		})?),
 		mode,
-		|res| Box::pin(async move { callback(res.0, res.1).await }),
 	)
-	.await
+	.await?;
+	Ok((res.0, res.1))
 }
 
-pub async fn query_cml_ra_status<T>(tea_id: &[u8], mode: IntelliSendMode, callback: T) -> Result<()>
-where
-	T: FnOnce(NodeStatus) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+pub async fn query_cml_ra_status(tea_id: &[u8], mode: IntelliSendMode) -> Result<NodeStatus> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		QueryCmlRaStatusRequest(tea_id.to_vec()),
 		mode,
-		|res| Box::pin(async move { callback(res.0).await }),
 	)
-	.await
+	.await?;
+	Ok(res.0)
 }
 
-pub async fn query_active_nodes<T>(
+pub async fn query_active_nodes(
 	exclude_tea_id: Option<Vec<u8>>,
 	mode: IntelliSendMode,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Vec<TeaNodeProfile>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+) -> Result<Vec<TeaNodeProfile>> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		QueryActiveNodesRequest(encode_protobuf(tappstore::QueryActiveNodes {
 			has_exclude: exclude_tea_id.is_some(),
 			exclude_tea_id: exclude_tea_id.unwrap_or_default(),
 		})?),
 		mode,
-		|res| Box::pin(async move { callback(res.0).await }),
 	)
-	.await
+	.await?;
+	Ok(res.0)
 }
 
 /// request all arg related values locally
-pub async fn process_pre_args<T>(pre_args: Vec<Arg>, callback: T) -> Result<()>
-where
-	T: FnOnce(Option<ArgSlots>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
+pub async fn process_pre_args(pre_args: Vec<Arg>) -> Result<Option<ArgSlots>> {
 	if pre_args.is_empty() {
-		return callback(None).await;
+		return Ok(None);
 	}
 
-	intelli_actor_query_ex(
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		ProcessPreArgsRequest(pre_args),
 		IntelliSendMode::LocalOnly,
-		|res| Box::pin(async move { callback(Some(res.0)).await }),
 	)
-	.await
+	.await?;
+	Ok(Some(res.0))
 }
 
-pub async fn query_system_versions<T>(mode: IntelliSendMode, callback: T) -> Result<()>
-where
-	T: FnOnce(SystemVersions) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
-	intelli_actor_query_ex(
+pub async fn query_system_versions(mode: IntelliSendMode) -> Result<SystemVersions> {
+	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
 		QuerySystemVersionsRequest,
 		mode,
-		|res| Box::pin(async move { callback(res.0).await }),
 	)
-	.await
+	.await?;
+	Ok(res.0)
 }

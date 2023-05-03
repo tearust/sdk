@@ -72,14 +72,10 @@ pub struct UnsubscribeGossipTopicRequest(pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-#[response(())]
-pub struct SendMessageRequest(pub Vec<u8>, pub u64);
+pub struct SendMessageRequest(pub Vec<u8>, pub bool);
 
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(10000)]
-pub struct NextSeqNumberRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct NextSeqNumberResponse(pub u64);
+pub struct SendMessageResponse(pub Option<Vec<u8>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct BoundState {
@@ -93,11 +89,6 @@ pub struct BoundState {
 #[price(100)]
 #[response(())]
 pub struct Libp2pRequest(pub String, pub Vec<u8>);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(10000)]
-#[response(())]
-pub struct Libp2pReply(pub u64, pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

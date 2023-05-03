@@ -76,42 +76,37 @@ pub async fn query_session_key(payload: Vec<u8>, from_actor: String) -> Result<V
 	let req: QuerySessionKeyRequest = serde_json::from_slice(&payload)?;
 	let uuid = req.uuid;
 
-	request::send_tappstore_query(
+	let r = request::send_tappstore_query(
 		&from_actor,
 		CheckUserSessionRequest {
 			account: req.address.parse()?,
 			token_id: TokenId::from_hex(&req.tapp_id_b64)?,
 		},
-		move |r| {
-			Box::pin(async move {
-				let aes_key = &r.aes_key;
-				let auth_key = r
-					.auth_key
-					.map(|v| serialize(&v))
-					.transpose()?
-					.unwrap_or_default();
-
-				let auth_b64 = base64::encode(auth_key);
-				info!("save auth_b64 => {:?}", auth_b64);
-				info!("save aes_key => {:?}", aes_key);
-
-				help::save_session_key(
-					auth_b64.clone(),
-					&r.token_id.to_hex(),
-					&format!("{:?}", r.account),
-				)
-				.await?;
-				help::save_aes_key(aes_key.to_vec(), &r.token_id.to_hex()).await?;
-
-				let x = serde_json::json!({
-					"auth_key": auth_b64,
-				});
-				help::cache_json_with_uuid(&uuid, x).await?;
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let aes_key = &r.aes_key;
+	let auth_key = r
+		.auth_key
+		.map(|v| serialize(&v))
+		.transpose()?
+		.unwrap_or_default();
+
+	let auth_b64 = base64::encode(auth_key);
+	info!("save auth_b64 => {:?}", auth_b64);
+	info!("save aes_key => {:?}", aes_key);
+
+	help::save_session_key(
+		auth_b64.clone(),
+		&r.token_id.to_hex(),
+		&format!("{:?}", r.account),
+	)
+	.await?;
+	help::save_aes_key(aes_key.to_vec(), &r.token_id.to_hex()).await?;
+
+	let x = serde_json::json!({
+		"auth_key": auth_b64,
+	});
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }
@@ -193,24 +188,19 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 		auth_key,
 	};
 
-	request::send_tappstore_query(
+	let res = request::send_tappstore_query(
 		&from_actor,
 		QueryTeaBalanceRequest(encode_protobuf(query_data)?),
-		move |res| {
-			Box::pin(async move {
-				let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
-				let x = serde_json::json!({
-					"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
-					"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
-					"uuid": uuid
-				});
-
-				help::cache_json_with_uuid(&uuid, x).await?;
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
+	let x = serde_json::json!({
+		"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
+		"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
+		"uuid": uuid
+	});
+
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }
@@ -229,24 +219,19 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 		auth_key,
 	};
 
-	request::send_tappstore_query(
+	let res = request::send_tappstore_query(
 		&from_actor,
 		QueryTeaDepositRequest(encode_protobuf(query_data)?),
-		move |res| {
-			Box::pin(async move {
-				let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
-				let x = serde_json::json!({
-					"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
-					"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
-					"uuid": uuid
-				});
-
-				help::cache_json_with_uuid(&uuid, x).await?;
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
+	let x = serde_json::json!({
+		"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
+		"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
+		"uuid": uuid
+	});
+
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }
@@ -270,24 +255,19 @@ pub async fn query_asset(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
 		auth_key,
 	};
 
-	request::send_tappstore_query(
+	let res = request::send_tappstore_query(
 		&from_actor,
 		FetchAccountAssetRequest(encode_protobuf(query_data)?),
-		move |res| {
-			Box::pin(async move {
-				let r = tappstore::AccountAssetResponse::decode(res.0.as_slice())?;
-				let x = serde_json::json!({
-					"tea_balance": deserialize::<Balance,_>(&r.tea_balance)?.to_string(),
-					"token_balance": deserialize::<Balance, _>(&r.token_balance)?.to_string(),
-					"reserved_token_balance": deserialize::<Balance, _>(&r.reserved_token_balance)?.to_string(),
-					"uuid": uuid,
-				});
-				help::cache_json_with_uuid(&uuid, x).await?;
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let r = tappstore::AccountAssetResponse::decode(res.0.as_slice())?;
+	let x = serde_json::json!({
+		"tea_balance": deserialize::<Balance,_>(&r.tea_balance)?.to_string(),
+		"token_balance": deserialize::<Balance, _>(&r.token_balance)?.to_string(),
+		"reserved_token_balance": deserialize::<Balance, _>(&r.reserved_token_balance)?.to_string(),
+		"uuid": uuid,
+	});
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }
@@ -309,21 +289,16 @@ pub async fn query_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec
 		token_id: serialize(&TokenId::from_hex(&req.tapp_id_b64)?)?,
 	};
 
-	request::send_tappstore_query(
+	let res = request::send_tappstore_query(
 		&from_actor,
 		FetchAllowanceRequest(encode_protobuf(query_data)?),
-		move |res| {
-			Box::pin(async move {
-				let r = tappstore::TokenAllowanceResponse::decode(res.0.as_slice())?;
-				let x = json!({
-					"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
-				});
-				help::cache_json_with_uuid(&uuid, x).await?;
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let r = tappstore::TokenAllowanceResponse::decode(res.0.as_slice())?;
+	let x = json!({
+		"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
+	});
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }
@@ -356,34 +331,28 @@ pub async fn query_tapp_metadata(payload: Vec<u8>, from_actor: String) -> Result
 		),
 	};
 
-	request::send_tappstore_query(
+	let res = request::send_tappstore_query(
 		&from_actor,
 		CommonSqlQueryRequest(encode_protobuf(query_data)?),
-		move |res| {
-			Box::pin(async move {
-				let r = tappstore::CommonSqlQueryResponse::decode(res.0.as_slice())?;
-				let x = if !r.err.is_empty() {
-					error!("query_tapp_metadata error: {}", &r.err);
-					json!({
-						"status": false,
-						"error": &r.err,
-					})
-				} else {
-					let data: tea_runtime_codec::tapp::tapp::TappMetaData =
-						tea_codec::deserialize(&r.data)?;
-					info!("query_tapp_metadata => {:?}", &data);
-
-					let json = json!({ "sql_query_result": data });
-					help::set_query_cache(&cache_key, json.clone()).await?;
-
-					json
-				};
-				help::cache_json_with_uuid(&uuid, x).await?;
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let r = tappstore::CommonSqlQueryResponse::decode(res.0.as_slice())?;
+	let x = if !r.err.is_empty() {
+		error!("query_tapp_metadata error: {}", &r.err);
+		json!({
+			"status": false,
+			"error": &r.err,
+		})
+	} else {
+		let data: tea_runtime_codec::tapp::tapp::TappMetaData = tea_codec::deserialize(&r.data)?;
+		info!("query_tapp_metadata => {:?}", &data);
+
+		let json = json!({ "sql_query_result": data });
+		help::set_query_cache(&cache_key, json.clone()).await?;
+
+		json
+	};
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }
@@ -431,66 +400,60 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 
 	let query_data = replica::FindExecutedTxnRequest { txn_hash, ts };
 
-	request::send_tappstore_query(
+	let res = request::send_tappstore_query(
 		&from_actor.clone(),
 		FindExecutedTxnRequest(encode_protobuf(query_data)?),
-		move |res| {
-			Box::pin(async move {
-				let r = replica::FindExecutedTxnResponse::decode(res.0.as_slice())?;
-
-				if r.success {
-					if r.executed_txn.is_some() {
-						info!("Txn hash return success. go to next step...");
-
-						let x = {
-							let x_bytes = txn_callback(&uuid, from_actor).await;
-							if let Err(e) = x_bytes {
-								if e.name() == tea_codec::errorx::Global::UnexpectedType {
-									json!({
-										"status": true,
-									})
-								} else {
-									json!({
-										"status": false,
-										"error": e.to_string(),
-									})
-								}
-							} else {
-								let x_bytes = x_bytes.unwrap();
-								if x_bytes.is_empty() {
-									// no cb
-									json!({
-										"status": true,
-									})
-								} else {
-									serde_json::from_slice(&x_bytes)?
-								}
-							}
-						};
-
-						help::cache_json_with_uuid(&uuid, x).await?;
-					} else {
-						info!("Txn hash no error. but not success. wait for next loop...");
-
-						let x = json!({
-							"status": false,
-							"error": "wait",
-						});
-						help::cache_json_with_uuid(&uuid, x).await?;
-					}
-				} else {
-					let x = json!({
-						"status": false,
-						"error": &r.error_msg,
-					});
-					help::cache_json_with_uuid(&uuid, x).await?;
-				}
-
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let r = replica::FindExecutedTxnResponse::decode(res.0.as_slice())?;
+
+	if r.success {
+		if r.executed_txn.is_some() {
+			info!("Txn hash return success. go to next step...");
+
+			let x = {
+				let x_bytes = txn_callback(&uuid, from_actor).await;
+				if let Err(e) = x_bytes {
+					if e.name() == tea_codec::errorx::Global::UnexpectedType {
+						json!({
+							"status": true,
+						})
+					} else {
+						json!({
+							"status": false,
+							"error": e.to_string(),
+						})
+					}
+				} else {
+					let x_bytes = x_bytes.unwrap();
+					if x_bytes.is_empty() {
+						// no cb
+						json!({
+							"status": true,
+						})
+					} else {
+						serde_json::from_slice(&x_bytes)?
+					}
+				}
+			};
+
+			help::cache_json_with_uuid(&uuid, x).await?;
+		} else {
+			info!("Txn hash no error. but not success. wait for next loop...");
+
+			let x = json!({
+				"status": false,
+				"error": "wait",
+			});
+			help::cache_json_with_uuid(&uuid, x).await?;
+		}
+	} else {
+		let x = json!({
+			"status": false,
+			"error": &r.error_msg,
+		});
+		help::cache_json_with_uuid(&uuid, x).await?;
+	}
 
 	help::result_ok()
 }
@@ -513,25 +476,20 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 
 	let uuid = req.uuid;
 
-	request::send_tappstore_query(
+	let res = request::send_tappstore_query(
 		&from_actor,
 		tea_system_actors::tappstore::QuerySystemVersionsRequest,
-		move |res| {
-			Box::pin(async move {
-				let r = res.0;
-				let x = json!({
-					"client_version": r.client.version,
-					"client_url": r.client.url,
-					"enclave_version": r.enclave.version,
-					"enclave_url": r.enclave.url,
-				});
-				help::set_query_cache(&cache_key, x.clone()).await?;
-				help::cache_json_with_uuid(&uuid, x).await?;
-				Ok(())
-			})
-		},
 	)
 	.await?;
+	let r = res.0;
+	let x = json!({
+		"client_version": r.client.version,
+		"client_url": r.client.url,
+		"enclave_version": r.enclave.version,
+		"enclave_url": r.enclave.url,
+	});
+	help::set_query_cache(&cache_key, x.clone()).await?;
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }

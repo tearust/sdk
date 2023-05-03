@@ -90,8 +90,11 @@ pub enum Errors {
 	#[error("async persisted request failed: {0}")]
 	AsyncPersistFailed(String),
 
-	#[error("failed to find libp2p callback with seq number {0}")]
-	Libp2pCallbackIsNone(u64),
+	#[error("failed to find libp2p callback")]
+	Libp2pCallbackIsNone,
+
+	#[error("all libp2p response error, last is: {0}")]
+	Libp2pAllResponseError(String),
 }
 
 impl Errors {

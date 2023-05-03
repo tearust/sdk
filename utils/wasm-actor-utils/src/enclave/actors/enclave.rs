@@ -1,10 +1,5 @@
-use crate::enclave::{
-	action::{add_callback, CallbackReturn},
-	actors::libp2p::libp2p_seq_number,
-	error::{Errors, Result},
-};
+use crate::enclave::error::{Errors, Result};
 use tea_actorx::ActorId;
-use tea_codec::deserialize;
 use tea_sdk::ResultExt;
 use tea_system_actors::nitro::*;
 
@@ -55,40 +50,24 @@ pub async fn generate_random(len: u32) -> Result<Vec<u8>> {
 	Ok(res)
 }
 
-pub async fn verify_peer<T>(
+pub async fn verify_peer(
 	doc_request: AttestationDocRequest,
 	conn_id: &str,
-	source: ActorId,
-	callback: T,
 	is_seat: bool,
-) -> Result<()>
-where
-	T: FnOnce(bool) -> CallbackReturn + Send + Sync + 'static,
-{
+) -> Result<bool> {
 	use tea_system_actors::ra::*;
 
-	let seq_number = libp2p_seq_number().await?;
-	add_callback(seq_number, |res| {
-		Box::pin(async move {
-			let result: bool = deserialize(res)?;
-			callback(result).await
-		})
-	})
-	.await?;
-
-	ActorId::Static(NAME)
-		.call(VerifyPeer {
+	let res = ActorId::Static(NAME)
+		.call(VerifyPeerRequest {
 			data: RaPeerRequest {
 				seq_number: 0,
 				conn_id: conn_id.to_string(),
 				doc_request,
 			},
-			seq_number,
-			source,
 			is_seat,
 		})
-		.await
-		.err_into()
+		.await?;
+	Ok(res.0)
 }
 
 pub async fn nitro_encrypt(tag: &str, data: Vec<u8>) -> Result<Vec<u8>> {

@@ -3,7 +3,6 @@ use super::{
 	statemachine::new_txn_serial, util::random_select,
 };
 use crate::enclave::{
-	action::CallbackReturn,
 	actors::{
 		crypto::sha256,
 		enclave::get_my_tea_id,
@@ -49,53 +48,42 @@ impl Default for IntelliSendMode {
 	}
 }
 
-pub async fn intelli_send_txn<T>(
+pub async fn intelli_send_txn(
 	target_actor: &[u8],
 	txn_bytes: &[u8],
 	pre_args: Vec<Arg>,
 	mode: IntelliSendMode,
 	gas_limit: u64,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Option<Tsid>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
+) -> Result<Option<Tsid>> {
 	let txn_serial = new_txn_serial(target_actor, txn_bytes.to_vec(), gas_limit).await?;
 
 	if mode == IntelliSendMode::RemoteOnly {
-		return try_send_transaction_remotely(&txn_serial, pre_args, &None, callback).await;
+		return try_send_transaction_remotely(&txn_serial, pre_args, &None).await;
 	}
 
 	if !apply_validator().await? {
 		if mode == IntelliSendMode::LocalOnly {
 			return Err(ProviderOperationRejected::NotATypeCml.into());
 		}
-		return try_send_transaction_remotely(&txn_serial, pre_args, &None, callback).await;
+		return try_send_transaction_remotely(&txn_serial, pre_args, &None).await;
 	}
 
-	let callback_inner = callback.clone();
-	if let Err(e) = send_transaction_locally(&txn_serial, pre_args.clone(), true, |res| {
-		Box::pin(async move { callback_inner(res).await })
-	})
-	.await
-	{
-		if mode == IntelliSendMode::LocalOnly {
-			return Err(e);
+	match send_transaction_locally(&txn_serial, pre_args.clone(), true).await {
+		Ok(rtn) => Ok(rtn),
+		Err(e) => {
+			if mode == IntelliSendMode::LocalOnly {
+				return Err(e);
+			}
+			try_send_transaction_remotely(&txn_serial, pre_args, &Some(e)).await
 		}
-		return try_send_transaction_remotely(&txn_serial, pre_args, &Some(e), callback).await;
 	}
-	Ok(())
 }
 
-async fn try_send_transaction_remotely<T>(
+async fn try_send_transaction_remotely(
 	txn_serial: &TxnSerial,
 	pre_args: Vec<Arg>,
 	e: &Option<Error>,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Option<Tsid>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
+) -> Result<Option<Tsid>> {
 	let (cmd, hash, uuid) = gen_command_messages(txn_serial, pre_args).await?;
 	info!(
 		"try send transaction 0x{} remotely{}",
@@ -107,7 +95,7 @@ where
 	);
 
 	let from_token = env::get_current_wasm_actor_token_id().await?;
-	try_send_remotely::<Option<Tsid>, T>(
+	try_send_remotely::<Option<Tsid>>(
 		e,
 		tokenstate::StateReceiverMessage {
 			uuid,
@@ -126,7 +114,6 @@ where
 			from_token,
 		},
 		None,
-		callback,
 	)
 	.await
 }
@@ -153,23 +140,15 @@ async fn gen_command_messages(
 }
 
 /// avoid call this method in tappstore wasm actor
-pub async fn send_transaction_locally<T>(
+pub async fn send_transaction_locally(
 	txn_serial: &TxnSerial,
 	pre_args: Vec<Arg>,
 	gen_followup: bool,
-	callback: T,
-) -> Result<()>
-where
-	T: FnOnce(Option<Tsid>) -> CallbackReturn + Clone + Send + Sync + 'static,
-{
+) -> Result<Option<Tsid>> {
 	let txn_serial = txn_serial.clone();
-	process_pre_args(pre_args, move |args| {
-		Box::pin(async move {
-			let rtn = send_transaction_locally_ex(&txn_serial, args, gen_followup, None).await?;
-			callback(rtn).await
-		})
-	})
-	.await
+	let args = process_pre_args(pre_args).await?;
+	let rtn = send_transaction_locally_ex(&txn_serial, args, gen_followup, None).await?;
+	Ok(rtn)
 }
 
 pub async fn send_transaction_locally_ex(

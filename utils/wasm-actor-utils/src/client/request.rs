@@ -1,15 +1,12 @@
 pub use crate::enclave::actors::http;
-use crate::enclave::{
-	action::CallbackReturn,
-	actors::{
-		libp2p::intelli_actor_query_ex,
-		replica::{intelli_send_txn, IntelliSendMode},
-	},
+use crate::enclave::actors::{
+	libp2p::intelli_actor_query_ex,
+	replica::{intelli_send_txn, IntelliSendMode},
 };
 use std::str::FromStr;
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
-	serialize, ResultExt,
+	serialize,
 };
 use tea_runtime_codec::actor_txns::pre_args::Arg;
 use tea_system_actors::tappstore::txns::TappstoreTxn;
@@ -18,33 +15,24 @@ use self::http::RequestExt;
 use crate::client::help;
 use crate::client::Result;
 
-pub async fn send_custom_query<C, T>(
+pub async fn send_custom_query<C>(
 	_from_actor: &str,
 	arg: C,
 	target: &'static [u8],
-	callback: T,
-) -> Result<()>
+) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
 	C::Response: for<'a> FromBytes<'a> + Send,
-	T: FnOnce(C::Response) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
-	Ok(intelli_actor_query_ex(target, arg, IntelliSendMode::RemoteOnly, callback).await?)
+	Ok(intelli_actor_query_ex(target, arg, IntelliSendMode::RemoteOnly).await?)
 }
 
-pub async fn send_tappstore_query<C, T>(from_actor: &str, arg: C, callback: T) -> Result<()>
+pub async fn send_tappstore_query<C>(from_actor: &str, arg: C) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
 	C::Response: for<'a> FromBytes<'a> + Send,
-	T: FnOnce(C::Response) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
-	send_custom_query(
-		from_actor,
-		arg,
-		tea_system_actors::tappstore::NAME,
-		callback,
-	)
-	.await
+	send_custom_query(from_actor, arg, tea_system_actors::tappstore::NAME).await
 }
 
 pub async fn send_custom_txn(
@@ -71,32 +59,28 @@ pub async fn send_custom_txn(
 	let uuid = uuid.to_string();
 
 	let gas_limit = crate::client::CLIENT_DEFAULT_GAS_LIMIT;
-	intelli_send_txn(
+	let rtn = intelli_send_txn(
 		target,
 		&txn_bytes,
 		pre_args,
 		IntelliSendMode::RemoteOnly,
 		gas_limit,
-		|rtn| {
-			Box::pin(async move {
-				if let Some(tsid) = rtn {
-					info!("txn command successfully, tsid is: {:?}", tsid);
-
-					let x = serde_json::json!({
-						"ts": &tsid.ts.to_string(),
-						"hash": hex::encode(tsid.hash),
-						"sender": hex::encode(tsid.sender),
-						"uuid": uuid,
-					});
-					help::cache_json_with_uuid(&uuid, x).await?;
-				}
-
-				Ok(())
-			})
-		},
 	)
-	.await
-	.err_into()
+	.await?;
+
+	if let Some(tsid) = rtn {
+		info!("txn command successfully, tsid is: {:?}", tsid);
+
+		let x = serde_json::json!({
+			"ts": &tsid.ts.to_string(),
+			"hash": hex::encode(tsid.hash),
+			"sender": hex::encode(tsid.sender),
+			"uuid": uuid,
+		});
+		help::cache_json_with_uuid(&uuid, x).await?;
+	}
+
+	Ok(())
 }
 
 pub async fn send_tappstore_txn(
