@@ -7,7 +7,7 @@ use tea_runtime_codec::tapp::AccountId;
 pub mod error;
 
 pub const NAME: &[u8] = b"tea:billing";
-pub const SETTLEMENT_INTERVAL: Duration = Duration::from_secs(60);
+pub const SETTLEMENT_INTERVAL: Duration = Duration::from_secs(120);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
