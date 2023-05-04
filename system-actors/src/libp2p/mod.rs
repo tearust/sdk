@@ -77,6 +77,17 @@ pub struct SendMessageRequest(pub Vec<u8>, pub bool);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct SendMessageResponse(pub Option<Vec<u8>>);
 
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct SendMessageExRequest {
+	pub msg: Vec<u8>,
+	pub with_reply: bool,
+	pub targets: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct SendMessageExResponse(pub Option<Vec<u8>>);
+
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct BoundState {
 	pub conn_id: String,

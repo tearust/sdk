@@ -224,18 +224,42 @@ pub async fn send_all_state_receiver<C>(
 where
 	C: Send + for<'a> FromBytes<'a>,
 {
-	let mut last_err = String::new();
-	for (_, target_conn_id) in validators {
-		let res = send_to_state_receiver(target_conn_id.clone(), state_receiver_msg.clone()).await;
-		match to_response(res).await {
-			Ok(rtn) => return Ok(rtn),
-			Err(e) => {
-				warn!("received one error response from {}: {}", target_conn_id, e);
-				last_err = e.to_string();
-			}
-		}
+	let current_peers: HashSet<String> = connected_peers().await?.into_iter().collect();
+	let validator_conn_ids = validators
+		.into_iter()
+		.map(|(_, conn_id)| conn_id)
+		.collect::<Vec<_>>();
+	if validator_conn_ids
+		.iter()
+		.any(|conn_id| !current_peers.contains(conn_id))
+	{
+		return Err(Errors::ConnIdsNotExist(validator_conn_ids).into());
 	}
-	Err(Errors::Libp2pAllResponseError(last_err).into())
+
+	let res = ActorId::Static(tea_system_actors::libp2p::NAME)
+		.call(tea_system_actors::libp2p::SendMessageExRequest {
+			msg: encode_protobuf(libp2p::GeneralRequest {
+				source_conn_id: Default::default(),
+				target_conn_id: Default::default(),
+				seq_number: Default::default(),
+				runtime_message: Some(libp2p::RuntimeMessage {
+					source_address: Some(libp2p::RuntimeAddress {
+						target_key: Default::default(),
+						target_action: Default::default(),
+					}),
+					target_address: Some(libp2p::RuntimeAddress {
+						target_key: tea_system_actors::state_receiver::NAME.to_vec(),
+						target_action: "libp2p.state-receiver".to_string(),
+					}),
+					content: encode_protobuf(state_receiver_msg)?,
+				}),
+			})?,
+			with_reply: true,
+			targets: validator_conn_ids,
+		})
+		.await?;
+
+	to_response(res.0.ok_or(Errors::Libp2pCallbackIsNone.into())).await
 }
 
 async fn to_response<C>(res: Result<Vec<u8>>) -> Result<C>

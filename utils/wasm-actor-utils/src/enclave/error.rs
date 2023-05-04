@@ -51,6 +51,9 @@ pub enum Errors {
 	#[error("Reject because target conn id {0} don't exist in current peer list")]
 	ConnIdNotExist(String),
 
+	#[error("Reject because target conn id list {0:?} don't exist in current peer list")]
+	ConnIdsNotExist(Vec<String>),
+
 	#[error("Raft set value failed: {0}")]
 	RaftSetValueFailed(String),
 
