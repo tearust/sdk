@@ -1,6 +1,7 @@
 use std::{collections::HashMap, time::SystemTime};
 
 use serde::{Deserialize, Serialize};
+use tea_actorx::{ActorId, CallingStack};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::solc::{BlockNumber, ContractAddresses};
@@ -43,6 +44,13 @@ pub struct JemallocProfileRequest {
 	pub sec: u64, // Profile Second
 	pub seq: u64, // Sequence Number
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct WorkersTrackingRequest;
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct WorkersTrackingResponse(pub HashMap<(ActorId, u64), HashMap<u64, CallingStack>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
