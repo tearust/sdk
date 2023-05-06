@@ -14,6 +14,9 @@ use tea_sdk::{
 
 pub mod error;
 
+#[cfg(test)]
+mod tests;
+
 actor!(Actor);
 
 #[derive(Default)]

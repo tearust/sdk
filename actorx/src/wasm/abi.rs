@@ -84,6 +84,7 @@ macro_rules! actor {
 	};
 }
 
+#[cfg(not(feature = "host"))]
 extern "C" {
 	#[link_name = "print"]
 	#[allow(unused)]
@@ -91,7 +92,7 @@ extern "C" {
 }
 
 #[doc(hidden)]
-//#[cfg(not(feature = "host"))]
+#[cfg(not(feature = "host"))]
 pub fn _print(args: Arguments) {
 	let string = std::fmt::format(args).into_bytes().into_boxed_slice();
 	let len = string.len() as _;
@@ -101,12 +102,12 @@ pub fn _print(args: Arguments) {
 	}
 }
 
-// #[doc(hidden)]
-// #[cfg(feature = "host")]
-// pub fn _print(args: Arguments) {
-// 	use std::io::Write;
-// 	std::io::stdout().write_fmt(args).unwrap();
-// }
+#[doc(hidden)]
+#[cfg(feature = "host")]
+pub fn _print(args: Arguments) {
+	use std::io::Write;
+	std::io::stdout().write_fmt(args).unwrap();
+}
 
 #[macro_export]
 macro_rules! print {

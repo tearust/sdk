@@ -17,3 +17,7 @@ crate-type = ["cdylib"]
 [dependencies]
 tea-sdk = { path = "../../..", features = ["wasm"] }
 tea-actorx-examples-codec = { path = "../codec" }
+
+[dev-dependencies]
+tokio = { version = "1.28.0", features = ["full"] }
+tea-sdk = { path = "../../..", features = ["host"] }

@@ -32,8 +32,11 @@ pub use wasm::*;
 pub mod context;
 pub mod invoke;
 
+type OutputHandler = Arc<RwLock<Box<dyn Fn(String, ActorId) + Send + Sync>>>;
+
 pub(crate) struct Host {
 	actors: RwLock<HashMap<ActorId, Arc<ActorAgent>>>,
+	wasm_output_handler: OutputHandler,
 	#[cfg(feature = "track")]
 	tracker: tracker::WorkerTracker,
 }
@@ -204,6 +207,9 @@ where
 	async fn with_actor_host(self) -> Self::Output {
 		let host = Arc::new(Host {
 			actors: RwLock::new(HashMap::new()),
+			wasm_output_handler: Arc::new(RwLock::new(Box::new(|content, actor| {
+				println!("{actor}: {content}");
+			}))),
 			#[cfg(feature = "track")]
 			tracker: tracker::WorkerTracker::new(),
 		});
@@ -211,6 +217,23 @@ where
 		drop(host);
 		r
 	}
+}
+
+pub fn set_wasm_output_handler<F>(handler: F) -> Result<()>
+where
+	F: Fn(String, ActorId) + Send + Sync + 'static,
+{
+	let host = host()?;
+	let handler = Box::new(handler);
+	if let Ok(mut target) = host.wasm_output_handler.try_write() {
+		*target = handler;
+		return Ok(());
+	}
+	tokio::spawn(async move {
+		let mut target = host.wasm_output_handler.write().await;
+		*target = handler;
+	});
+	Ok(())
 }
 
 pub trait ActorExt: ActorSend {

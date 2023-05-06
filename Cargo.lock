@@ -2744,6 +2744,7 @@ version = "0.3.0-dev.2"
 dependencies = [
  "tea-actorx-examples-codec",
  "tea-sdk",
+ "tokio",
 ]
 
 [[package]]

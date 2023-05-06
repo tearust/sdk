@@ -1,4 +1,7 @@
+use crate::context::host;
 use crate::core::{metadata::Metadata, worker_codec::*};
+use crate::host::OutputHandler;
+use crate::ActorId;
 use crate::{
 	context::{get_gas, set_gas},
 	error::{BadWorkerOutput, Result, WorkerCrashed},
@@ -7,6 +10,8 @@ use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
 use std::env::current_exe;
 use std::fs::Permissions;
 use std::os::unix::prelude::PermissionsExt;
+use std::process::Stdio;
+use std::time::Duration;
 use std::{
 	collections::HashMap,
 	os::fd::AsRawFd,
@@ -14,6 +19,8 @@ use std::{
 	sync::{Arc, Weak},
 };
 use tokio::fs::set_permissions;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::process::ChildStdout;
 use tokio::{
 	fs::{remove_file, OpenOptions},
 	io::AsyncWriteExt,
@@ -50,7 +57,8 @@ impl WorkerProcess {
 		let path = Self::create_file().await?;
 
 		let (mut this, other) = UnixStream::pair()?;
-		let proc = Command::new(path.as_ref())
+		let mut proc = Command::new(path.as_ref())
+			.stdout(Stdio::piped())
 			.kill_on_drop(true)
 			.fd_mappings(vec![FdMapping {
 				parent_fd: other.as_raw_fd(),
@@ -67,6 +75,9 @@ impl WorkerProcess {
 
 		let (read, write) = this.into_split();
 
+		let out = proc.stdout.take().unwrap();
+		let actor = metadata.id.clone();
+
 		let this = Arc::new(Self {
 			#[cfg(feature = "track")]
 			tracker: crate::context::tracker()?.create_worker(metadata.id.clone()),
@@ -80,9 +91,34 @@ impl WorkerProcess {
 			}),
 		});
 
+		tokio::spawn(Self::redirect_stdout(
+			out,
+			actor,
+			host()?.wasm_output_handler.clone(),
+			Arc::downgrade(&this),
+		));
+
 		tokio::spawn(Self::read_loop(Arc::downgrade(&this)));
 
 		Ok(this)
+	}
+
+	async fn redirect_stdout(
+		out: ChildStdout,
+		actor: ActorId,
+		handler: OutputHandler,
+		process: Weak<WorkerProcess>,
+	) {
+		let mut out = BufReader::new(out).lines();
+		while process.strong_count() > 0 {
+			let content = tokio::select! {
+				Ok(Some(content)) = out.next_line() => content,
+				_ = tokio::time::sleep(Duration::from_secs(5)) => return,
+				else => return,
+			};
+			let handler = handler.read().await;
+			handler(content, actor.clone());
+		}
 	}
 
 	async fn create_file() -> Result<Arc<Path>> {
