@@ -11,7 +11,7 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use crate::error::{Error, Result};
 
 #[cfg(any(feature = "host", feature = "worker"))]
-pub const WORKER_UNIX_SOCKET_FD: i32 = 1234;
+pub const WORKER_UNIX_SOCKET_FD: i32 = 10;
 
 #[cfg(any(feature = "host", feature = "worker"))]
 #[derive(Clone, Copy, Debug, Display, PartialEq, Eq, Hash, FromRepr)]

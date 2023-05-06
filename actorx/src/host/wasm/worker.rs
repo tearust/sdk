@@ -65,7 +65,6 @@ impl WorkerProcess {
 				child_fd: WORKER_UNIX_SOCKET_FD,
 			}])?
 			.spawn()?;
-		drop(other);
 
 		this.write_all(source).await?;
 		this.flush().await?;
