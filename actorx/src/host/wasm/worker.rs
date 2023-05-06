@@ -113,8 +113,8 @@ impl WorkerProcess {
 		while process.strong_count() > 0 {
 			let content = tokio::select! {
 				Ok(Some(content)) = out.next_line() => content,
-				_ = tokio::time::sleep(Duration::from_secs(5)) => return,
-				else => return,
+				_ = tokio::time::sleep(Duration::from_secs(5)) => continue,
+				else => continue,
 			};
 			let handler = handler.read().await;
 			handler(content, actor.clone());
