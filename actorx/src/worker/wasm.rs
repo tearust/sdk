@@ -166,10 +166,10 @@ fn print(mut env: FunctionEnvMut<&'static mut InstanceState>, ptr: u32, len: u32
 	}
 	let result = (|| {
 		let data = memory.read_uninit(ptr as _, &mut data)?;
-		let stdout = stdout().lock();
+		let mut stdout = stdout().lock();
 		if stdout.write_all(data).is_err() {
 			drop(stdout);
-			let stderr = stderr().lock();
+			let mut stderr = stderr().lock();
 			_ = stderr.write_all(data);
 		}
 		Ok(()) as Result<()>
