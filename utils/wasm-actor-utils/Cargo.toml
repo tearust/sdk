@@ -11,12 +11,12 @@ homepage = { workspace = true }
 repository = { workspace = true }
 
 [dependencies]
-tea-codec = { version = "0.3.0-dev.4", path = "../../codecs/tea-codec" }
-tea-actorx = { version = "0.3.0-dev.4", path = "../../actorx", features = [
+tea-codec = { version = "0.3.0-dev.5", path = "../../codecs/tea-codec" }
+tea-actorx = { version = "0.3.0-dev.5", path = "../../actorx", features = [
 	"wasm",
 ] }
-tea-runtime-codec = { version = "0.3.0-dev.4", path = "../../codecs/runtime-codec" }
-tea-system-actors = { version = "0.3.0-dev.4", path = "../../system-actors" }
+tea-runtime-codec = { version = "0.3.0-dev.5", path = "../../codecs/runtime-codec" }
+tea-system-actors = { version = "0.3.0-dev.5", path = "../../system-actors" }
 base64 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
