@@ -116,7 +116,9 @@ impl WorkerProcess {
 				else => continue,
 			};
 			let handler = handler.read().await;
-			handler(content, actor.clone());
+			if let Err(e) = handler(content, actor.clone()).await {
+				error!("Failed to handle output from worker: {}", e);
+			}
 		}
 	}
 
