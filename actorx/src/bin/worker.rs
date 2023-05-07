@@ -1,4 +1,5 @@
 use tea_actorx::worker::{error::Result, Worker};
+use tea_codec::errorx::Global;
 use tokio::net::UnixStream;
 
 #[tokio::main]
@@ -13,9 +14,7 @@ async fn main() -> Result<()> {
 				.await?
 				.expect("Internal error: worker stdin is closed");
 			drop(stdin);
-			let socket = UnixStream::connect(&path).await?;
-			tokio::fs::remove_file(path).await?;
-			socket
+			UnixStream::connect(&path).await?
 		}
 		#[cfg(not(feature = "nitro"))]
 		{
@@ -28,5 +27,10 @@ async fn main() -> Result<()> {
 			UnixStream::from_std(socket)?
 		}
 	};
-	Worker::init(socket).await?.serve().await
+	if let Err(e) = Worker::init(socket).await?.serve().await {
+		if e.name() != Global::StdIo {
+			return Err(e);
+		}
+	}
+	Ok(())
 }

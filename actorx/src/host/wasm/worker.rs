@@ -40,6 +40,8 @@ pub struct WorkerProcess {
 	channels: Mutex<WorkerChannels>,
 	#[cfg(feature = "track")]
 	tracker: Arc<super::tracker::WorkerHandle>,
+	#[cfg(feature = "nitro")]
+	handle_path: String,
 }
 
 struct WorkerChannels {
@@ -50,6 +52,8 @@ struct WorkerChannels {
 impl WorkerProcess {
 	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
+		#[cfg(feature = "nitro")]
+		let handle_path;
 
 		let (mut proc, mut this) = {
 			let mut cmd = Command::new(path.as_ref());
@@ -63,6 +67,7 @@ impl WorkerProcess {
 				stdin.write_all(path.as_bytes()).await?;
 				stdin.write_u8(b'\n').await?;
 				let (this, _) = listener.accept().await?;
+				handle_path = path;
 				(proc, this)
 			}
 			#[cfg(not(feature = "nitro"))]
@@ -102,6 +107,8 @@ impl WorkerProcess {
 				channels: HashMap::new(),
 				current_id: 0,
 			}),
+			#[cfg(feature = "nitro")]
+			handle_path,
 		});
 
 		tokio::spawn(Self::redirect_stdout(
@@ -284,5 +291,15 @@ impl Channel {
 	pub async fn close(self) {
 		let mut channels = self.proc.channels.lock().await;
 		channels.channels.remove(&self.id);
+	}
+}
+
+#[cfg(feature = "nitro")]
+impl Drop for WorkerProcess {
+	fn drop(&mut self) {
+		let path = std::mem::take(&mut self.handle_path);
+		tokio::spawn(async move {
+			_ = tokio::fs::remove_file(path).await;
+		});
 	}
 }
