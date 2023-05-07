@@ -1,6 +1,7 @@
 pub mod error;
 mod wasm;
 
+#[cfg(not(feature = "nitro"))]
 pub use crate::core::worker_codec::WORKER_UNIX_SOCKET_FD;
 
 use std::{

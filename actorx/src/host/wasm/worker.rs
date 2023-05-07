@@ -6,17 +6,15 @@ use crate::{
 	context::{get_gas, set_gas},
 	error::{BadWorkerOutput, Result, WorkerCrashed},
 };
-use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
-use std::env::current_exe;
-use std::fs::Permissions;
-use std::os::unix::prelude::PermissionsExt;
-use std::process::Stdio;
-use std::time::Duration;
 use std::{
 	collections::HashMap,
-	os::fd::AsRawFd,
+	env::current_exe,
+	fs::Permissions,
+	os::unix::prelude::PermissionsExt,
 	path::Path,
+	process::Stdio,
 	sync::{Arc, Weak},
+	time::Duration,
 };
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -24,10 +22,7 @@ use tokio::process::ChildStdout;
 use tokio::{
 	fs::{remove_file, OpenOptions},
 	io::AsyncWriteExt,
-	net::{
-		unix::{OwnedReadHalf, OwnedWriteHalf},
-		UnixStream,
-	},
+	net::unix::{OwnedReadHalf, OwnedWriteHalf},
 	process::{Child, Command},
 	sync::{
 		mpsc::{unbounded_channel, UnboundedReceiver as Receiver, UnboundedSender as Sender},
@@ -53,18 +48,37 @@ struct WorkerChannels {
 }
 
 impl WorkerProcess {
-	pub async fn new(source: &[u8]) -> Result<Arc<Self>> {
+	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
 
-		let (mut this, other) = UnixStream::pair()?;
-		let mut proc = Command::new(path.as_ref())
-			.stdout(Stdio::piped())
-			.kill_on_drop(true)
-			.fd_mappings(vec![FdMapping {
-				parent_fd: other.as_raw_fd(),
-				child_fd: WORKER_UNIX_SOCKET_FD,
-			}])?
-			.spawn()?;
+		let (mut proc, mut this) = {
+			let mut cmd = Command::new(path.as_ref());
+			cmd.stdout(Stdio::piped()).kill_on_drop(true);
+			#[cfg(feature = "nitro")]
+			{
+				let path = Self::calculate_temp_path(hash);
+				let listener = tokio::net::UnixListener::bind(&path)?;
+				let mut proc = cmd.stdin(Stdio::piped()).spawn()?;
+				let stdin = unsafe { proc.stdin.as_mut().unwrap_unchecked() };
+				stdin.write_all(path.as_bytes()).await?;
+				stdin.write_u8(b'\n').await?;
+				let (this, _) = listener.accept().await?;
+				(proc, this)
+			}
+			#[cfg(not(feature = "nitro"))]
+			{
+				use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
+				use std::os::fd::AsRawFd;
+				let (this, other) = tokio::net::UnixStream::pair()?;
+				let proc = cmd
+					.fd_mappings(vec![FdMapping {
+						parent_fd: other.as_raw_fd(),
+						child_fd: WORKER_UNIX_SOCKET_FD,
+					}])?
+					.spawn()?;
+				(proc, this)
+			}
+		};
 
 		this.write_all(source).await?;
 		this.flush().await?;
@@ -100,6 +114,18 @@ impl WorkerProcess {
 		tokio::spawn(Self::read_loop(Arc::downgrade(&this)));
 
 		Ok(this)
+	}
+
+	#[cfg(feature = "nitro")]
+	fn calculate_temp_path(hash: u64) -> String {
+		use std::{hint::unreachable_unchecked, time::SystemTime};
+
+		let Ok(time) = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) else {
+			unsafe{ unreachable_unchecked() }
+		};
+		let time = time.as_millis();
+
+		format!("/tmp/tea-actorx.worker.{hash}.{time}.socket")
 	}
 
 	async fn redirect_stdout(
@@ -204,9 +230,14 @@ pub struct Worker {
 }
 
 impl Worker {
-	pub async fn new(source: &[u8]) -> Result<Self> {
+	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Self> {
 		Ok(Self {
-			proc: WorkerProcess::new(source).await?,
+			proc: WorkerProcess::new(
+				source,
+				#[cfg(feature = "nitro")]
+				hash,
+			)
+			.await?,
 		})
 	}
 

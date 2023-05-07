@@ -10,7 +10,7 @@ use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
 use crate::error::{Error, Result};
 
-#[cfg(any(feature = "host", feature = "worker"))]
+#[cfg(all(any(feature = "host", feature = "worker"), not(feature = "nitro")))]
 pub const WORKER_UNIX_SOCKET_FD: i32 = 10;
 
 #[cfg(any(feature = "host", feature = "worker"))]

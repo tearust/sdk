@@ -23,6 +23,8 @@ pub struct WasmActor {
 	state: Mutex<State>,
 	source: Vec<u8>,
 	id: ActorId,
+	#[cfg(feature = "nitro")]
+	hash: u64,
 }
 
 struct State {
@@ -50,7 +52,22 @@ impl WasmActor {
 	}
 
 	async fn new_source(source: Vec<u8>) -> Result<Self> {
-		let worker = Worker::new(&source).await?;
+		#[cfg(feature = "nitro")]
+		let hash = {
+			use std::{
+				collections::hash_map::DefaultHasher,
+				hash::{Hash, Hasher},
+			};
+			let mut hasher = DefaultHasher::new();
+			source.hash(&mut hasher);
+			hasher.finish()
+		};
+		let worker = Worker::new(
+			&source,
+			#[cfg(feature = "nitro")]
+			hash,
+		)
+		.await?;
 		let id = worker.metadata().id.clone();
 		Ok(Self {
 			state: Mutex::new(State {
@@ -59,6 +76,8 @@ impl WasmActor {
 			}),
 			source,
 			id,
+			#[cfg(feature = "nitro")]
+			hash,
 		})
 	}
 
@@ -71,8 +90,16 @@ impl WasmActor {
 				let r = match task.await.unwrap() {
 					Err(e) => {
 						let source = self.source.clone();
-						state.current =
-							Err(crate::spawn(async move { Worker::new(&source).await }));
+						#[cfg(feature = "nitro")]
+						let hash = self.hash;
+						state.current = Err(crate::spawn(async move {
+							Worker::new(
+								&source,
+								#[cfg(feature = "nitro")]
+								hash,
+							)
+							.await
+						}));
 						return Err(e);
 					}
 					Ok(r) => r,
@@ -86,7 +113,16 @@ impl WasmActor {
 			state.count += 1;
 			if state.count > MAX_COUNT {
 				let source = self.source.clone();
-				state.current = Err(crate::spawn(async move { Worker::new(&source).await }));
+				#[cfg(feature = "nitro")]
+				let hash = self.hash;
+				state.current = Err(crate::spawn(async move {
+					Worker::new(
+						&source,
+						#[cfg(feature = "nitro")]
+						hash,
+					)
+					.await
+				}));
 				state.count = 0;
 			}
 		}

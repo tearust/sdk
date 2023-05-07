@@ -6,6 +6,18 @@ fn main() {
 
 	let out_dir = env::var("OUT_DIR").expect("OUT_DIR is not set");
 
+	#[allow(unused_mut)]
+	let mut features = vec!["worker"];
+
+	macro_rules! pass_features {
+		($($f:literal),*) => {$(
+			#[cfg(feature = $f)]
+			features.push($f);
+		)*};
+	}
+
+	pass_features!("nitro", "backtrace");
+
 	Command::new("cargo")
 		.arg("build")
 		.arg("--profile")
@@ -16,7 +28,7 @@ fn main() {
 		.arg("worker")
 		.arg("--no-default-features")
 		.arg("--features")
-		.arg("worker")
+		.arg(features.join(","))
 		.arg("--target-dir")
 		.arg(&out_dir)
 		.current_dir(env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR is not set"))

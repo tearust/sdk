@@ -56,6 +56,7 @@ worker = [
     "wasmer-middlewares",
     "tokio",
     "tokio/io-util",
+    "tokio/io-std",
     "tokio/net",
     "tokio/time",
     "tokio/parking_lot",
@@ -63,7 +64,6 @@ worker = [
 ]
 sign = ["base64", "serde_yaml", "openssl", "leb128", "zstd"]
 sign-bin = ["sign", "clap", "tokio"]
-
 host = [
     "sdk",
     "tokio",
@@ -77,5 +77,7 @@ host = [
     "command-fds",
 ]
 wasm = ["sdk", "futures"]
+nitro = []
+backtrace = ["tea-codec/backtrace"]
 llvm = ["worker", "wasmer/llvm"]
 track = []
