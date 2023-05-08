@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, txn::FullTxn};
-use tea_runtime_codec::tapp::{Hash, ReplicaId};
+use tea_runtime_codec::tapp::Hash;
 
 pub mod error;
 
@@ -133,29 +133,6 @@ pub struct DumpTxnSeqResponse(pub Vec<u8>);
 #[price(10000)]
 #[response(())]
 pub struct ResetMagicNumberRequest(pub u64);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(0)]
-pub struct IdleCleanupRequest;
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct IdleCleanupResponse(pub Vec<ReplicaId>);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(10000)]
-pub struct TryPopupReadyTxnRequest;
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct TryPopupReadyTxnResponse(pub Option<(Tsid, FullTxn)>);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(10000)]
-#[response(())]
-pub struct AppendToHistoryRequest(pub HistoryItem);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(10000)]
-pub struct IsTxnAlreadyExecutedRequest(pub Tsid);
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct IsTxnAlreadyExecutedResponse(pub bool);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10)]
