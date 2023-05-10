@@ -18,8 +18,12 @@ fn main() {
 
 	pass_features!("nitro", "backtrace");
 
+	let target = env::var("TARGET").expect("TARGET is not set");
+
 	Command::new("cargo")
 		.arg("build")
+		.arg("--target")
+		.arg(&target)
 		.arg("--profile")
 		.arg(profile_cmd)
 		.arg("-p")
@@ -37,7 +41,9 @@ fn main() {
 		.wait()
 		.unwrap();
 
-	let mut bin_path = Path::new(&out_dir).join(profile);
+	let mut bin_path = Path::new(&out_dir).to_path_buf();
+	bin_path.push(target);
+	bin_path.push(profile);
 	bin_path.push("worker");
 	fs::rename(bin_path, Path::new(&out_dir).join("worker")).unwrap();
 }

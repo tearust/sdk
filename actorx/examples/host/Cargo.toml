@@ -15,6 +15,7 @@ publish = false
 tea-sdk = { path = "../../..", features = ["host", "track"] }
 tea-actorx-examples-codec = { path = "../codec" }
 tokio = { workspace = true, features = ["full"] }
+tea-actorx = { path = "../..", features = ["nitro"] }
 
 [build-dependencies]
 tea-sdk = { path = "../../..", features = ["sign"] }

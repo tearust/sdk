@@ -2759,6 +2759,7 @@ dependencies = [
 name = "tea-actorx-examples-host"
 version = "0.3.0-dev.6"
 dependencies = [
+ "tea-actorx",
  "tea-actorx-examples-codec",
  "tea-sdk",
  "tokio",

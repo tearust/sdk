@@ -6,6 +6,7 @@
 #![feature(downcast_unchecked)]
 #![cfg_attr(feature = "sign", feature(iterator_try_collect))]
 #![cfg_attr(feature = "worker", feature(new_uninit))]
+#![cfg_attr(feature = "host", feature(unix_chown))]
 #![feature(return_position_impl_trait_in_trait)]
 #![feature(async_fn_in_trait)]
 #![feature(allow_internal_unstable)]

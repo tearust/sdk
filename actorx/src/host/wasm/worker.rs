@@ -20,7 +20,7 @@ use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
 use tokio::{
-	fs::{remove_file, OpenOptions},
+	fs::OpenOptions,
 	io::AsyncWriteExt,
 	net::unix::{OwnedReadHalf, OwnedWriteHalf},
 	process::{Child, Command},
@@ -154,7 +154,12 @@ impl WorkerProcess {
 	}
 
 	async fn create_file() -> Result<Arc<Path>> {
-		const WORKER_PATH: &str = ".actorx_worker_host";
+		const WORKER_PATH: [&str; 3] = [
+			".actorx_worker_host.0",
+			".actorx_worker_host.1",
+			".actorx_worker_host.2",
+		];
+
 		static WORKER_REAL_PATH: RwLock<Option<Arc<Path>>> = RwLock::const_new(None);
 
 		let path = WORKER_REAL_PATH.read().await;
@@ -168,25 +173,33 @@ impl WorkerProcess {
 		}
 
 		let mut result = current_exe()?;
-		result.pop();
-		result.push(WORKER_PATH);
 
-		info!(
-			"Actor host emitting worker executable file as {}",
-			result.display()
-		);
+		for i in 0..=2 {
+			result.pop();
+			result.push(WORKER_PATH[i]);
 
-		_ = remove_file(&result).await;
+			if let Ok(true) | Err(_) = tokio::fs::try_exists(&result).await {
+				_ = tokio::fs::remove_file(WORKER_PATH[(i + 1) % 3]).await;
+				break;
+			}
+		}
+
 		let mut file = OpenOptions::new()
 			.write(true)
 			.create(true)
 			.open(&result)
 			.await?;
+
 		file.write_all(WORKER_BINARY).await?;
 		drop(file);
-		set_permissions(&result, Permissions::from_mode(0o755)).await?;
+
+		set_permissions(&result, Permissions::from_mode(0o774)).await?;
+
+		result = tokio::fs::canonicalize(result).await?;
 		let result = Arc::from(result);
 		*path = Some(Arc::clone(&result));
+
+		info!("Actor host emit worker \"{}\".", result.display());
 		Ok(result)
 	}
 
