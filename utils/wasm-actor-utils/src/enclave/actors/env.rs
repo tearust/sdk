@@ -9,6 +9,13 @@ use tea_system_actors::env::*;
 
 pub use tea_system_actors::tokenstate::{CronjobArgs, RandomTickArgs};
 
+pub async fn has_runtime_init() -> Result<bool> {
+	let res = ActorId::Static(NAME)
+		.call(RuntimeInitializedRequest)
+		.await?;
+	Ok(res.0)
+}
+
 pub async fn get_system_time() -> Result<SystemTime> {
 	let time = ActorId::Static(NAME).call(GetSystemTimeRequest).await?;
 	Ok(time.0)
