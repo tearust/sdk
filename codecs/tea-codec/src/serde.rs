@@ -1,3 +1,5 @@
+//! The serde abstraction and serde based invocation dispatcher system.
+
 use std::{io::Write, mem::size_of};
 
 use bincode::Options;

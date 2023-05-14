@@ -44,6 +44,7 @@ use bincode::Options as _;
 pub use errorx::define_scope;
 use errorx::{CannotBeNone, Error, Global, Scope};
 use futures::Future;
+#[doc(hidden)]
 pub type Result<T, E = errorx::Error<errorx::Global>> = std::result::Result<T, E>;
 
 #[inline(always)]
@@ -75,9 +76,11 @@ where
 	Ok(bincode_options().deserialize(buf.as_ref())?)
 }
 
+/// A helper trait to map the error variant of a `Result` to inferred type with `From`/`Into`
 pub trait ResultExt {
 	type Value;
 	type Error;
+	/// Map the error variant of a `Result` to inferred type with `From`/`Into`
 	fn err_into<E>(self) -> Result<Self::Value, E>
 	where
 		E: From<Self::Error>;
@@ -94,12 +97,15 @@ impl<T, E> ResultExt for std::result::Result<T, E> {
 	}
 }
 
+/// A helper trait to map `None` conditions to tea `Error`s
 pub trait OptionExt {
 	type Value;
+	/// Map `None` condition to an error message with a const name of some value that is expected not to be `None`.
 	fn ok_or_err<S>(self, name: impl Into<String>) -> Result<Self::Value, Error<S>>
 	where
 		S: Scope;
 
+	/// Map `None` condition to an error message with a function generatred name of some value that is expected not to be `None`.
 	fn ok_or_err_else<S, N, F>(self, name_factory: F) -> Result<Self::Value, Error<S>>
 	where
 		S: Scope,
@@ -126,6 +132,7 @@ impl<T> OptionExt for Option<T> {
 	}
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct NoOp<T>(PhantomData<dyn Fn() -> T + Send + Sync>);
 
@@ -185,6 +192,7 @@ impl<T> NoOpDefault for NoOp<T> {
 	}
 }
 
+#[doc(hidden)]
 pub struct FixSend<Fut>(pub Fut);
 
 unsafe impl<Fut> Send for FixSend<Fut> {}
@@ -202,6 +210,7 @@ where
 	}
 }
 
+#[doc(hidden)]
 pub struct ArcIter<'x, Owner, Iter>
 where
 	Owner: ?Sized,
@@ -221,6 +230,7 @@ where
 	}
 }
 
+#[doc(hidden)]
 pub trait ArcIterExt<'x> {
 	fn arc_iter<F, Iter>(self: &Arc<Self>, selector: F) -> ArcIter<'x, Self, Iter>
 	where
@@ -244,10 +254,13 @@ where
 	}
 }
 
+#[doc(hidden)]
 pub mod const_concat;
+#[doc(hidden)]
 pub mod data;
 pub mod defs;
 pub mod errorx;
+#[doc(hidden)]
 pub mod pricing;
 #[cfg(feature = "runtime")]
 pub mod runtime;

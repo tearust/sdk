@@ -8,6 +8,7 @@ pub mod sign;
 #[cfg(any(feature = "worker", feature = "host", feature = "wasm"))]
 pub mod worker_codec;
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! blocking {
 	{let $capi:ident = &$capv:expr; $($e:tt)*} => {{

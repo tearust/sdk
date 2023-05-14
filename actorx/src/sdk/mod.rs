@@ -10,6 +10,7 @@ pub use context::{cost, get_gas, set_gas};
 
 pub mod hooks;
 #[cfg(any(feature = "host", feature = "wasm"))]
+#[doc(hidden)]
 pub mod invoke;
 
 mod calling_stack;

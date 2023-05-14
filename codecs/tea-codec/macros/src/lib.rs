@@ -17,6 +17,11 @@ pub fn define_scope_internal(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro]
+/// Define an error handling scope for the tea error system.
+///
+/// You are supposed to define a scope for at least each crates and optionally for large modules
+///
+/// This would generate an error scope along with `Error` and `Result` type aliases associated with such scope.
 pub fn define_scope(input: TokenStream) -> TokenStream {
 	let ast: errorx::ast::DefineScopes = syn::parse(input).unwrap();
 	emit_all(&ast.0).into()
@@ -53,6 +58,30 @@ pub fn derive_priced(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
+/// Impls `Handle` traits for the type, making it available for handling requests based on the serde system.
+///
+/// You can only use this once per type, for it must covert all request types that it handles.
+///
+/// Every handle functions have to be `async`, not `pub`, named `handle`, with `&self` receiver, otherwise it would be normal associated functions of such type.
+///
+/// # Examples
+///
+/// ```
+/// struct Actor;
+///
+/// #[handles]
+/// impl Actor {
+/// 	async fn handle(&self, _: Activate) -> Result<_> {
+/// 		println!("Activate!");
+/// 		Ok(())
+/// 	}
+///
+/// 	async fn handle(&self, GreetingsRequest(name): _) -> Result<_> {
+/// 		println!("Hello {name}.");
+/// 		Ok(())
+/// 	}
+/// }
+/// ```
 pub fn handles(_args: TokenStream, input: TokenStream) -> TokenStream {
 	let input: handle::HandlesImpl = parse_macro_input!(input);
 	input.to_token_stream().into()

@@ -23,6 +23,7 @@ pub struct Fail;
 
 pub struct With<Req, Prev>(PhantomData<dyn Fn(Prev, Req)>);
 
+#[doc(hidden)]
 #[macro_export]
 macro_rules! Handle {
 	[] => { $crate::serde::handle::Fail };

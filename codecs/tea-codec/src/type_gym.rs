@@ -86,6 +86,7 @@ where
 #[derive(Clone, Copy, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(transparent)]
 #[repr(transparent)]
+#[doc(hidden)]
 pub struct ImplDefault<T>(pub T)
 where
 	T: ?Sized;

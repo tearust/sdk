@@ -1,3 +1,5 @@
+//! The error messege marshalling system for tea project
+
 mod aggregate;
 mod global;
 mod scope;
