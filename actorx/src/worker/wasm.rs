@@ -238,7 +238,7 @@ struct InstanceState {
 pub struct Instance(Box<InstanceState>);
 
 impl Instance {
-	pub async fn invoke(&mut self, op: Operation, gas: Option<&mut u64>) -> Result<Operation> {
+	pub fn invoke(&mut self, op: Operation, gas: Option<&mut u64>) -> Result<Operation> {
 		set_remaining_points(
 			&mut self.0.store,
 			&self.0.instance,

@@ -6,9 +6,11 @@ pub use crate::core::worker_codec::WORKER_UNIX_SOCKET_FD;
 
 use std::{
 	collections::{hash_map::Entry, HashMap},
+	panic::{catch_unwind, AssertUnwindSafe},
 	sync::Arc,
 };
 
+use tea_sdk::errorx::SyncResultExt;
 use tokio::{
 	io::{AsyncReadExt, AsyncWriteExt},
 	net::{
@@ -101,9 +103,42 @@ impl Worker {
 		cid: u64,
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
-		let mut instance = self.host.create_instance()?;
+		let mut instance = None;
+		const MAX_RETRIES: usize = 3;
+		for _ in 0..MAX_RETRIES {
+			let host = AssertUnwindSafe(&self.host);
+			match catch_unwind(|| host.create_instance())
+				.sync_err_into()
+				.flatten()
+			{
+				Ok(r) => {
+					instance = Some(Ok(r));
+					break;
+				}
+				Err(e) => {
+					instance = Some(Err(if let Some(Err(f)) = instance {
+						e + f
+					} else {
+						e
+					}));
+				}
+			}
+		}
+		let mut instance = unsafe { instance.unwrap_unchecked() }?;
 		while let Some((operation, mut gas)) = input.recv().await {
-			let resp = instance.invoke(operation, Some(&mut gas)).await;
+			let resp = {
+				let instance = AssertUnwindSafe(&mut instance);
+				let operation = AssertUnwindSafe(operation);
+				let gas = AssertUnwindSafe(&mut gas);
+				catch_unwind(|| {
+					let instance = instance;
+					let operation = operation;
+					let gas = gas;
+					instance.0.invoke(operation.0, Some(gas.0))
+				})
+				.sync_err_into()
+				.flatten()
+			};
 			let resp = match resp {
 				Ok(resp) => resp,
 				Err(e) => Operation::ReturnErr { error: e.into() },
