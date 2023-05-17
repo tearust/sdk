@@ -3,7 +3,7 @@ use std::{
 	hash::{Hash, Hasher},
 	io::{stderr, stdout, Write},
 	mem::{size_of, MaybeUninit},
-	panic::catch_unwind,
+	panic::{catch_unwind, AssertUnwindSafe},
 	sync::Arc,
 };
 
@@ -87,7 +87,7 @@ impl Host {
 		Ok(())
 	}
 
-	async fn read_new(&self) -> Result<()> {
+	pub(crate) async fn read_new(&self) -> Result<()> {
 		let metadata = Arc::new(verify(&self.source)?);
 		let source = &self.source;
 		let module = catch_unwind(|| {
@@ -112,32 +112,18 @@ impl Host {
 	}
 
 	async fn crate_wasm(&self) -> Result<(Store, Module, Arc<Metadata>)> {
-		let mut is_recreated = false;
-		loop {
-			let state = self.state.read().await;
-			let metadata = state.metadata.clone();
-			let wasm = state.wasm.as_slice();
+		let state = self.state.read().await;
+		let metadata = state.metadata.clone();
+		let wasm = state.wasm.as_slice();
 
-			match catch_unwind(|| {
-				let store = create_store();
-				unsafe { Module::deserialize(&store, wasm) }
-					.err_into()
-					.map(|module| (store, module))
-			})
-			.sync_err_into()
-			{
-				Ok(Ok((store, module))) => return Ok((store, module, metadata)),
-				Err(e) | Ok(Err(e)) if is_recreated => {
-					return Err(e);
-				}
-				_ => {}
-			}
-
-			drop(state);
-
-			self.read_new().await?;
-			is_recreated = true;
-		}
+		catch_unwind(|| {
+			let store = create_store();
+			unsafe { Module::deserialize(&store, wasm) }
+				.err_into()
+				.map(|module| (store, module, metadata))
+		})
+		.sync_err_into()
+		.flatten()
 	}
 
 	pub async fn create_instance(&self) -> Result<Instance> {
@@ -152,7 +138,19 @@ impl Host {
 			},
 		};
 		wasm_bindgen_polyfill(&mut store, &mut imports);
-		let instance = WasmInstance::new(&mut store, &module, &imports)?;
+		let instance = {
+			let (store, module, imports) = (
+				AssertUnwindSafe(&mut store),
+				AssertUnwindSafe(&module),
+				AssertUnwindSafe(&imports),
+			);
+			catch_unwind(move || {
+				let (AssertUnwindSafe(store), AssertUnwindSafe(module), AssertUnwindSafe(imports)) =
+					(store, module, imports);
+				WasmInstance::new(store, module, imports)
+			})
+			.sync_err_into()?
+		}?;
 		let init = instance.exports.get_typed_function(&store, "init")?;
 		let memory = instance.exports.get_memory("memory")?.clone();
 		let init_handle = instance.exports.get_typed_function(&store, "init_handle")?;

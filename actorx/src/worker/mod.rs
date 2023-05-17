@@ -103,7 +103,12 @@ impl Worker {
 		cid: u64,
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
-		let mut instance = self.host.create_instance().await?;
+		let mut instance = if let Ok(instance) = self.host.create_instance().await {
+			instance
+		} else {
+			self.host.read_new().await?;
+			self.host.create_instance().await?
+		};
 		while let Some((operation, mut gas)) = input.recv().await {
 			let resp = {
 				let instance = AssertUnwindSafe(&mut instance);
