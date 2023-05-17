@@ -3,6 +3,7 @@ use std::{
 	hash::{Hash, Hasher},
 	io::{stderr, stdout, Write},
 	mem::{size_of, MaybeUninit},
+	panic::catch_unwind,
 	sync::Arc,
 };
 
@@ -17,7 +18,8 @@ use crate::{
 	worker::{error::Result, wasm::memory::MemoryLimit},
 };
 use bincode::serialized_size;
-use tokio::fs;
+use tea_sdk::{errorx::SyncResultExt, ResultExt};
+use tokio::{fs, sync::RwLock};
 use wasmer::{
 	imports, CompilerConfig, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
 	Instance as WasmInstance, Memory, Module, Store, TypedFunction,
@@ -35,62 +37,111 @@ const PAGE_BYTES: u32 = 64 * 1024;
 const MAX_PAGES: u32 = 65536;
 
 pub struct Host {
+	source: Vec<u8>,
+	compiled_path: String,
+	state: RwLock<State>,
+}
+
+struct State {
 	metadata: Arc<Metadata>,
 	wasm: Vec<u8>,
 }
 
 impl Host {
-	pub async fn new(bin: &[u8]) -> Result<Self> {
+	pub async fn new(source: Vec<u8>) -> Result<Self> {
 		let mut hasher = DefaultHasher::new();
-		bin.hash(&mut hasher);
+		source.hash(&mut hasher);
 		let hash = hasher.finish();
 		let compiled_path = format!("{CACHE_DIR}/{hash:x}");
+		let result = Self {
+			source,
+			compiled_path,
+			state: RwLock::new(State {
+				metadata: Arc::new(Metadata::EMPTY),
+				wasm: Vec::new(),
+			}),
+		};
 
-		Ok(match Self::read_cache(&compiled_path).await {
-			Ok(host) => host,
-			Err(_) => Self::read_new(bin, &compiled_path).await?,
-		})
+		if result.read_cache().await.is_err() {
+			result.read_new().await?;
+		}
+
+		Ok(result)
 	}
 
-	pub fn metadata(&self) -> &Arc<Metadata> {
-		&self.metadata
+	pub async fn metadata(&self) -> Arc<Metadata> {
+		self.state.read().await.metadata.clone()
 	}
 
-	async fn read_cache(compiled_path: &str) -> Result<Self> {
+	async fn read_cache(&self) -> Result<()> {
 		let mut file = fs::OpenOptions::new()
 			.read(true)
-			.open(compiled_path)
+			.open(&self.compiled_path)
 			.await?;
 		let metadata = read_var_bytes(&mut file).await?;
 		let metadata = bincode::deserialize(&metadata)?;
 		let wasm = read_var_bytes(&mut file).await?;
-
-		Ok(Self { metadata, wasm })
+		let mut state = self.state.write().await;
+		state.metadata = metadata;
+		state.wasm = wasm;
+		Ok(())
 	}
 
-	async fn read_new(wasm: &[u8], compiled_path: &str) -> Result<Self> {
-		let metadata = Arc::new(verify(wasm)?);
-		let store = create_store();
-		let module = Module::new(&store, wasm)?;
+	async fn read_new(&self) -> Result<()> {
+		let metadata = Arc::new(verify(&self.source)?);
+		let source = &self.source;
+		let module = catch_unwind(|| {
+			let store = create_store();
+			Module::new(&store, source)
+		})
+		.sync_err_into()??;
 		_ = fs::create_dir(CACHE_DIR).await;
 		let mut file = fs::OpenOptions::new()
 			.write(true)
 			.create(true)
-			.open(compiled_path)
+			.open(&self.compiled_path)
 			.await?;
 		let metadata_bytes = bincode::serialize(&metadata)?;
 		write_var_bytes(&mut file, &metadata_bytes).await?;
 		let module_bytes = module.serialize()?;
 		write_var_bytes(&mut file, &module_bytes).await?;
-		Ok(Self {
-			metadata,
-			wasm: module_bytes.into(),
-		})
+		let mut state = self.state.write().await;
+		state.metadata = metadata;
+		state.wasm = module_bytes.to_vec();
+		Ok(())
 	}
 
-	pub fn create_instance(&self) -> Result<Instance> {
-		let mut store = create_store();
-		let module = unsafe { Module::deserialize(&store, self.wasm.as_slice())? };
+	async fn crate_wasm(&self) -> Result<(Store, Module, Arc<Metadata>)> {
+		let mut is_recreated = false;
+		loop {
+			let state = self.state.read().await;
+			let metadata = state.metadata.clone();
+			let wasm = state.wasm.as_slice();
+
+			match catch_unwind(|| {
+				let store = create_store();
+				unsafe { Module::deserialize(&store, wasm) }
+					.err_into()
+					.map(|module| (store, module))
+			})
+			.sync_err_into()
+			{
+				Ok(Ok((store, module))) => return Ok((store, module, metadata)),
+				Err(e) | Ok(Err(e)) if is_recreated => {
+					return Err(e);
+				}
+				_ => {}
+			}
+
+			drop(state);
+
+			self.read_new().await?;
+			is_recreated = true;
+		}
+	}
+
+	pub async fn create_instance(&self) -> Result<Instance> {
+		let (mut store, module, metadata) = self.crate_wasm().await?;
 		let mut instance_state = Box::new(MaybeUninit::uninit());
 		let print = create_print(&mut store, unsafe {
 			as_static_mut(instance_state.assume_init_mut())
@@ -112,7 +163,7 @@ impl Host {
 
 		let instance = Instance(unsafe {
 			instance_state.as_mut_ptr().write(InstanceState {
-				metadata: self.metadata.clone(),
+				metadata,
 				store,
 				_module: module,
 				instance,

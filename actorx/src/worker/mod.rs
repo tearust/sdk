@@ -41,14 +41,14 @@ impl Worker {
 		let host = if is_path == 0 {
 			let path = String::from_utf8(read_var_bytes(&mut socket).await?)?;
 			let wasm = tokio::fs::read(path).await?;
-			Host::new(&wasm).await
+			Host::new(wasm).await
 		} else {
 			let wasm = read_var_bytes(&mut socket).await?;
-			Host::new(&wasm).await
+			Host::new(wasm).await
 		};
 		let (host, metadata) = match host {
 			Ok(host) => {
-				let metadata = host.metadata().clone();
+				let metadata = host.metadata().await;
 				(Ok(host), Ok(metadata))
 			}
 			Err(e) => (Err(e.clone()), Err(e)),
@@ -103,28 +103,7 @@ impl Worker {
 		cid: u64,
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
-		let mut instance = None;
-		const MAX_RETRIES: usize = 3;
-		for _ in 0..MAX_RETRIES {
-			let host = AssertUnwindSafe(&self.host);
-			match catch_unwind(|| host.create_instance())
-				.sync_err_into()
-				.flatten()
-			{
-				Ok(r) => {
-					instance = Some(Ok(r));
-					break;
-				}
-				Err(e) => {
-					instance = Some(Err(if let Some(Err(f)) = instance {
-						e + f
-					} else {
-						e
-					}));
-				}
-			}
-		}
-		let mut instance = unsafe { instance.unwrap_unchecked() }?;
+		let mut instance = self.host.create_instance().await?;
 		while let Some((operation, mut gas)) = input.recv().await {
 			let resp = {
 				let instance = AssertUnwindSafe(&mut instance);

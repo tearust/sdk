@@ -10,6 +10,14 @@ pub struct Metadata {
 	pub claims: Vec<Claim>,
 }
 
+impl Metadata {
+	pub const EMPTY: Metadata = Metadata {
+		id: ActorId::Static(&[]),
+		signer: Vec::new(),
+		claims: Vec::new(),
+	};
+}
+
 #[cfg(any(feature = "sdk"))]
 impl Metadata {
 	pub fn get_token_id(&self) -> Option<H160> {
