@@ -1,4 +1,5 @@
 pub mod error;
+mod unwind;
 mod wasm;
 
 #[cfg(not(feature = "nitro"))]
@@ -25,7 +26,7 @@ use tokio::{
 
 use crate::{
 	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
-	worker::{error::Result, wasm::Host},
+	worker::{error::Result, unwind::FutureExt as _, wasm::Host},
 };
 
 pub struct Worker {
@@ -78,7 +79,7 @@ impl Worker {
 						Entry::Vacant(entry) => {
 							let (tx, rx) = unbounded_channel();
 							let tx = entry.insert(tx);
-							let channel = self.clone().channel(cid, rx);
+							let channel = self.clone().channel(cid, rx).force_unwind();
 							tokio::spawn(async move {
 								if let Err(e) = channel.await {
 									println!("Worker channel {cid} exits with error: {e:?}");
@@ -103,11 +104,11 @@ impl Worker {
 		cid: u64,
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
-		let mut instance = if let Ok(instance) = self.host.create_instance().await {
+		let mut instance = if let Ok(instance) = self.host.create_instance().force_unwind().await {
 			instance
 		} else {
-			self.host.read_new().await?;
-			self.host.create_instance().await?
+			self.host.read_new().force_unwind().await?;
+			self.host.create_instance().force_unwind().await?
 		};
 		while let Some((operation, mut gas)) = input.recv().await {
 			let resp = {

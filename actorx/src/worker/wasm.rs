@@ -15,7 +15,7 @@ use crate::{
 		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
 	},
 	sign::verify,
-	worker::{error::Result, wasm::memory::MemoryLimit},
+	worker::{error::Result, unwind::FutureExt as _, wasm::memory::MemoryLimit},
 };
 use bincode::serialized_size;
 use tea_sdk::{errorx::SyncResultExt, ResultExt};
@@ -28,6 +28,7 @@ use wasmer_middlewares::{
 	metering::{get_remaining_points, set_remaining_points},
 	Metering,
 };
+use zstd::zstd_safe::WriteBuf;
 
 mod memory;
 
@@ -44,7 +45,7 @@ pub struct Host {
 
 struct State {
 	metadata: Arc<Metadata>,
-	wasm: Vec<u8>,
+	wasm: Arc<[u8]>,
 }
 
 impl Host {
@@ -58,12 +59,12 @@ impl Host {
 			compiled_path,
 			state: RwLock::new(State {
 				metadata: Arc::new(Metadata::EMPTY),
-				wasm: Vec::new(),
+				wasm: Arc::new([]),
 			}),
 		};
 
-		if result.read_cache().await.is_err() {
-			result.read_new().await?;
+		if result.read_cache().force_unwind().await.is_err() {
+			result.read_new().force_unwind().await?;
 		}
 
 		Ok(result)
@@ -83,7 +84,7 @@ impl Host {
 		let wasm = read_var_bytes(&mut file).await?;
 		let mut state = self.state.write().await;
 		state.metadata = metadata;
-		state.wasm = wasm;
+		state.wasm = wasm.into();
 		Ok(())
 	}
 
@@ -107,18 +108,19 @@ impl Host {
 		write_var_bytes(&mut file, &module_bytes).await?;
 		let mut state = self.state.write().await;
 		state.metadata = metadata;
-		state.wasm = module_bytes.to_vec();
+		state.wasm = module_bytes.as_slice().into();
 		Ok(())
 	}
 
 	async fn crate_wasm(&self) -> Result<(Store, Module, Arc<Metadata>)> {
 		let state = self.state.read().await;
 		let metadata = state.metadata.clone();
-		let wasm = state.wasm.as_slice();
+		let wasm = state.wasm.clone();
+		drop(state);
 
 		catch_unwind(|| {
 			let store = create_store();
-			unsafe { Module::deserialize(&store, wasm) }
+			unsafe { Module::deserialize(&store, wasm.as_slice()) }
 				.err_into()
 				.map(|module| (store, module, metadata))
 		})
