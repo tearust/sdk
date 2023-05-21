@@ -17,7 +17,7 @@ use tea_runtime_codec::tapp::{
 	ra::{NodeStatus, TeaNodeProfile},
 	statement::TypedStatement,
 	version::SystemVersions,
-	Account, Balance, ReplicaId, TokenId, Ts,
+	Account, Balance, ReplicaId, Ts,
 };
 use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
