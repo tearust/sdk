@@ -26,6 +26,7 @@ use tea_runtime_codec::vmh::message::{
 use tea_system_actors::tappstore::*;
 use tea_system_actors::tokenstate::HasDbInitRequest;
 
+/// Simple date formatter in system.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct SimpleDate {
 	pub year: i32,
@@ -39,6 +40,8 @@ impl SimpleDate {
 	}
 }
 
+/// Return node profile by connection id.
+/// System method.
 pub async fn node_profiles_by_conn_ids(
 	conn_ids: Vec<String>,
 	mode: IntelliSendMode,
@@ -54,6 +57,8 @@ pub async fn node_profiles_by_conn_ids(
 	Ok(res.0)
 }
 
+/// Check tappstore init before.
+/// System method.
 pub async fn has_tappstore_init() -> Result<bool> {
 	let buf = ActorId::Static(tea_system_actors::tokenstate::NAME)
 		.call(HasDbInitRequest(encode_protobuf(
@@ -66,6 +71,8 @@ pub async fn has_tappstore_init() -> Result<bool> {
 	Ok(res.has_init)
 }
 
+/// Return random active seat tea_id.
+/// System method.
 pub async fn random_select_active_seats_locally(
 	count: usize,
 	exclude_tea_id: Option<Vec<u8>>,
@@ -94,6 +101,9 @@ pub async fn random_select_active_seats_locally(
 		.collect())
 }
 
+/// Return an address TEA balance.
+/// it need the auth_key to check permission.
+/// That measn others can not see your balance in tea system.
 pub async fn query_tea_balance_async(
 	account: &str,
 	auth_key: &[u8],
@@ -113,6 +123,7 @@ pub async fn query_tea_balance_async(
 	Ok((deserialize(&res.balance)?, deserialize(&res.ts)?))
 }
 
+/// Return CML id by miner tea_id.
 pub async fn query_cml_id_by_tea_id(tea_ids: Vec<ReplicaId>) -> Result<Vec<CmlId>> {
 	let res = ActorId::Static(NAME)
 		.call(QueryCmlIdsByTeaIdsRequest(serialize(&tea_ids)?))
@@ -120,6 +131,8 @@ pub async fn query_cml_id_by_tea_id(tea_ids: Vec<ReplicaId>) -> Result<Vec<CmlId
 	Ok(res.0)
 }
 
+/// Return all active cml id.
+/// Active means a miner binding the cml and active now.
 pub async fn query_active_cml_ids(
 	exclude_tea_id: Option<Vec<u8>>,
 	mode: IntelliSendMode,
@@ -136,6 +149,8 @@ pub async fn query_active_cml_ids(
 	Ok(res.0)
 }
 
+/// Return all mining cml ids.
+/// Mining means a miner binding the cml.
 pub async fn query_mining_cml_ids(mode: IntelliSendMode) -> Result<Vec<CmlId>> {
 	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
@@ -146,20 +161,7 @@ pub async fn query_mining_cml_ids(mode: IntelliSendMode) -> Result<Vec<CmlId>> {
 	Ok(res.0)
 }
 
-pub async fn query_hosting_cml_ids(
-	token_id: TokenId,
-	active_only: bool,
-	mode: IntelliSendMode,
-) -> Result<Vec<CmlId>> {
-	let res = intelli_actor_query_ex(
-		tea_system_actors::tappstore::NAME,
-		QueryHostingCmlsRequest(serialize(&(token_id, active_only))?),
-		mode,
-	)
-	.await?;
-	Ok(res.0)
-}
-
+/// Return the basic state transcation logs.
 pub async fn get_statements_async(
 	account: Option<Account>,
 	query_date: Option<SimpleDate>,
@@ -191,6 +193,8 @@ pub async fn get_statements_async(
 	Ok((res.0, res.1))
 }
 
+/// Return cml ra status.
+/// System method.
 pub async fn query_cml_ra_status(tea_id: &[u8], mode: IntelliSendMode) -> Result<NodeStatus> {
 	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
@@ -201,6 +205,7 @@ pub async fn query_cml_ra_status(tea_id: &[u8], mode: IntelliSendMode) -> Result
 	Ok(res.0)
 }
 
+/// Return all active node profile.
 pub async fn query_active_nodes(
 	exclude_tea_id: Option<Vec<u8>>,
 	mode: IntelliSendMode,
@@ -232,6 +237,7 @@ pub async fn process_pre_args(pre_args: Vec<Arg>) -> Result<Option<ArgSlots>> {
 	Ok(Some(res.0))
 }
 
+/// Return  current runtime version.
 pub async fn query_system_versions(mode: IntelliSendMode) -> Result<SystemVersions> {
 	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,
