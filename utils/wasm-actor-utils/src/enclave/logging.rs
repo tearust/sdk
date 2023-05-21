@@ -1,6 +1,7 @@
 use std::io::Write;
 use tea_actorx::println;
 
+/// Base logging setting configuration
 pub fn set_logging(file: bool, timestamp: bool) {
 	let config = tracing_subscriber::fmt()
 		.with_writer(|| Logger)
