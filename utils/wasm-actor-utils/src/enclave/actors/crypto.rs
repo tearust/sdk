@@ -5,6 +5,7 @@ use tea_runtime_codec::tapp::Account;
 use tea_runtime_codec::vmh::message::{encode_protobuf, structs_proto::crypto};
 use tea_system_actors::crypto::*;
 
+/// Base sha-256.
 pub async fn sha256(content: Vec<u8>) -> Result<Vec<u8>> {
 	let req = crypto::ShaRequest {
 		sha_type: "sha256".to_string(),
@@ -17,6 +18,7 @@ pub async fn sha256(content: Vec<u8>) -> Result<Vec<u8>> {
 	Ok(res.hash)
 }
 
+/// Verify signature with ether.rs
 pub async fn ether_verify(account: Account, data: String, signature_hex: String) -> Result<bool> {
 	let res = ActorId::Static(NAME)
 		.call(EtherVerifyRequest {

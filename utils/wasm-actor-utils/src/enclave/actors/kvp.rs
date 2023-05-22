@@ -26,6 +26,7 @@ impl Drop for ShabbyLock {
 	}
 }
 
+/// Set cache value to key-value actor and not expired.
 pub async fn set_forever<T: Serialize + DeserializeOwned>(key: &str, value: &T) -> Result<T> {
 	let req = SetRequest {
 		key: key.to_owned(),
@@ -36,6 +37,7 @@ pub async fn set_forever<T: Serialize + DeserializeOwned>(key: &str, value: &T) 
 	deserialize(r.value.as_slice()).err_into()
 }
 
+/// Return cache value from key-value actor.
 pub async fn get<T: DeserializeOwned>(key: &str) -> Result<Option<T>> {
 	let req = GetRequest {
 		key: key.to_owned(),
@@ -54,6 +56,7 @@ pub async fn get<T: DeserializeOwned>(key: &str) -> Result<Option<T>> {
 	}
 }
 
+/// Set cache value to key-value actor. can set expired second.
 pub async fn set<T: Serialize + DeserializeOwned>(
 	key: &str,
 	value: &T,
@@ -68,6 +71,7 @@ pub async fn set<T: Serialize + DeserializeOwned>(
 	deserialize(r.value.as_slice()).err_into()
 }
 
+/// Remove cache value from key-value actor.
 pub async fn del(key: &str) -> Result<String> {
 	let req = DelRequest {
 		key: key.to_owned(),
@@ -76,6 +80,7 @@ pub async fn del(key: &str) -> Result<String> {
 	Ok(r.key)
 }
 
+#[doc(hidden)]
 pub async fn add(key: &str, value: i32) -> Result<i32> {
 	let req = AddRequest {
 		key: key.to_owned(),
@@ -85,6 +90,7 @@ pub async fn add(key: &str, value: i32) -> Result<i32> {
 	Ok(res.value)
 }
 
+#[doc(hidden)]
 pub async fn list_clear(key: &str) -> Result<String> {
 	let req = ListClearRequest {
 		key: key.to_owned(),
@@ -93,6 +99,7 @@ pub async fn list_clear(key: &str) -> Result<String> {
 	Ok(res.key)
 }
 
+#[doc(hidden)]
 pub async fn list_range<T: Serialize + DeserializeOwned>(
 	key: &str,
 	start: i32,
@@ -112,6 +119,7 @@ pub async fn list_range<T: Serialize + DeserializeOwned>(
 	Ok(result)
 }
 
+#[doc(hidden)]
 pub async fn list_push<T: Serialize + DeserializeOwned>(key: &str, value: &T) -> Result<i32> {
 	let req = ListPushRequest {
 		key: key.to_owned(),
@@ -121,6 +129,7 @@ pub async fn list_push<T: Serialize + DeserializeOwned>(key: &str, value: &T) ->
 	Ok(res.new_count)
 }
 
+#[doc(hidden)]
 pub async fn list_del_item<T: Serialize>(key: &str, value: &T) -> Result<i32> {
 	let req = ListDelItemRequest {
 		key: key.to_owned(),
@@ -130,6 +139,7 @@ pub async fn list_del_item<T: Serialize>(key: &str, value: &T) -> Result<i32> {
 	Ok(res.new_count)
 }
 
+#[doc(hidden)]
 pub async fn set_add<T: Serialize>(key: &str, value: &T) -> Result<i32> {
 	let req = SetAddRequest {
 		key: key.to_owned(),
@@ -139,6 +149,7 @@ pub async fn set_add<T: Serialize>(key: &str, value: &T) -> Result<i32> {
 	Ok(res.new_count)
 }
 
+#[doc(hidden)]
 pub async fn set_remove<T: Serialize>(key: &str, value: &T) -> Result<i32> {
 	let req = SetRemoveRequest {
 		key: key.to_owned(),
@@ -148,6 +159,7 @@ pub async fn set_remove<T: Serialize>(key: &str, value: &T) -> Result<i32> {
 	Ok(res.new_count)
 }
 
+#[doc(hidden)]
 pub async fn set_union<T: DeserializeOwned>(keys: Vec<&str>) -> Result<Vec<T>> {
 	let keys: Vec<String> = keys.into_iter().map(|k| k.to_owned()).collect();
 	let req = SetUnionRequest { keys };
@@ -160,6 +172,7 @@ pub async fn set_union<T: DeserializeOwned>(keys: Vec<&str>) -> Result<Vec<T>> {
 	Ok(result)
 }
 
+#[doc(hidden)]
 pub async fn set_intersect<T: DeserializeOwned>(keys: Vec<&str>) -> Result<Vec<T>> {
 	let keys: Vec<String> = keys.into_iter().map(|k| k.to_owned()).collect();
 	let req = SetIntersectionRequest { keys };
@@ -193,6 +206,7 @@ pub async fn exists(key: &str) -> Result<bool> {
 	Ok(res.exists)
 }
 
+#[doc(hidden)]
 pub async fn keyvec_insert<T: Serialize>(
 	key: &str,
 	tuple: (i32, &T),
@@ -211,6 +225,7 @@ pub async fn keyvec_insert<T: Serialize>(
 	Ok(res.success)
 }
 
+#[doc(hidden)]
 pub async fn keyvec_get<T: DeserializeOwned>(key: &str) -> Result<Vec<(i32, T)>> {
 	let req = KeyVecGetRequest {
 		key: key.to_string(),
@@ -225,6 +240,7 @@ pub async fn keyvec_get<T: DeserializeOwned>(key: &str) -> Result<Vec<(i32, T)>>
 	Ok(result)
 }
 
+#[doc(hidden)]
 pub async fn keyvec_remove_item(key: &str, value_idx: i32) -> Result<()> {
 	let req = KeyVecRemoveItemRequest {
 		key: key.to_string(),
@@ -234,6 +250,7 @@ pub async fn keyvec_remove_item(key: &str, value_idx: i32) -> Result<()> {
 	Ok(())
 }
 
+#[doc(hidden)]
 pub async fn keyvec_tail_off(key: &str, remain: usize) -> Result<usize> {
 	let req = KeyVecTailOffRequest {
 		key: key.to_string(),

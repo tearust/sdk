@@ -48,6 +48,7 @@ impl Default for IntelliSendMode {
 	}
 }
 
+#[doc(hidden)]
 pub async fn intelli_send_txn(
 	target_actor: &[u8],
 	txn_bytes: &[u8],
@@ -151,6 +152,7 @@ pub async fn send_transaction_locally(
 	Ok(rtn)
 }
 
+#[doc(hidden)]
 pub async fn send_transaction_locally_ex(
 	txn_serial: &TxnSerial,
 	args: Option<ArgSlots>,
@@ -198,6 +200,7 @@ pub async fn send_transaction_locally_ex(
 	Ok(tsid.0)
 }
 
+#[doc(hidden)]
 pub async fn report_txn_error(txn_hash: Vec<u8>, error_msg: String) -> Result<()> {
 	ActorId::Static(NAME)
 		.call(ReportTxnExecErrorRequest(
@@ -208,6 +211,7 @@ pub async fn report_txn_error(txn_hash: Vec<u8>, error_msg: String) -> Result<()
 	Ok(())
 }
 
+#[doc(hidden)]
 pub async fn import_round_table(round_table_serial: Vec<u8>) -> Result<()> {
 	ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::ImportRoundTableRequest(
@@ -217,6 +221,7 @@ pub async fn import_round_table(round_table_serial: Vec<u8>) -> Result<()> {
 		.err_into()
 }
 
+#[doc(hidden)]
 pub async fn export_round_table(tsid: &Option<Tsid>) -> Result<Vec<u8>> {
 	let res = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::ExportRoundTableRequest(
@@ -226,6 +231,7 @@ pub async fn export_round_table(tsid: &Option<Tsid>) -> Result<Vec<u8>> {
 	Ok(res.0)
 }
 
+#[doc(hidden)]
 pub async fn is_in_round_table_async(tea_id: &[u8]) -> Result<bool> {
 	let v = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::IsInRoundTableRequest(
@@ -235,11 +241,13 @@ pub async fn is_in_round_table_async(tea_id: &[u8]) -> Result<bool> {
 	Ok(v.0)
 }
 
+#[doc(hidden)]
 pub async fn get_exec_cursor() -> Result<Option<Tsid>> {
 	let tsid = ActorId::Static(NAME).call(GetExecCursorRequest).await?;
 	Ok(tsid.0)
 }
 
+#[doc(hidden)]
 pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, String)>>> {
 	let msg = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::ValidatorsMembersRequest)
@@ -264,6 +272,7 @@ pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, Stri
 	}
 }
 
+/// Return current validator state.
 pub async fn fetch_validator_state_async() -> Result<Option<replica::ValidatorsState>> {
 	let buf = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::ValidatorsStateRequest)
@@ -272,6 +281,7 @@ pub async fn fetch_validator_state_async() -> Result<Option<replica::ValidatorsS
 	Ok(res.validators_state)
 }
 
+#[doc(hidden)]
 pub async fn random_select_validators_locally(count: usize) -> Result<Vec<(Vec<u8>, String)>> {
 	let all_validators = get_validator_members_locally()
 		.await?
@@ -279,6 +289,7 @@ pub async fn random_select_validators_locally(count: usize) -> Result<Vec<(Vec<u
 	random_select_connect_peers(all_validators, count).await
 }
 
+#[doc(hidden)]
 pub async fn random_select_connect_peers(
 	mut peers: Vec<(Vec<u8>, String)>,
 	count: usize,
@@ -293,6 +304,7 @@ pub async fn random_select_connect_peers(
 	Ok(validators)
 }
 
+#[doc(hidden)]
 pub async fn has_replica_service_init() -> Result<bool> {
 	let b = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::HasInitRequest)

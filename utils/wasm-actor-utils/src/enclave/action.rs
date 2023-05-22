@@ -10,6 +10,7 @@ use tea_runtime_codec::actor_txns::tsid::Tsid;
 use tea_runtime_codec::tapp::TokenId;
 pub use tea_system_actors::adapter::HttpRequest;
 
+/// popup the txn error outside of txn wrapper.
 pub async fn process_txn_error(tsid: Tsid, inner: Error) -> Result<()> {
 	let token_id = tappstore_id().await?;
 	return if let Err(e) = process_txn_error_inner(token_id, tsid.hash.to_vec(), &inner).await {
@@ -19,6 +20,7 @@ pub async fn process_txn_error(tsid: Tsid, inner: Error) -> Result<()> {
 	};
 }
 
+#[doc(hidden)]
 async fn process_txn_error_inner(token_id: TokenId, txn_hash: Vec<u8>, e: &Error) -> Result<()> {
 	report_txn_error(txn_hash, serde_json::to_string(&e)?).await?;
 

@@ -6,6 +6,7 @@ use crate::enclave::error::Result;
 
 pub use http::*;
 
+#[doc(hidden)]
 pub trait RequestExt {
 	async fn request<T>(self) -> Result<Response<T>>
 	where

@@ -3,6 +3,7 @@ use tea_actorx::ActorId;
 use tea_sdk::ResultExt;
 use tea_system_actors::nitro::*;
 
+/// Return current node tea_id.
 pub async fn get_my_tea_id() -> Result<Vec<u8>> {
 	let res_vec = ActorId::Static(NAME).call(GetTeaIdRequest).await?;
 	if res_vec.0.is_empty() {
@@ -12,6 +13,7 @@ pub async fn get_my_tea_id() -> Result<Vec<u8>> {
 	}
 }
 
+#[doc(hidden)]
 pub async fn get_my_ephemeral_id() -> Result<Vec<u8>> {
 	let res_vec = ActorId::Static(NAME).call(EphemeralPubkeyRequest).await?;
 	if res_vec.0.is_empty() {
@@ -21,6 +23,7 @@ pub async fn get_my_ephemeral_id() -> Result<Vec<u8>> {
 	}
 }
 
+#[doc(hidden)]
 pub async fn get_my_ephemeral_key() -> Result<Vec<u8>> {
 	let res_vec = ActorId::Static(NAME).call(EphemeralKeyRequest).await?;
 	if res_vec.0.is_empty() {
@@ -30,11 +33,13 @@ pub async fn get_my_ephemeral_key() -> Result<Vec<u8>> {
 	}
 }
 
+/// Return random uuid.
 pub async fn generate_uuid() -> Result<String> {
 	let uuid = ActorId::Static(NAME).call(GenerateUuidRequest).await?;
 	Ok(uuid.0)
 }
 
+/// Return a random u64.
 pub async fn random_u64() -> Result<u64> {
 	const U64_SIZE: usize = 8;
 	let mut u64_buf = [0u8; U64_SIZE];
@@ -43,6 +48,7 @@ pub async fn random_u64() -> Result<u64> {
 	Ok(u64::from_le_bytes(u64_buf))
 }
 
+/// Return a fix-length random u8 array.
 pub async fn generate_random(len: u32) -> Result<Vec<u8>> {
 	let res = ActorId::Static(NAME)
 		.call(GenerateRandomRequest(len))
@@ -50,6 +56,7 @@ pub async fn generate_random(len: u32) -> Result<Vec<u8>> {
 	Ok(res)
 }
 
+#[doc(hidden)]
 pub async fn verify_peer(
 	doc_request: AttestationDocRequest,
 	conn_id: &str,
@@ -70,6 +77,7 @@ pub async fn verify_peer(
 	Ok(res.0)
 }
 
+#[doc(hidden)]
 pub async fn nitro_encrypt(tag: &str, data: Vec<u8>) -> Result<Vec<u8>> {
 	ActorId::Static(NAME)
 		.call(NitroEncryptRequest {
@@ -80,6 +88,7 @@ pub async fn nitro_encrypt(tag: &str, data: Vec<u8>) -> Result<Vec<u8>> {
 		.err_into()
 }
 
+#[doc(hidden)]
 pub async fn nitro_decrypt(tag: &str, encrypted_data: Vec<u8>) -> Result<Vec<u8>> {
 	ActorId::Static(NAME)
 		.call(NitroDecryptRequest {
