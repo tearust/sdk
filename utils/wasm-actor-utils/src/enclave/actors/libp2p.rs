@@ -26,6 +26,7 @@ use tea_system_actors::libp2p::{
 
 const INTELLI_CANDIDATES_COUNT: usize = 2;
 
+/// Return current node connection id.
 pub async fn my_conn_id() -> Result<String> {
 	let conn_id = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(MyConnIdRequest)
@@ -33,6 +34,7 @@ pub async fn my_conn_id() -> Result<String> {
 	Ok(conn_id.0)
 }
 
+#[doc(hidden)]
 pub async fn is_connection_healthy() -> Result<bool> {
 	let cooldown = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(HasCooldownRequest)
@@ -52,6 +54,7 @@ pub async fn is_connection_healthy() -> Result<bool> {
 	Ok(true)
 }
 
+#[doc(hidden)]
 pub async fn send_message(
 	target_conn_id: String,
 	target_address: libp2p::RuntimeAddress,
@@ -92,6 +95,7 @@ pub async fn send_message(
 	Ok(vec![])
 }
 
+#[doc(hidden)]
 pub async fn pub_message(
 	target_address: libp2p::RuntimeAddress,
 	source_action: Option<String>,
@@ -116,6 +120,7 @@ pub async fn pub_message(
 	Ok(())
 }
 
+#[doc(hidden)]
 pub async fn connected_peers() -> Result<Vec<String>> {
 	let buf = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(ListPeersRequest)
@@ -124,6 +129,7 @@ pub async fn connected_peers() -> Result<Vec<String>> {
 	Ok(res.peers)
 }
 
+#[doc(hidden)]
 pub async fn get_random_peers(peer_count: u32) -> Result<(Vec<String>, bool)> {
 	let buf = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(RandomPeersRequest(encode_protobuf(
@@ -134,6 +140,7 @@ pub async fn get_random_peers(peer_count: u32) -> Result<(Vec<String>, bool)> {
 	Ok((res.peers, res.insufficient_peers))
 }
 
+#[doc(hidden)]
 pub async fn intelli_actor_query_ex<C>(
 	target: &'static [u8],
 	arg: C,
@@ -155,6 +162,7 @@ where
 	}
 }
 
+#[doc(hidden)]
 async fn send_remote_query_ex<C>(
 	target: &[u8],
 	arg: C,
@@ -174,6 +182,7 @@ where
 	.await
 }
 
+#[doc(hidden)]
 async fn compatible_query_ex<C>(target: &'static [u8], arg: C) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
@@ -193,6 +202,7 @@ where
 	}
 }
 
+#[doc(hidden)]
 pub(crate) async fn try_send_remotely<C>(
 	e: &Option<Error>,
 	state_receiver_msg: tokenstate::StateReceiverMessage,
@@ -217,6 +227,7 @@ where
 	send_all_state_receiver::<C>(validators, state_receiver_msg).await
 }
 
+#[doc(hidden)]
 pub async fn send_all_state_receiver<C>(
 	validators: Vec<(Vec<u8>, String)>,
 	state_receiver_msg: tokenstate::StateReceiverMessage,
@@ -262,6 +273,7 @@ where
 	to_response(res.0.ok_or(Errors::Libp2pCallbackIsNone.into())).await
 }
 
+#[doc(hidden)]
 async fn to_response<C>(res: Result<Vec<u8>>) -> Result<C>
 where
 	C: for<'a> FromBytes<'a>,
@@ -270,6 +282,7 @@ where
 	C::from_bytes(&result?).err_into()
 }
 
+#[doc(hidden)]
 pub async fn send_message_with_callback(
 	target_actor: &[u8],
 	target_action: &str,
@@ -289,6 +302,7 @@ pub async fn send_message_with_callback(
 	.await
 }
 
+#[doc(hidden)]
 pub async fn send_to_state_receiver(
 	target_conn_id: String,
 	msg: tokenstate::StateReceiverMessage,
@@ -306,6 +320,7 @@ pub async fn send_to_state_receiver(
 	.await
 }
 
+#[doc(hidden)]
 pub fn can_async_error_be_ignored(e: &Error) -> bool {
 	let name = e.name();
 	name == VmhCodec::IntercomActorNotSupported
@@ -313,6 +328,7 @@ pub fn can_async_error_be_ignored(e: &Error) -> bool {
 		|| name == tea_actorx::error::ActorX::ActorNotExist
 }
 
+#[doc(hidden)]
 pub async fn generate_query_message(
 	target_actor: &[u8],
 	content: &[u8],

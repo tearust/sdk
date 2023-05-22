@@ -9,6 +9,7 @@ use tea_system_actors::env::*;
 
 pub use tea_system_actors::tokenstate::{CronjobArgs, RandomTickArgs};
 
+#[doc(hidden)]
 pub async fn has_runtime_init() -> Result<bool> {
 	let res = ActorId::Static(NAME)
 		.call(RuntimeInitializedRequest)
@@ -16,15 +17,19 @@ pub async fn has_runtime_init() -> Result<bool> {
 	Ok(res.0)
 }
 
+/// Return system time
+/// Depend on tea:env actor.
 pub async fn get_system_time() -> Result<SystemTime> {
 	let time = ActorId::Static(NAME).call(GetSystemTimeRequest).await?;
 	Ok(time.0)
 }
 
+/// Return system time as micro-second.
 pub async fn system_time_as_nanos() -> Result<u128> {
 	tea_runtime_codec::vmh::utils::system_time_as_nanos(get_system_time().await?).err_into()
 }
 
+#[doc(hidden)]
 pub async fn is_replica_test_mode() -> Result<bool> {
 	let b = ActorId::Static(NAME)
 		.call(GetReplicaTestModeRequest)
@@ -32,16 +37,20 @@ pub async fn is_replica_test_mode() -> Result<bool> {
 	Ok(b.0)
 }
 
+/// If current node is a seat node, return true.
+/// if is a miner node, return false.
 pub async fn apply_validator() -> Result<bool> {
 	let v = ActorId::Static(NAME).call(GetApplyValidatorRequest).await?;
 	Ok(v.0)
 }
 
+#[doc(hidden)]
 pub async fn is_test_mode() -> Result<bool> {
 	let v = ActorId::Static(NAME).call(IsTestModeRequest).await?;
 	Ok(v.0)
 }
 
+/// Return current wasm-actor's token_id in manifest file.
 pub async fn get_current_wasm_actor_token_id() -> Result<Option<String>> {
 	let res = ActorId::Static(NAME)
 		.call(GetWasmActorTokenIdRequest)
@@ -50,6 +59,7 @@ pub async fn get_current_wasm_actor_token_id() -> Result<Option<String>> {
 	Ok(res.0)
 }
 
+#[doc(hidden)]
 pub async fn get_genesis_enclave_pcrs() -> Result<HashMap<String, String>> {
 	let res = ActorId::Static(NAME)
 		.call(GenesisEnclavePcrsRequest)
@@ -89,6 +99,7 @@ pub async fn get_env_var(env_var: &str) -> Result<Option<String>> {
 	Ok(v.0)
 }
 
+/// Return current system timestamp.
 pub async fn current_timestamp(precision: Precision, trunc_base: i64) -> Result<i64> {
 	let t = ActorId::Static(NAME)
 		.call(GetCurrentTimestampRequest(precision, trunc_base))
@@ -96,6 +107,7 @@ pub async fn current_timestamp(precision: Precision, trunc_base: i64) -> Result<
 	Ok(t.0)
 }
 
+#[doc(hidden)]
 pub async fn initial_latest_topup_height() -> Result<BlockNumber> {
 	let r = ActorId::Static(NAME)
 		.call(InitialLatestTopupHeightRequest)
@@ -114,6 +126,13 @@ pub async fn register_random_tick(args: RandomTickArgs) -> Result<()> {
 		.err_into()
 }
 
+/// Register cronjob in wasm-actor.
+///		register_cron_job(CronjobArgs {
+///			subject: "cronjob_subject".into(),
+///			expression: "0 2/30 * * * * *".to_string(),
+///			gas_limit: DEFAULT_GAS_LIMIT,
+///		})
+///		.await?;
 pub async fn register_cron_job(args: CronjobArgs) -> Result<()> {
 	ActorId::Static(tea_system_actors::tokenstate::NAME)
 		.call(tea_system_actors::tokenstate::RegisterCronjobRequest(args))
@@ -121,6 +140,7 @@ pub async fn register_cron_job(args: CronjobArgs) -> Result<()> {
 		.err_into()
 }
 
+/// Return current miner's owner address.
 pub async fn my_machine_owner() -> Result<String> {
 	let owner = ActorId::Static(NAME).call(GetMachineOwnerRequest).await?;
 	Ok(owner.0)

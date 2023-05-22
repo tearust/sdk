@@ -34,6 +34,7 @@ pub async fn async_persist_request(
 	}
 }
 
+#[doc(hidden)]
 pub async fn persist_file(file_name: String, data: Vec<u8>) -> Result<()> {
 	async_persist_request(persist::PersistRequest {
 		msg: Some(persist::persist_request::Msg::WriteFile(

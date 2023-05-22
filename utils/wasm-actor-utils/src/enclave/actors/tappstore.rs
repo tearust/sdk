@@ -40,8 +40,7 @@ impl SimpleDate {
 	}
 }
 
-/// Return node profile by connection id.
-/// System method.
+#[doc(hidden)]
 pub async fn node_profiles_by_conn_ids(
 	conn_ids: Vec<String>,
 	mode: IntelliSendMode,
@@ -57,8 +56,7 @@ pub async fn node_profiles_by_conn_ids(
 	Ok(res.0)
 }
 
-/// Check tappstore init before.
-/// System method.
+#[doc(hidden)]
 pub async fn has_tappstore_init() -> Result<bool> {
 	let buf = ActorId::Static(tea_system_actors::tokenstate::NAME)
 		.call(HasDbInitRequest(encode_protobuf(
@@ -71,8 +69,7 @@ pub async fn has_tappstore_init() -> Result<bool> {
 	Ok(res.has_init)
 }
 
-/// Return random active seat tea_id.
-/// System method.
+#[doc(hidden)]
 pub async fn random_select_active_seats_locally(
 	count: usize,
 	exclude_tea_id: Option<Vec<u8>>,
@@ -193,8 +190,7 @@ pub async fn get_statements_async(
 	Ok((res.0, res.1))
 }
 
-/// Return cml ra status.
-/// System method.
+#[doc(hidden)]
 pub async fn query_cml_ra_status(tea_id: &[u8], mode: IntelliSendMode) -> Result<NodeStatus> {
 	let res = intelli_actor_query_ex(
 		tea_system_actors::tappstore::NAME,

@@ -56,6 +56,7 @@ impl CommitContext {
 		}
 	}
 
+	#[doc(hidden)]
 	pub fn ctx_god_mode(ctx: Vec<u8>) -> CommitContext {
 		CommitContext {
 			ctx,
@@ -64,6 +65,8 @@ impl CommitContext {
 		}
 	}
 
+	/// Include a mock auth_key to pass system checking.
+	/// it usually for system txn, e.g. developer's cronjob in stata actor.
 	pub fn ctx_receipting(ctx: Vec<u8>, memo: String) -> CommitContext {
 		CommitContext {
 			ctx,
@@ -73,6 +76,7 @@ impl CommitContext {
 		}
 	}
 
+	#[doc(hidden)]
 	pub fn log_from_bytes(&self) -> Result<String> {
 		let mut str = String::new();
 		str.push_str(&format!(
@@ -112,6 +116,7 @@ pub struct CommitContextList {
 }
 
 impl CommitContextList {
+	/// Check context
 	pub async fn check(&self) -> Result<()> {
 		for ctx in self.ctx_list.iter() {
 			check(ctx.clone()).await?;
@@ -119,6 +124,7 @@ impl CommitContextList {
 		Ok(())
 	}
 
+	/// Commit txn result to state machine.
 	pub async fn commit(&self, base: Tsid, tsid: Tsid) -> Result<()> {
 		// check all contexts to avoid errors during actual commit
 		self.check().await?;
@@ -220,6 +226,7 @@ impl TryInto<CommitRequest> for CommitContext {
 	}
 }
 
+/// Return the latest tsid from state-machine.
 pub async fn query_state_tsid() -> Result<Tsid> {
 	let buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryStateTsidRequest)
@@ -229,6 +236,7 @@ pub async fn query_state_tsid() -> Result<Tsid> {
 	Ok(tsid)
 }
 
+/// Checking for state-machine.
 pub async fn check(ctx: CommitContext) -> Result<()> {
 	let buf = encode_protobuf::<CommitRequest>(ctx.try_into()?)?;
 
@@ -254,6 +262,8 @@ pub async fn commit(ctx: CommitContext) -> Result<(Balance, Balance, Vec<TypedSt
 	Ok((hidden_acct_credit, hidden_acct_debit, statements))
 }
 
+/// Return serialize txn.
+/// include target actor name and the gas limit.
 pub async fn new_txn_serial(
 	actor_name: &[u8],
 	bytes: Vec<u8>,
@@ -267,6 +277,7 @@ pub async fn new_txn_serial(
 	))
 }
 
+/// Return the auth_key buffer by auth_key from state-machine.
 pub async fn query_auth_ops_bytes(auth: AuthKey, gas_limit: u64) -> Result<Vec<u8>> {
 	if auth == GOD_MODE_AUTH_KEY {
 		error!("If authkey is GOD MODE, use generate_god_mode_ops_bytes instead");
@@ -285,6 +296,7 @@ pub async fn query_auth_ops_bytes(auth: AuthKey, gas_limit: u64) -> Result<Vec<u
 	Ok(auth_ops_bytes)
 }
 
+/// Renew auth_key expiration if it expired.
 pub async fn send_tx_new_auth_key_expired(
 	auth: &AuthKey,
 	new_expire: u128,
@@ -317,6 +329,8 @@ pub async fn send_tx_new_auth_key_expired(
 	Ok(())
 }
 
+/// Return token balance from state-machine.
+/// it usually using in txn inner.
 pub async fn read_bonding_balance(
 	account: Account,
 	ctx: Vec<u8>,
@@ -335,6 +349,8 @@ pub async fn read_bonding_balance(
 	Ok((deserialize(&res.amount)?, res.ctx))
 }
 
+/// Return tea balance from state-machine.
+/// it usually using in txn inner.
 pub async fn read_tea_balance(
 	ctx: Vec<u8>,
 	account: Account,
@@ -353,6 +369,8 @@ pub async fn read_tea_balance(
 	Ok((deserialize(&res.balance_bytes)?, res.ctx))
 }
 
+/// Return tea balance from state-machine.
+/// Can not using in txn inner, it only return the tea balance before the txn start, so not collect if change tea balance in txn inner.
 pub async fn query_tea_balance(token_id: TokenId, account: Account) -> Result<Balance> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryTeaBalanceRequest(encode_protobuf(
@@ -366,6 +384,8 @@ pub async fn query_tea_balance(token_id: TokenId, account: Account) -> Result<Ba
 	deserialize(res.balance_bytes).err_into()
 }
 
+/// Return tea deposit from state-machine.
+/// Can not using in txn inner, it only return the tea deposit before the txn start, so not collect if change tea deposit in txn inner.
 pub async fn query_tea_deposit_balance(token_id: TokenId, account: Account) -> Result<Balance> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryTeaDepositBalanceRequest(encode_protobuf(
@@ -380,6 +400,7 @@ pub async fn query_tea_deposit_balance(token_id: TokenId, account: Account) -> R
 	Ok(balance)
 }
 
+/// Return address's allowance from state-machine.
 pub async fn query_allowance(token_id: &TokenId, address: &Account) -> Result<Balance> {
 	let req = QueryAllowanceRequest {
 		token_id: serialize(token_id)?,
@@ -408,6 +429,7 @@ pub async fn read_bonding_total_supply(ctx: Vec<u8>) -> Result<(Balance, Vec<u8>
 	Ok((deserialize(&res.total_supply)?, res.ctx))
 }
 
+/// Burn token.
 pub async fn burn_bonding_token(
 	account: Account,
 	amount: Balance,
@@ -426,6 +448,7 @@ pub async fn burn_bonding_token(
 	Ok(res.ctx)
 }
 
+/// Return reserved token balance from state-machine.
 pub async fn get_reserved_token_balance(token_id: TokenId) -> Result<Balance> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::GetTokenReservedBalanceRequest(encode_protobuf(
@@ -453,6 +476,7 @@ pub async fn get_bonding_total_supply(token_id: TokenId) -> Result<Balance> {
 	deserialize(res.amount).err_into()
 }
 
+#[doc(hidden)]
 pub async fn in_app_purchase(
 	from_account: &Account,
 	amount: &Balance,
@@ -475,6 +499,7 @@ pub async fn in_app_purchase(
 	Ok((res.tappstore_ctx, res.payee_ctx))
 }
 
+/// Set address's allowance
 pub async fn set_allowance(token_id: &TokenId, address: &Account, amount: &Balance) -> Result<()> {
 	let req = SetAllowanceRequest {
 		token_id: serialize(token_id)?,
@@ -505,6 +530,7 @@ pub async fn verify_enough_account_balance(
 	}
 }
 
+#[doc(hidden)]
 pub async fn pay_miner_gas(
 	miner_token_id: &TokenId, // miner cml entity id
 	from_account: &Account,
