@@ -9,6 +9,7 @@ use tea_runtime_codec::vmh::io::VersionInfo;
 
 pub mod error;
 
+/// Actor name for env native actor.
 pub const NAME: &[u8] = b"tea:env";
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]

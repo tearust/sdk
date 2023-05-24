@@ -3,6 +3,7 @@ use tea_codec::{pricing::Priced, serde::TypeId};
 
 pub mod error;
 
+/// Actor name for adapter native actor.
 pub const NAME: &[u8] = b"tea:adapter";
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

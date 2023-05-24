@@ -15,6 +15,8 @@ use self::http::RequestExt;
 use crate::client::help;
 use crate::client::Result;
 
+/// Send query to state node via libp2p
+/// Can set a custom target actor.
 pub async fn send_custom_query<C>(
 	_from_actor: &str,
 	arg: C,
@@ -27,6 +29,7 @@ where
 	Ok(intelli_actor_query_ex(target, arg, IntelliSendMode::RemoteOnly).await?)
 }
 
+/// Send query to tappstore actor.
 pub async fn send_tappstore_query<C>(from_actor: &str, arg: C) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
@@ -35,6 +38,8 @@ where
 	send_custom_query(from_actor, arg, tea_system_actors::tappstore::NAME).await
 }
 
+/// Send txn to state node via libp2p
+/// Can set a custom target actor.
 pub async fn send_custom_txn(
 	from_actor: &str,
 	action_name: &str,
@@ -83,6 +88,7 @@ pub async fn send_custom_txn(
 	Ok(())
 }
 
+/// Send a txn to tappstore-actor.
 pub async fn send_tappstore_txn(
 	from_actor: &str,
 	action_name: &str,
@@ -103,16 +109,20 @@ pub async fn send_tappstore_txn(
 	.await
 }
 
+#[doc(hidden)]
 pub fn uuid_cb_key(uuid: &str, stype: &str) -> String {
 	let rs = format!("{stype}_msg_{uuid}");
 	rs
 }
+
+#[doc(hidden)]
 pub fn cb_key_to_uuid(key: &str, stype: &str) -> String {
 	let ss = format!("{stype}_msg_");
 
 	str::replace(key, &ss, "")
 }
 
+#[doc(hidden)]
 pub async fn http_get(
 	url: &str,
 	headers_vec: Option<Vec<(String, String)>>,

@@ -29,6 +29,7 @@ lazy_static! {
 		Mutex::new(HashMap::new());
 }
 
+#[doc(hidden)]
 pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
 	let res = match action {
 		"login" => api::user::txn_login(arg, from_actor).await?,
@@ -49,6 +50,7 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 	Ok(res)
 }
 
+#[doc(hidden)]
 pub async fn map_cb_handler(action: &str, _arg: Vec<u8>, _from_actor: String) -> Result<Vec<u8>> {
 	let res = match action {
 		_ => vec![],
@@ -56,6 +58,7 @@ pub async fn map_cb_handler(action: &str, _arg: Vec<u8>, _from_actor: String) ->
 	Ok(res)
 }
 
+#[doc(hidden)]
 pub fn add_cb_handler<C>(action_name: &str, handler_cb: C) -> Result<()>
 where
 	C: Fn(Vec<u8>, String) -> CBD + Send + Sync + 'static,
@@ -68,6 +71,7 @@ where
 	Ok(())
 }
 
+#[doc(hidden)]
 pub async fn txn_callback(uuid: &str, from_actor: String) -> Result<Vec<u8>> {
 	info!("txn_callback => {:?}", uuid);
 	let target_actor = Box::leak(from_actor.clone().into_boxed_str());
@@ -90,6 +94,7 @@ pub async fn txn_callback(uuid: &str, from_actor: String) -> Result<Vec<u8>> {
 	Ok(rs)
 }
 
+#[doc(hidden)]
 pub fn map_fn_list() -> Vec<&'static str> {
 	vec![
 		"login",
