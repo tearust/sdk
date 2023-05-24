@@ -30,7 +30,10 @@ use tokio::{
 	},
 };
 
+#[cfg(not(rust_analyzer))]
 const WORKER_BINARY: &[u8] = include_bytes!(concat!(env!("OUT_DIR"), "/worker"));
+#[cfg(rust_analyzer)]
+const WORKER_BINARY: &[u8] = &[];
 
 pub struct WorkerProcess {
 	_proc: Child,

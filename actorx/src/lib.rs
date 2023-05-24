@@ -5,7 +5,10 @@
 #![feature(type_alias_impl_trait)]
 #![feature(downcast_unchecked)]
 #![cfg_attr(feature = "sign", feature(iterator_try_collect))]
-#![cfg_attr(feature = "worker", feature(new_uninit, result_flattening))]
+#![cfg_attr(
+	feature = "worker",
+	feature(new_uninit, result_flattening, mutex_unpoison)
+)]
 #![cfg_attr(feature = "host", feature(unix_chown))]
 #![feature(return_position_impl_trait_in_trait)]
 #![feature(async_fn_in_trait)]

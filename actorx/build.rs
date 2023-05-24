@@ -1,4 +1,4 @@
-#[cfg(feature = "host")]
+#[cfg(all(feature = "host", not(rust_analyzer)))]
 fn main() {
 	use std::{env, fs, path::Path, process::Command};
 	let profile = env::var("PROFILE").expect("PROFILE is not set");
@@ -48,5 +48,5 @@ fn main() {
 	fs::rename(bin_path, Path::new(&out_dir).join("worker")).unwrap();
 }
 
-#[cfg(not(feature = "host"))]
+#[cfg(any(not(feature = "host"), rust_analyzer))]
 fn main() {}

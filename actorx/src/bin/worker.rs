@@ -1,9 +1,12 @@
+use std::panic::set_hook;
+
 use tea_actorx::worker::{error::Result, Worker};
 use tea_codec::errorx::Global;
 use tokio::net::UnixStream;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+	set_hook(Box::new(|_| {}));
 	let socket = {
 		#[cfg(feature = "nitro")]
 		{
