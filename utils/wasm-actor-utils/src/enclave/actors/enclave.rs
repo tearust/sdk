@@ -3,7 +3,7 @@ use tea_actorx::ActorId;
 use tea_sdk::ResultExt;
 use tea_system_actors::nitro::*;
 
-/// Return current node tea_id.
+/// Return current node's tea_id
 pub async fn get_my_tea_id() -> Result<Vec<u8>> {
 	let res_vec = ActorId::Static(NAME).call(GetTeaIdRequest).await?;
 	if res_vec.0.is_empty() {
@@ -33,13 +33,13 @@ pub async fn get_my_ephemeral_key() -> Result<Vec<u8>> {
 	}
 }
 
-/// Return random uuid.
+/// Return a random uuid
 pub async fn generate_uuid() -> Result<String> {
 	let uuid = ActorId::Static(NAME).call(GenerateUuidRequest).await?;
 	Ok(uuid.0)
 }
 
-/// Return a random u64.
+/// Return a random u64
 pub async fn random_u64() -> Result<u64> {
 	const U64_SIZE: usize = 8;
 	let mut u64_buf = [0u8; U64_SIZE];
