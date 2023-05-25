@@ -4,6 +4,7 @@ use crate::tapp::{Account, Balance};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct ConcurrentBalances {
 	token_add: HashMap<Account, Vec<Balance>>,
@@ -188,6 +189,7 @@ fn append_or_insert_if_newer(
 	}
 }
 
+/// Check_add for balance.
 pub fn balances_sum(balances: &[Balance]) -> Result<Balance> {
 	let mut sum = Balance::zero();
 	for balance in balances {

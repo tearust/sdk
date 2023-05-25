@@ -7,6 +7,7 @@ use std::hash::{Hash as StdHash, Hasher};
 
 pub type Hash = [u8; 32];
 
+#[doc(hidden)]
 #[derive(Default, Eq, Copy, Clone, Serialize, Deserialize)]
 pub struct Tsid {
 	pub ts: Ts,

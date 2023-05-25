@@ -24,6 +24,7 @@ pub const OP_BBS_EXTEND_MESSAGE: &str = "bbs_ExtendMessage";
 pub const OP_NOTIFICATION_ADD_MESSAGE: &str = "notification_AddMessage";
 pub const OP_NOTIFICATION_GET_MESSAGE: &str = "notification_GetMessage";
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
@@ -33,6 +34,7 @@ pub struct GetFileRequest {
 	pub token_id: TokenId,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(Vec<u8>)]
@@ -40,6 +42,7 @@ pub struct GetFileLocallyRequest {
 	pub filename: String,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
@@ -48,6 +51,7 @@ pub struct PersistFileRequest {
 	pub content: Vec<u8>,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
@@ -58,22 +62,29 @@ pub struct GetFileReply {
 	pub download_path: String,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct IsFileExistRequest {
 	pub filename: String,
 }
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct IsFileExistResponse(pub bool);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[response(())]
 pub struct SetDownloaded {
 	pub cid: String,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GetDownloadPathRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetDownloadPathResponse(pub String);

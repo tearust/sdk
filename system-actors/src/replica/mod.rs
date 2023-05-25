@@ -20,80 +20,109 @@ pub struct HistoryItem {
 
 pub const NAME: &[u8] = b"tea:replica";
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GenerateSyncMessageRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenerateSyncMessageResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct ReceiveSyncMessageRequest(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct CleanUpSyncReplicaRequest;
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GetReplicaCountRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetReplicaCountResponse {
 	pub count: u32,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct ReceiveFollowupRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ReceiveFollowupResponse(pub Option<Tsid>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct ReceiveTxnRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ReceiveTxnResponse(pub Option<Tsid>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct FetchHistoryRequest {
 	pub end_tsid: Vec<u8>,
 }
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FetchHistoryResponse {
 	pub history_items: Vec<TxnItem>,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct RecoverHistoryRequest(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GetHistorySinceRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetHistorySinceResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct ResetReplicasCountRequest(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct FindExecutedTxnRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FindExecutedTxnResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GetConsensusReplicasRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetConsensusReplicasResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
 #[response(())]
@@ -101,62 +130,85 @@ pub struct SetSingleModeRequest {
 	pub single_mode: bool,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GetSingleModeRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetSingleModeResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct ReportTxnExecErrorRequest(pub Hash, pub String);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GetExecCursorRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetExecCursorResponse(pub Option<Tsid>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct ResetExecCursorRequest(pub Tsid);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
 pub struct DumpTxnSeqRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct DumpTxnSeqResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct ResetMagicNumberRequest(pub u64);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
 pub struct IdleCleanupRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct IdleCleanupResponse(pub Vec<ReplicaId>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct TryPopupReadyTxnRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TryPopupReadyTxnResponse(pub Option<(Tsid, FullTxn)>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct AppendToHistoryRequest(pub HistoryItem);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct IsTxnAlreadyExecutedRequest(pub Tsid);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct IsTxnAlreadyExecutedResponse(pub bool);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10)]
 #[response(())]

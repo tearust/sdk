@@ -5,6 +5,7 @@ use crate::tapp::{
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
+#[doc(hidden)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Statement {
 	pub account: Account,
@@ -13,12 +14,14 @@ pub struct Statement {
 	pub token_id: TokenId,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize, Deserialize)]
 pub enum StatementType {
 	Incoming,
 	Outcoming,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, PartialEq, Eq, Copy, Serialize, Deserialize)]
 pub enum StateType {
 	Tea,
@@ -27,6 +30,7 @@ pub enum StateType {
 	BondingReserved,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct TypedStatement {
 	pub statement: Statement,

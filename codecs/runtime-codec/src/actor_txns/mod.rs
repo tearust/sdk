@@ -20,6 +20,7 @@ pub trait ToHash<H> {
 	fn to_hash(&self) -> H;
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TxnSerial {
 	actor_name: Vec<u8>,
@@ -55,6 +56,7 @@ impl TxnSerial {
 	}
 }
 
+#[doc(hidden)]
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct QuerySerial {
 	pub actor_name: Vec<u8>,
@@ -89,6 +91,7 @@ pub trait Query<'a>:
 {
 }
 
+/// hash a txn bytes.
 pub fn txn_hash(txn_bytes: &[u8]) -> Result<Hash> {
 	let hash_g_array = Sha256::digest(txn_bytes);
 	let hash_key: Hash = hash_g_array

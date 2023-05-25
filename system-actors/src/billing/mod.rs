@@ -7,16 +7,21 @@ use tea_runtime_codec::tapp::AccountId;
 pub mod error;
 
 pub const NAME: &[u8] = b"tea:billing";
+
+/// The duration for gas payment.
 pub const SETTLEMENT_INTERVAL: Duration = Duration::from_secs(120);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct RegisterGasFeeHandlerRequest;
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct HandleGasFeeRequest(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct GasFeeCostRequest {

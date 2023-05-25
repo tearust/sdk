@@ -15,6 +15,7 @@ pub const DAY_BLOCK: TimestampShort = 150 * 12; // 7200 as 1 day
 pub const DISABLE_OP_BLOCK: TimestampShort = 15 * 12; // Cannot do anything, only for cronjob eveny day.
 pub const MIN_DEPOSIT_FOR_SEAT: Balance = u256!(300_000_000_000_000_000_000);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SeatMaintainer {
 	pub tea_id: Vec<u8>,
@@ -23,12 +24,14 @@ pub struct SeatMaintainer {
 	pub maintainer: Account,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MaintainStatus {
 	Inactive,
 	Active,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SeatInfo {
 	pub id: SeatId,
@@ -41,6 +44,7 @@ pub struct SeatInfo {
 	pub market: Option<SeatMarketInfo>,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum SeatMarketStatus {
 	Inactive,
@@ -48,6 +52,7 @@ pub enum SeatMarketStatus {
 	Active,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct SeatMarketInfo {
 	pub seat_id: SeatId,

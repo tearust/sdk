@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct FluencerCandidateListItem {
 	pub id: String,

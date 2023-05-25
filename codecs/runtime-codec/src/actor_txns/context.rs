@@ -9,6 +9,7 @@ use tea_sdk::deserialize;
 
 pub mod concurrent;
 
+#[doc(hidden)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum TappStorageType {
 	AesKey,
@@ -36,14 +37,17 @@ pub enum ReadConflictMode {
 	BothConflict,
 }
 
+#[doc(hidden)]
 pub trait CheckConflict {
 	fn check_conflict(&self, other: &Self) -> Result<()>;
 }
 
+#[doc(hidden)]
 pub trait Merge {
 	fn merge(&mut self, other: &Self) -> Result<()>;
 }
 
+#[doc(hidden)]
 pub trait AssetContext {
 	fn add_token_read(&mut self, acct: Account, conf_mode: ReadConflictMode);
 
@@ -68,6 +72,7 @@ pub trait AssetContext {
 	fn get_hidden_subtract(&self) -> Balance;
 }
 
+#[doc(hidden)]
 pub trait Context<C>: CheckConflict
 where
 	C: AssetContext,

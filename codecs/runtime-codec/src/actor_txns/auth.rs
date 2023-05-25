@@ -16,6 +16,7 @@ pub enum AllowedOp {
 	CrossMove,    // Allow moving fund between TApps (different tokenids)
 }
 
+#[doc(hidden)]
 #[derive(Debug, Serialize, Default, Deserialize, PartialEq, Eq, Clone)]
 pub struct TokenAuthOp {
 	pub token_id: TokenId,
@@ -40,6 +41,7 @@ impl TokenAuthOp {
 		}
 	}
 
+	/// Check auth method.
 	pub fn check_auth(
 		&self,
 		ask_acct: Account,

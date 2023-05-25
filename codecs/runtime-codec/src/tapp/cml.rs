@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 pub type CmlId = u64;
 pub type Performance = u32;
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CmlIntrinsic {
 	pub id: CmlId,
@@ -11,6 +12,7 @@ pub struct CmlIntrinsic {
 	pub attribute: CmlAttribute,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CmlAttributeRaw {
 	#[serde(alias = "v")]
@@ -19,6 +21,7 @@ pub struct CmlAttributeRaw {
 	pub data: CmlAttribute,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CmlAttribute {
 	#[serde(alias = "l")]
@@ -27,6 +30,7 @@ pub struct CmlAttribute {
 	pub performance: Performance,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CmlVariable {
 	pub init_at: Option<TimestampShort>,
@@ -34,6 +38,7 @@ pub struct CmlVariable {
 	pub updated_at: Option<TimestampShort>,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct CmlInfo {
 	pub intrinsic: CmlIntrinsic,

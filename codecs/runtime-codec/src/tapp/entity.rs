@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 pub type CmlId = u64;
 
+#[doc(hidden)]
 #[derive(Debug, Serialize, Deserialize)]
 pub struct EntitySettings {
 	pub token_id: TokenId,

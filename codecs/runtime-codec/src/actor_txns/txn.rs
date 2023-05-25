@@ -4,6 +4,7 @@ use crate::tapp::Hash;
 use serde::{Deserialize, Serialize};
 use tea_sdk::ResultExt;
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTxn {
 	pub txn_bytes: Vec<u8>,

@@ -22,6 +22,7 @@ pub struct VersionPcrs {
 	pub pcrs: HashMap<PcrType, String>,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct TeaNodeProfile {
 	pub tea_id: Vec<u8>,

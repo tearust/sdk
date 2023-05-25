@@ -8,8 +8,12 @@ use serde::{Deserialize, Serialize};
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
+#[doc(hidden)]
 pub type IssuerId = H160;
 
+/// Miner machine status enum.
+/// Active is working, Offline means not work and out of network.
+/// ScheduleDown means not work now, but still in network, use to upgrade miner or some schedule stuff.
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Serialize, Deserialize)]
 pub enum MiningStatus {
 	Active,
@@ -17,6 +21,8 @@ pub enum MiningStatus {
 	ScheduleDown,
 }
 
+/// Mining base intrinsic info.
+/// issuer means the miner's vendor.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct MiningIntrinsic {
 	pub tea_id: Vec<u8>,
@@ -24,6 +30,7 @@ pub struct MiningIntrinsic {
 	pub owner: Account,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct MiningVariable {
 	pub status: MiningStatus,
@@ -39,6 +46,7 @@ pub struct MiningInfo {
 	pub variable: MiningVariable,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct MachineInfoItem {
 	pub tea_id: String,
@@ -48,6 +56,7 @@ pub struct MachineInfoItem {
 	pub mining_status: Option<String>,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub struct TappStartupItem {
 	pub tea_id: Vec<u8>,
@@ -84,6 +93,7 @@ impl Default for MiningStatus {
 	}
 }
 
+/// Base struct for active miner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActiveMinerInfo {
 	pub token_id: String,

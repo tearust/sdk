@@ -11,36 +11,52 @@ pub const KEY_TYPE_ED25519: &str = "ed25519";
 
 pub const NAME: &[u8] = b"tea:crypto";
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GenerateKeyPairRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenerateKeyPairResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct PublicKeyFromPrivateKeyRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct PublicKeyFromPrivateKeyResponse(pub Vec<u8>);
 
+/// Base request for sha-256.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct Sha256Request(pub Vec<u8>);
+
+/// Base response for sha-256.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct Sha256Response(pub Vec<u8>);
 
+/// Base request for sign a bytes.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct SignRequest(pub Vec<u8>);
+
+/// Base response for sign a bytes.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct SignResponse(pub Vec<u8>);
 
+/// Base request for verify signature.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct VerifyRequest(pub Vec<u8>);
+
+/// Base response for verfiy signature.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct VerifyResponse(pub Vec<u8>);
 
+/// Baes request for verfiy signature with ether-rs.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct EtherVerifyRequest {
@@ -48,65 +64,97 @@ pub struct EtherVerifyRequest {
 	pub signature: String,
 	pub account: Account,
 }
+
+/// Base response for verify signature with ether-rs.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct EtherVerifyResponse(pub bool);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct ShamirShareRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ShamirShareResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct ShamirRecoveryRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ShamirRecoveryResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GenerateMultisigAccountRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenerateMultisigAccountResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct CombineToWitnessRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CombineToWitnessResponse(pub Vec<u8>);
 
+/// Base request for generate Aes key.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GenerateAesKeyRequest;
+
+/// Base response for generate Aes key.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenerateAesKeyResponse(pub Vec<u8>);
 
+/// Base request for Aes encrypt.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct AesEncryptRequest(pub Vec<u8>);
+
+/// Base response for Aes encrypt.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct AesEncryptResponse(pub Vec<u8>);
 
+/// Base request for Aes decrypt.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct AesDecryptRequest(pub Vec<u8>);
+
+/// Base response for Aes decrypt.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct AesDecryptResponse(pub Vec<u8>);
 
+/// Base request to generate rsa key-pair.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GenerateRsaPemPcsk1KeypairRequest(pub Vec<u8>);
+
+/// Base response to generate rsa key-pair.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenerateRsaPemPcsk1KeypairResponse(pub Vec<u8>);
 
+/// Base request to encrypt with RSA.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct RsaEncryptRequest(pub Vec<u8>);
+
+/// Base response to encrypt with RSA.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RsaEncryptResponse(pub Vec<u8>);
 
+/// Base request to descrypt with RSA.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct RsaDecryptRequest(pub Vec<u8>);
+
+/// Base response to decrypt with RSA.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RsaDecryptResponse(pub Vec<u8>);

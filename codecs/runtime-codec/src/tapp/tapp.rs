@@ -1,6 +1,7 @@
 use crate::tapp::TokenId;
 use serde::{Deserialize, Serialize};
 
+#[doc(hidden)]
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct HostItem {
 	pub cml_id: u64,

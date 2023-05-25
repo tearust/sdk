@@ -5,11 +5,13 @@ pub mod error;
 
 pub const NAME: &[u8] = b"tea:statereceiver";
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
 pub struct HandleMessageRequest(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[response(())]
 pub struct ActorTxnCheckMessage {
