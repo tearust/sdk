@@ -7,7 +7,7 @@ use std::{
 	pin::Pin,
 	sync::{
 		atomic::{fence, AtomicBool, Ordering},
-		Arc,
+		Arc, OnceLock,
 	},
 	task::Poll,
 	thread::{self},
@@ -19,6 +19,18 @@ use tea_sdk::errorx::SyncErrorExt;
 use tokio::sync::oneshot;
 
 use crate::worker::error::Result;
+
+static GLOBAL_THREAD_POOL: OnceLock<ThreadPool> = OnceLock::new();
+
+pub async fn execute<O>(f: impl FnOnce() -> O + Send + 'static) -> JoinHandle<O>
+where
+	O: Send + 'static,
+{
+	GLOBAL_THREAD_POOL
+		.get_or_init(ThreadPool::new)
+		.execute(f)
+		.await
+}
 
 pub struct ThreadPool {
 	tx: mpmc::Sender<Task>,
@@ -42,17 +54,24 @@ impl ThreadPool {
 	where
 		O: Send + 'static,
 	{
-		let result = Arc::new(UnsafeCell::new(None));
-		let result_clone: Arc<()> = unsafe { transmute(result.clone()) };
 		let (tx, rx) = oneshot::channel();
+		let (task, result) = {
+			let result: Arc<UnsafeCell<Option<O>>> = Arc::new(UnsafeCell::new(None));
+			let result_clone = result.clone();
+			(
+				Task {
+					func: unsafe {
+						std::mem::transmute(
+							Box::new(move || *result_clone.get() = Some(f())) as Box<dyn FnOnce()>
+						)
+					},
+					output: tx,
+				},
+				unsafe { std::mem::transmute(result) },
+			)
+		};
 		self.tx
-			.send(Task {
-				func: Box::new(move || unsafe {
-					let result: Arc<UnsafeCell<Option<O>>> = transmute(result_clone);
-					*result.get() = Some(f())
-				}),
-				output: tx,
-			})
+			.send(task)
 			.await
 			.expect("actorx internal error: ThreadPool has no worker thread.");
 		JoinHandle(rx, result)
@@ -61,7 +80,7 @@ impl ThreadPool {
 
 pub struct JoinHandle<T>(
 	oneshot::Receiver<Result<(), Box<dyn Any + Send>>>,
-	Arc<UnsafeCell<Option<T>>>,
+	Arc<Option<T>>,
 );
 
 impl<T> Future for JoinHandle<T> {
@@ -69,9 +88,12 @@ impl<T> Future for JoinHandle<T> {
 	fn poll(self: Pin<&mut Self>, cx: &mut std::task::Context) -> Poll<Self::Output> {
 		let slf = self.get_mut();
 		match Pin::new(&mut slf.0).poll(cx) {
-			Poll::Ready(Ok(Ok(_))) => Poll::Ready(Ok(unsafe { &mut *slf.1.get() }
-				.take()
-				.expect("TaskPool JoinHandle polled after completion"))),
+			Poll::Ready(Ok(Ok(_))) => Poll::Ready(Ok(unsafe {
+				&mut *(*(&slf.1 as *const Arc<Option<T>> as *const Arc<UnsafeCell<Option<T>>>))
+					.get()
+			}
+			.take()
+			.expect("TaskPool JoinHandle polled after completion"))),
 			Poll::Ready(Ok(Err(e))) => Poll::Ready(Err(e.sync_into())),
 			Poll::Ready(Err(e)) => Poll::Ready(Err(e.into())),
 			Poll::Pending => Poll::Pending,

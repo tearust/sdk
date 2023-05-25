@@ -3,7 +3,6 @@ use std::{
 	hash::{Hash, Hasher},
 	io::{stderr, stdout, Write},
 	mem::{size_of, MaybeUninit},
-	panic::{catch_unwind, AssertUnwindSafe},
 	sync::Arc,
 };
 
@@ -15,10 +14,12 @@ use crate::{
 		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
 	},
 	sign::verify,
-	worker::{error::Result, wasm::memory::MemoryLimit},
+	worker::{
+		error::{Error, Result},
+		wasm::memory::MemoryLimit,
+	},
 };
 use bincode::serialized_size;
-use tea_sdk::{errorx::SyncResultExt, ResultExt};
 use tokio::{fs, sync::RwLock};
 use wasmer::{
 	imports, CompilerConfig, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
@@ -29,6 +30,8 @@ use wasmer_middlewares::{
 	Metering,
 };
 
+use super::threading::execute;
+
 mod memory;
 
 const CACHE_DIR: &str = ".cache";
@@ -37,14 +40,14 @@ const PAGE_BYTES: u32 = 64 * 1024;
 const MAX_PAGES: u32 = 65536;
 
 pub struct Host {
-	source: Vec<u8>,
+	source: Arc<[u8]>,
 	compiled_path: String,
 	state: RwLock<State>,
 }
 
 struct State {
 	metadata: Arc<Metadata>,
-	wasm: Vec<u8>,
+	wasm: Arc<[u8]>,
 }
 
 impl Host {
@@ -54,11 +57,11 @@ impl Host {
 		let hash = hasher.finish();
 		let compiled_path = format!("{CACHE_DIR}/{hash:x}");
 		let result = Self {
-			source,
+			source: source.into(),
 			compiled_path,
 			state: RwLock::new(State {
 				metadata: Arc::new(Metadata::EMPTY),
-				wasm: Vec::new(),
+				wasm: Arc::new([]),
 			}),
 		};
 
@@ -83,18 +86,20 @@ impl Host {
 		let wasm = read_var_bytes(&mut file).await?;
 		let mut state = self.state.write().await;
 		state.metadata = metadata;
-		state.wasm = wasm;
+		state.wasm = wasm.into();
 		Ok(())
 	}
 
 	pub(crate) async fn read_new(&self) -> Result<()> {
 		let metadata = Arc::new(verify(&self.source)?);
-		let source = &self.source;
-		let module = catch_unwind(|| {
+		let source = self.source.clone();
+		let module_bytes = execute(|| {
 			let store = create_store();
-			Module::new(&store, source)
+			let module = Module::new(&store, source)?;
+			module.serialize().map_err(Error::from)
 		})
-		.sync_err_into()??;
+		.await
+		.await??;
 		_ = fs::create_dir(CACHE_DIR).await;
 		let mut file = fs::OpenOptions::new()
 			.write(true)
@@ -103,79 +108,69 @@ impl Host {
 			.await?;
 		let metadata_bytes = bincode::serialize(&metadata)?;
 		write_var_bytes(&mut file, &metadata_bytes).await?;
-		let module_bytes = module.serialize()?;
 		write_var_bytes(&mut file, &module_bytes).await?;
 		let mut state = self.state.write().await;
 		state.metadata = metadata;
-		state.wasm = module_bytes.to_vec();
+		state.wasm = (&*module_bytes).into();
 		Ok(())
 	}
 
 	async fn crate_wasm(&self) -> Result<(Store, Module, Arc<Metadata>)> {
 		let state = self.state.read().await;
 		let metadata = state.metadata.clone();
-		let wasm = state.wasm.as_slice();
+		let wasm = state.wasm.clone();
 
-		catch_unwind(|| {
+		execute(move || {
 			let store = create_store();
-			unsafe { Module::deserialize(&store, wasm) }
-				.err_into()
-				.map(|module| (store, module, metadata))
+			let module = unsafe { Module::deserialize(&store, &*wasm)? };
+			Ok((store, module, metadata))
 		})
-		.sync_err_into()
-		.flatten()
+		.await
+		.await?
 	}
 
 	pub async fn create_instance(&self) -> Result<Instance> {
 		let (mut store, module, metadata) = self.crate_wasm().await?;
-		let mut instance_state = Box::new(MaybeUninit::uninit());
-		let print = create_print(&mut store, unsafe {
-			as_static_mut(instance_state.assume_init_mut())
-		});
-		let mut imports = imports! {
-			"env" => {
-				"print" => print
-			},
-		};
-		wasm_bindgen_polyfill(&mut store, &mut imports);
-		let instance = {
-			let (store, module, imports) = (
-				AssertUnwindSafe(&mut store),
-				AssertUnwindSafe(&module),
-				AssertUnwindSafe(&imports),
-			);
-			catch_unwind(move || {
-				let (AssertUnwindSafe(store), AssertUnwindSafe(module), AssertUnwindSafe(imports)) =
-					(store, module, imports);
-				WasmInstance::new(store, module, imports)
-			})
-			.sync_err_into()?
-		}?;
-		let init = instance.exports.get_typed_function(&store, "init")?;
-		let memory = instance.exports.get_memory("memory")?.clone();
-		let init_handle = instance.exports.get_typed_function(&store, "init_handle")?;
-		let handler = instance.exports.get_typed_function(&store, "handle")?;
-		let finish_handle = instance
-			.exports
-			.get_typed_function(&store, "finish_handle")?;
-
-		let instance = Instance(unsafe {
-			instance_state.as_mut_ptr().write(InstanceState {
-				metadata,
-				store,
-				_module: module,
-				instance,
-				memory,
-				init_handle,
-				handler,
-				finish_handle,
-				init,
-				abi_ptr: 0,
+		execute(move || {
+			let mut instance_state = Box::new(MaybeUninit::uninit());
+			let print = create_print(&mut store, unsafe {
+				as_static_mut(instance_state.assume_init_mut())
 			});
-			instance_state.assume_init()
-		});
+			let mut imports = imports! {
+				"env" => {
+					"print" => print
+				},
+			};
+			wasm_bindgen_polyfill(&mut store, &mut imports);
+			let instance = WasmInstance::new(&mut store, &module, &imports)?;
+			let init = instance.exports.get_typed_function(&store, "init")?;
+			let memory = instance.exports.get_memory("memory")?.clone();
+			let init_handle = instance.exports.get_typed_function(&store, "init_handle")?;
+			let handler = instance.exports.get_typed_function(&store, "handle")?;
+			let finish_handle = instance
+				.exports
+				.get_typed_function(&store, "finish_handle")?;
 
-		Ok(instance)
+			let instance = Instance(unsafe {
+				instance_state.as_mut_ptr().write(InstanceState {
+					metadata,
+					store,
+					_module: module,
+					instance,
+					memory,
+					init_handle,
+					handler,
+					finish_handle,
+					init,
+					abi_ptr: 0,
+				});
+				instance_state.assume_init()
+			});
+
+			Ok(instance)
+		})
+		.await
+		.await?
 	}
 }
 

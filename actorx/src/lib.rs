@@ -7,7 +7,7 @@
 #![cfg_attr(feature = "sign", feature(iterator_try_collect))]
 #![cfg_attr(
 	feature = "worker",
-	feature(new_uninit, result_flattening, mutex_unpoison)
+	feature(new_uninit, result_flattening, mutex_unpoison, once_cell)
 )]
 #![cfg_attr(feature = "host", feature(unix_chown))]
 #![feature(return_position_impl_trait_in_trait)]

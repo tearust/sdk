@@ -7,11 +7,9 @@ pub use crate::core::worker_codec::WORKER_UNIX_SOCKET_FD;
 
 use std::{
 	collections::{hash_map::Entry, HashMap},
-	panic::{catch_unwind, AssertUnwindSafe},
 	sync::Arc,
 };
 
-use tea_sdk::errorx::SyncResultExt;
 use tokio::{
 	io::{AsyncReadExt, AsyncWriteExt},
 	net::{
@@ -28,6 +26,8 @@ use crate::{
 	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
 	worker::{error::Result, wasm::Host},
 };
+
+use self::threading::execute;
 
 pub struct Worker {
 	read: Mutex<OwnedReadHalf>,
@@ -110,20 +110,31 @@ impl Worker {
 			self.host.read_new().await?;
 			self.host.create_instance().await?
 		};
+		let mut first = true;
 		while let Some((operation, mut gas)) = input.recv().await {
-			let resp = {
-				let instance = AssertUnwindSafe(&mut instance);
-				let operation = AssertUnwindSafe(operation);
-				let gas = AssertUnwindSafe(&mut gas);
-				catch_unwind(|| {
-					let instance = instance;
-					let operation = operation;
-					let gas = gas;
-					instance.0.invoke(operation.0, Some(gas.0))
-				})
-				.sync_err_into()
-				.flatten()
+			let (resp, i, g) = if first {
+				first = false;
+				let op = operation.clone();
+				match execute(move || (instance.invoke(op, Some(&mut gas)), instance, gas))
+					.await
+					.await
+				{
+					Ok(r) => r,
+					Err(_) => {
+						self.host.read_new().await?;
+						let mut instance = self.host.create_instance().await?;
+						execute(move || (instance.invoke(operation, Some(&mut gas)), instance, gas))
+							.await
+							.await?
+					}
+				}
+			} else {
+				execute(move || (instance.invoke(operation, Some(&mut gas)), instance, gas))
+					.await
+					.await?
 			};
+			instance = i;
+			gas = g;
 			let resp = match resp {
 				Ok(resp) => resp,
 				Err(e) => Operation::ReturnErr { error: e.into() },
