@@ -8,7 +8,7 @@ use super::crypto::sha256;
 
 pub const FIXED_TEA_ID_LEN: usize = 32;
 
-/// Transform non-length u8 to tea_id ([u8; 32])
+/// Transform non-length compatible u8 to tea_id ([u8; 32])
 pub fn to_fixed_len_tea_id(buf: &[u8]) -> Result<[u8; FIXED_TEA_ID_LEN]> {
 	if buf.len() < FIXED_TEA_ID_LEN {
 		return Err(Layer1Errors::BufferLengthMismatch(FIXED_TEA_ID_LEN, buf.len()).into());
@@ -20,7 +20,7 @@ pub fn to_fixed_len_tea_id(buf: &[u8]) -> Result<[u8; FIXED_TEA_ID_LEN]> {
 }
 
 /// Transform u8 buffer to u128.
-/// It usually used to Ts in system.
+/// This is usually done for Ts in the system.
 pub fn u128_from_le_buffer(data: &[u8]) -> Result<u128> {
 	const U128_LENGTH: usize = 16;
 
@@ -33,8 +33,8 @@ pub fn u128_from_le_buffer(data: &[u8]) -> Result<u128> {
 	Ok(u128::from_le_bytes(u128_buf))
 }
 
-/// Transform H160 to string
-/// In system. user wallet address and token id are both H160.
+/// Transform H160 address to string.
+/// In the system, a user's wallet address as well as token id are both H160.
 pub fn h160_to_string(data: H160) -> Result<String> {
 	let fmt = format!("{data:?}");
 	Ok(fmt)
@@ -45,8 +45,8 @@ pub fn str_to_h160(data: &str) -> Result<H160> {
 	Ok(data.parse()?)
 }
 
-/// Format and transform a base string to a H160 address
-/// In tea system, it will be an eamil string.
+/// Format and transform a base string to a H160 address.
+/// In the TEA system, it will be an email string.
 pub async fn email_to_h160(email: &str) -> Result<H160> {
 	let hash = sha256(email.to_lowercase().as_bytes().to_vec()).await?;
 
@@ -56,7 +56,7 @@ pub async fn email_to_h160(email: &str) -> Result<H160> {
 	Ok(acct)
 }
 
-/// Generate a random length u8 string from system.
+/// Generate a random length u8 string with the system.
 pub async fn randome_number_by_len(len: u8) -> Result<String> {
 	let len = u32::from(len);
 	let mut rs: Vec<String> = Vec::new();

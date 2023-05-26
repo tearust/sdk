@@ -43,7 +43,7 @@ pub async fn cancel_sql_transaction(token_id: TokenId) -> Result<()> {
 	Ok(())
 }
 
-/// Return total count of table with token id in sql.
+/// Return total count of tables with `Token_Id` in sql.
 pub async fn table_row_count(token_id: TokenId, table_name: &str) -> Result<u64> {
 	let result = sql_query(token_id, format!(r"SELECT COUNT(*) FROM {table_name};")).await?;
 	query_first_u64(
@@ -53,7 +53,7 @@ pub async fn table_row_count(token_id: TokenId, table_name: &str) -> Result<u64>
 	)
 }
 
-/// Return all select rows of payload.
+/// Return all selected rows of payload.
 /// 	let list_sql = sql_query_first(
 /// 		tappstore_id().await?,
 /// 		"SELECT * FROM TxnGasFeeTable".to_string(),
@@ -73,7 +73,7 @@ pub fn query_first_row(payload: &Payload) -> Result<&Row> {
 	rows.get(0).ok_or(GlueSqlErrors::InvalidFirstRow.into())
 }
 
-/// Return all select data of payload and transform to u64.
+/// Return all selected data of payload after transforming to u64.
 pub fn query_all_first_columns_as_u64(payload: &Payload) -> Result<Vec<u64>> {
 	let mut rtn = Vec::new();
 	for v in query_select_rows(payload)? {
@@ -84,7 +84,7 @@ pub fn query_all_first_columns_as_u64(payload: &Payload) -> Result<Vec<u64>> {
 	Ok(rtn)
 }
 
-/// Return all select data of payload and transform to string.
+/// Return all selected data of payload and transform it to string.
 pub fn query_all_first_columns_as_string(payload: &Payload) -> Result<Vec<&str>> {
 	let mut rtn = Vec::new();
 	for v in query_select_rows(payload)? {
@@ -95,7 +95,7 @@ pub fn query_all_first_columns_as_string(payload: &Payload) -> Result<Vec<&str>>
 	Ok(rtn)
 }
 
-/// Return first select data of payload and transform to u64.
+/// Return the first selected data of payload and transform to u64.
 pub fn query_first_u64(payload: &Payload) -> Result<u64> {
 	let row = query_first_row(payload)?;
 	let count = row
@@ -104,7 +104,7 @@ pub fn query_first_u64(payload: &Payload) -> Result<u64> {
 	sql_value_to_u64(count)
 }
 
-/// Return first select data of payload and transform to string.
+/// Return first select data of payload and transform it to string.
 pub fn query_first_string(payload: &Payload) -> Result<&str> {
 	let row = query_first_row(payload)?;
 	let value = row
@@ -113,7 +113,7 @@ pub fn query_first_string(payload: &Payload) -> Result<&str> {
 	sql_value_to_string(value)
 }
 
-/// Transform a sql value to u64.
+/// Transform an sql value to u64.
 pub fn sql_value_to_u64(value: &Value) -> Result<u64> {
 	match value {
 		Value::I64(i) => Ok(*i as u64),
@@ -121,8 +121,7 @@ pub fn sql_value_to_u64(value: &Value) -> Result<u64> {
 	}
 }
 
-/// Transform a sql value to an option u64.
-/// It used to transform a sql value can be NULL.
+/// Transform an sql value to an optional u64 (sql value can be NULL).
 pub fn sql_value_to_option_u64(value: &Value) -> Result<Option<u64>> {
 	match value {
 		Value::Null => Ok(None),
@@ -130,7 +129,7 @@ pub fn sql_value_to_option_u64(value: &Value) -> Result<Option<u64>> {
 	}
 }
 
-/// Transform a sql value to string.
+/// Transform an sql value to string.
 pub fn sql_value_to_string(value: &Value) -> Result<&str> {
 	match value {
 		Value::Str(s) => Ok(s),
@@ -138,8 +137,7 @@ pub fn sql_value_to_string(value: &Value) -> Result<&str> {
 	}
 }
 
-/// Transform a sql value to an option string.
-/// It used to transform a sql value can be NULL.
+/// Transform an sql value to an optional string. (sql value can be NULL).
 pub fn sql_value_to_option_string(value: &Value) -> Result<Option<&str>> {
 	match value {
 		Value::Null => Ok(None),
@@ -165,7 +163,7 @@ pub async fn sql_query(token_id: TokenId, sql: String) -> Result<Vec<Payload>> {
 		.err_into()
 }
 
-/// Generate sql payload.
+/// Generate an sql payload.
 ///  	let list_sql = sql_query_first(
 /// 		tappstore_id().await?,
 /// 		"SELECT * FROM TxnGasFeeTable".to_string(),
@@ -178,8 +176,8 @@ pub async fn sql_query_first(token_id: TokenId, sql: String) -> Result<Payload> 
 	Ok(payloads.remove(0))
 }
 
-/// Move token from user to another user with same token id.
-/// It usually used to move TEA under GLOBAL token_id, which is tappstore in system.
+/// Move token from user to another user.
+/// It's usually used to move TEA under GLOBAL token_id, which is TAppStore in the system.
 pub async fn mov(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
 	if amt.is_zero() {
 		info!("Mov 0 unit, ignored.");
@@ -195,8 +193,8 @@ pub async fn mov(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Resu
 	Ok(res.0)
 }
 
-/// move TEA across token. That means from one token_id balance to another token_id balance
-/// Most likely move from TAppStore balance to a TAppToken balance due to buy/sell token
+/// Move TEA value from one token_id balance to another token_id balance.
+/// Most likely a move between TAppStore balance and a TAppToken balance due to buying/selling a token.
 pub async fn cross_move(
 	from: Account,
 	to: Account,
@@ -240,8 +238,8 @@ pub async fn cross_move(
 	Ok((res.from_ctx, res.to_ctx))
 }
 
-/// An warpped method for cross_move, which include the allowance opreation.
-/// Developer can easily to move TEA in different token_id and doesnot need to operate the user allowance manually.
+/// A wrapped method for cross_move, which includes the allowance operation.
+/// Developers can easily move TEA among different token_id and don't need to set the user allowance manually.
 pub async fn api_cross_move(
 	from: Account,
 	to: Account,
@@ -286,7 +284,7 @@ pub async fn api_cross_move(
 	Ok((res.from_ctx, res.to_ctx))
 }
 
-/// An warpped method for deposit, which include the allowance opreation.
+/// A wrapped method for deposit, which includes the allowance operation.
 pub async fn api_deposit(
 	acct: Account,
 	amt: Balance,
@@ -314,7 +312,7 @@ pub async fn api_deposit(
 	}
 }
 
-/// An warpped method for refund, which include the allowance opreation.
+/// A wrapped method for refund, which includes the allowance operation.
 pub async fn api_refund(
 	acct: Account,
 	amt: Balance,
