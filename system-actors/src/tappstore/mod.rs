@@ -26,66 +26,103 @@ pub type QueryCmlResultItem = (CmlIntrinsic, CmlVariable, Vec<u8>, Option<TokenI
 
 pub const NAME: &[u8] = b"com.tea.tappstore-actor";
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryCmlIntrinsicRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryCmlIntrinsicResponse(pub CmlIntrinsic);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningVariableRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningVariableResponse(pub MiningVariable);
 
+/// Base request to return mining cmls.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlsRequest(pub Vec<u8>);
+
+/// Base response to return mining cmls.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlsResponse(pub Vec<QueryCmlResultItem>);
 
+/// Base request to return all mining cml id.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlIdsRequest;
+
+/// Base response to return all mining cml id.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlIdsResponse(pub Vec<CmlId>);
 
+/// Base request to return machine info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMachineInfoRequest(pub Vec<u8>);
+
+/// Base response to return machine info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMachineInfoResponse(pub MiningIntrinsic, pub MiningVariable);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByConnIdRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByConnIdResponse(pub TeaNodeProfile);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByTeaIdRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByTeaIdResponse(pub TeaNodeProfile);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByTeaIdsRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByTeaIdsResponse(pub Vec<TeaNodeProfile>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByConnIdsRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct NodeProfileByConnIdsResponse(pub Vec<TeaNodeProfile>);
 
+/// Base request to return active node.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveNodesRequest(pub Vec<u8>);
+
+/// Base response to return active node.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveNodesResponse(pub Vec<TeaNodeProfile>);
 
+/// Base request to return active cml info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveCmlsRequest(pub Vec<u8>);
+
+/// Base response to return active cml info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveCmlsResponse(pub Vec<CmlId>);
 
+/// Base request to return active seat info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveSeatsRequest(pub Vec<u8>);
+
+/// Base response to return active seat info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveSeatsResponse(pub Vec<SeatMaintainer>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct QueryActiveSeatsAsyncRequest {
@@ -93,6 +130,7 @@ pub struct QueryActiveSeatsAsyncRequest {
 	pub tsid: Tsid,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct QueryActiveSeatsAsyncReply {
@@ -100,31 +138,46 @@ pub struct QueryActiveSeatsAsyncReply {
 	pub tsid: Tsid,
 }
 
+/// Base request to return account tea balance.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryTeaBalanceRequest(pub Vec<u8>);
+
+/// Base response to return account tea balance.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryTeaBalanceResponse(pub Vec<u8>);
 
+/// Base request to return account tea deposit.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryTeaDepositRequest(pub Vec<u8>);
+
+/// Base response to return account tea deposit.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryTeaDepositResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FetchAccountAssetRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FetchAccountAssetResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FindExecutedTxnRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FindExecutedTxnResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CheckUserSessionRequest {
 	pub token_id: TokenId,
 	pub account: Account,
 }
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CheckUserSessionResponse {
 	pub aes_key: Vec<u8>,
@@ -133,66 +186,103 @@ pub struct CheckUserSessionResponse {
 	pub account: Account,
 }
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CommonSqlQueryRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CommonSqlQueryResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetStatementsRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetStatementsResponse(pub Vec<(TypedStatement, String, String)>, pub bool);
 
+/// Base request to return account allowance.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FetchAllowanceRequest(pub Vec<u8>);
+
+/// Base response to return account allowance.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FetchAllowanceResponse(pub Vec<u8>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryCmlIdsByTeaIdsRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryCmlIdsByTeaIdsResponse(pub Vec<CmlId>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryHostingCmlsRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryHostingCmlsResponse(pub Vec<CmlId>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryCmlRaStatusRequest(pub Vec<u8>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryCmlRaStatusResponse(pub NodeStatus);
 
+/// Base request to return system version.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QuerySystemVersionsRequest;
+
+/// Base response to return system version.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QuerySystemVersionsResponse(pub SystemVersions);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryExpiredWithdrawsRequest(pub TimestampShort);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryExpiredWithdrawsResponse(pub Vec<(Hash, Vec<UnlockRecordTrans>, String)>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryExpiredMintCmlsRequest(pub TimestampShort);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryExpiredMintCmlsResponse(pub Vec<(Hash, Vec<MintCmlRecordTrans>, String)>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ProcessPreArgsRequest(pub Vec<Arg>);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ProcessPreArgsResponse(pub ArgSlots);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryLastFreezeRequest;
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryLastFreezeResponse(pub Option<FreezeRequest>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ListAvailablePcrsRequest(pub EnclaveType);
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ListAvailablePcrsResponse(pub Vec<HashMap<PcrType, Vec<u8>>>);
 
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct HandleTappAddErrorLogRequest {
@@ -200,6 +290,8 @@ pub struct HandleTappAddErrorLogRequest {
 	pub actor_type: String,
 	pub details: String,
 }
+
+#[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct HandleTappRemoveErrorLogRequest {
