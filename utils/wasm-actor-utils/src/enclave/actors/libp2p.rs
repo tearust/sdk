@@ -26,7 +26,7 @@ use tea_system_actors::libp2p::{
 
 const INTELLI_CANDIDATES_COUNT: usize = 2;
 
-/// Return current node connection id.
+/// Return current node's connection id
 pub async fn my_conn_id() -> Result<String> {
 	let conn_id = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(MyConnIdRequest)

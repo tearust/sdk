@@ -272,7 +272,7 @@ pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, Stri
 	}
 }
 
-/// Return current validator state.
+/// Return current validator's state
 pub async fn fetch_validator_state_async() -> Result<Option<replica::ValidatorsState>> {
 	let buf = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::ValidatorsStateRequest)

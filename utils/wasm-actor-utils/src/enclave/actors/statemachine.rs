@@ -65,8 +65,8 @@ impl CommitContext {
 		}
 	}
 
-	/// Include a mock auth_key to pass system checking.
-	/// it usually for system txn, e.g. developer's cronjob in stata actor.
+	/// Include a mock auth_key to pass system check
+	/// This is usually done for system a txn, e.g. developer's cronjob in state actor
 	pub fn ctx_receipting(ctx: Vec<u8>, memo: String) -> CommitContext {
 		CommitContext {
 			ctx,
@@ -124,7 +124,7 @@ impl CommitContextList {
 		Ok(())
 	}
 
-	/// Commit txn result to state machine.
+	/// Commit txn result to state machine
 	pub async fn commit(&self, base: Tsid, tsid: Tsid) -> Result<()> {
 		// check all contexts to avoid errors during actual commit
 		self.check().await?;
@@ -226,7 +226,7 @@ impl TryInto<CommitRequest> for CommitContext {
 	}
 }
 
-/// Return the latest tsid from state-machine.
+/// Return the latest tsid from the state-machine
 pub async fn query_state_tsid() -> Result<Tsid> {
 	let buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryStateTsidRequest)
@@ -246,10 +246,10 @@ pub async fn check(ctx: CommitContext) -> Result<()> {
 	Ok(())
 }
 
-/// return value (hidden_acct_credit, hidden_acct_debit)
-/// we will need those two value to check the overall balance
+/// Return value (hidden_acct_credit, hidden_acct_debit).
+/// We'll need those two values to check the overall balance
 /// after commit.
-/// we need to make sure the overall balance is zero
+/// We need to make sure the overall balance is zero
 pub async fn commit(ctx: CommitContext) -> Result<(Balance, Balance, Vec<TypedStatement>)> {
 	let buf = encode_protobuf::<CommitRequest>(ctx.try_into()?)?;
 	let res_buf = ActorId::Static(codec::NAME)
@@ -262,8 +262,8 @@ pub async fn commit(ctx: CommitContext) -> Result<(Balance, Balance, Vec<TypedSt
 	Ok((hidden_acct_credit, hidden_acct_debit, statements))
 }
 
-/// Return serialize txn.
-/// include target actor name and the gas limit.
+/// Return serialized txn.
+/// Include the target actor name and the gas limit.
 pub async fn new_txn_serial(
 	actor_name: &[u8],
 	bytes: Vec<u8>,
@@ -277,7 +277,7 @@ pub async fn new_txn_serial(
 	))
 }
 
-/// Return the auth_key buffer by auth_key from state-machine.
+/// Return the auth_key buffer from state-machine
 pub async fn query_auth_ops_bytes(auth: AuthKey, gas_limit: u64) -> Result<Vec<u8>> {
 	if auth == GOD_MODE_AUTH_KEY {
 		error!("If authkey is GOD MODE, use generate_god_mode_ops_bytes instead");
@@ -296,7 +296,7 @@ pub async fn query_auth_ops_bytes(auth: AuthKey, gas_limit: u64) -> Result<Vec<u
 	Ok(auth_ops_bytes)
 }
 
-/// Renew auth_key expiration if it expired.
+/// Renew auth_key expiration if it's expired
 pub async fn send_tx_new_auth_key_expired(
 	auth: &AuthKey,
 	new_expire: u128,
@@ -330,7 +330,7 @@ pub async fn send_tx_new_auth_key_expired(
 }
 
 /// Return token balance from state-machine.
-/// it usually using in txn inner.
+/// It's usually used in inner txns.
 pub async fn read_bonding_balance(
 	account: Account,
 	ctx: Vec<u8>,
@@ -350,7 +350,7 @@ pub async fn read_bonding_balance(
 }
 
 /// Return tea balance from state-machine.
-/// it usually using in txn inner.
+/// Usually only used in inner txns.
 pub async fn read_tea_balance(
 	ctx: Vec<u8>,
 	account: Account,
@@ -370,7 +370,7 @@ pub async fn read_tea_balance(
 }
 
 /// Return tea balance from state-machine.
-/// Can not using in txn inner, it only return the tea balance before the txn start, so not collect if change tea balance in txn inner.
+/// Cannot use in inner txns as it only returns the tea balance before the txn start, so it won't record the changed tea balance from inner txns
 pub async fn query_tea_balance(token_id: TokenId, account: Account) -> Result<Balance> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryTeaBalanceRequest(encode_protobuf(
@@ -384,8 +384,8 @@ pub async fn query_tea_balance(token_id: TokenId, account: Account) -> Result<Ba
 	deserialize(res.balance_bytes).err_into()
 }
 
-/// Return tea deposit from state-machine.
-/// Can not using in txn inner, it only return the tea deposit before the txn start, so not collect if change tea deposit in txn inner.
+/// Return tea deposit amount from state-machine.
+/// Cannot use in inner txns as it only returns the tea balance before the txn start, so it won't record the changed tea deposit from inner txns
 pub async fn query_tea_deposit_balance(token_id: TokenId, account: Account) -> Result<Balance> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryTeaDepositBalanceRequest(encode_protobuf(
@@ -400,7 +400,7 @@ pub async fn query_tea_deposit_balance(token_id: TokenId, account: Account) -> R
 	Ok(balance)
 }
 
-/// Return address's allowance from state-machine.
+/// Return address's allowance from the state-machine
 pub async fn query_allowance(token_id: &TokenId, address: &Account) -> Result<Balance> {
 	let req = QueryAllowanceRequest {
 		token_id: serialize(token_id)?,
@@ -415,10 +415,10 @@ pub async fn query_allowance(token_id: &TokenId, address: &Account) -> Result<Ba
 	Ok(allowance)
 }
 
-/// this is the in-transaction version of get_bonding_total_supply. it is
+/// This is the in-transaction version of get_bonding_total_supply. It's
 /// used inside a transaction with ctx live.
-/// beause there might be some uncommitted add and sub, the get function wont
-/// have those changes included. but the read function will
+/// Because there might be some uncommitted additions and subtractions, the get function won't
+/// have those changes included but the read function will
 pub async fn read_bonding_total_supply(ctx: Vec<u8>) -> Result<(Balance, Vec<u8>)> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::ReadBondingTotalSupplyRequest(encode_protobuf(
@@ -429,7 +429,7 @@ pub async fn read_bonding_total_supply(ctx: Vec<u8>) -> Result<(Balance, Vec<u8>
 	Ok((deserialize(&res.total_supply)?, res.ctx))
 }
 
-/// Burn token.
+/// Burn token
 pub async fn burn_bonding_token(
 	account: Account,
 	amount: Balance,
@@ -461,9 +461,9 @@ pub async fn get_reserved_token_balance(token_id: TokenId) -> Result<Balance> {
 	deserialize(res.amount).err_into()
 }
 
-/// This get function can only be called from a pure query, not inside a txn
-/// If in side a txn, we will need to use read_bonding_total_supply with a
-/// token_ctx as parameter
+/// This get function can only be called from a pure query, not inside a txn.
+/// If it's inside a txn, we'll need to use read_bonding_total_supply with a
+/// token_ctx as a parameter.
 pub async fn get_bonding_total_supply(token_id: TokenId) -> Result<Balance> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::GetBondingTotalSupplyRequest(encode_protobuf(
@@ -514,7 +514,7 @@ pub async fn set_allowance(token_id: &TokenId, address: &Account, amount: &Balan
 	Ok(())
 }
 
-/// check if an account has enough requried_amt balance. return true if yes. else false
+/// Check if an account has enough required_amt balance. Return true if yes, false otherwise
 pub async fn verify_enough_account_balance(
 	acct: &Account,
 	ctx: Vec<u8>,
@@ -555,7 +555,7 @@ pub async fn pay_miner_gas(
 	Ok((res.tappstore_ctx, res.payee_ctx))
 }
 
-/// return balance in bytes and tsid in bytes
+/// Return balance in bytes and tsid in bytes
 pub async fn query_token_balance(token_id: TokenId, account: Account) -> Result<Balance> {
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryTokenBalanceRequest(encode_protobuf(

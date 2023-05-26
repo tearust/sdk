@@ -26,7 +26,7 @@ impl Drop for ShabbyLock {
 	}
 }
 
-/// Set cache value to key-value actor and not expired.
+/// Set cache value of key-value actor and set status to not expired
 pub async fn set_forever<T: Serialize + DeserializeOwned>(key: &str, value: &T) -> Result<T> {
 	let req = SetRequest {
 		key: key.to_owned(),
@@ -37,7 +37,7 @@ pub async fn set_forever<T: Serialize + DeserializeOwned>(key: &str, value: &T) 
 	deserialize(r.value.as_slice()).err_into()
 }
 
-/// Return cache value from key-value actor.
+/// Return cache value from key-value actor
 pub async fn get<T: DeserializeOwned>(key: &str) -> Result<Option<T>> {
 	let req = GetRequest {
 		key: key.to_owned(),
@@ -56,7 +56,7 @@ pub async fn get<T: DeserializeOwned>(key: &str) -> Result<Option<T>> {
 	}
 }
 
-/// Set cache value to key-value actor. can set expired second.
+/// Set cache value to key-value actor and optionally how many seconds until expired
 pub async fn set<T: Serialize + DeserializeOwned>(
 	key: &str,
 	value: &T,
@@ -71,7 +71,7 @@ pub async fn set<T: Serialize + DeserializeOwned>(
 	deserialize(r.value.as_slice()).err_into()
 }
 
-/// Remove cache value from key-value actor.
+/// Remove cache value from key-value actor
 pub async fn del(key: &str) -> Result<String> {
 	let req = DelRequest {
 		key: key.to_owned(),

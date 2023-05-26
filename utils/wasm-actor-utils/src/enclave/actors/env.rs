@@ -18,13 +18,13 @@ pub async fn has_runtime_init() -> Result<bool> {
 }
 
 /// Return system time
-/// Depend on tea:env actor.
+/// Depends on tea:env actor
 pub async fn get_system_time() -> Result<SystemTime> {
 	let time = ActorId::Static(NAME).call(GetSystemTimeRequest).await?;
 	Ok(time.0)
 }
 
-/// Return system time as micro-second.
+/// Return system time in micro-seconds
 pub async fn system_time_as_nanos() -> Result<u128> {
 	tea_runtime_codec::vmh::utils::system_time_as_nanos(get_system_time().await?).err_into()
 }
@@ -37,8 +37,8 @@ pub async fn is_replica_test_mode() -> Result<bool> {
 	Ok(b.0)
 }
 
-/// If current node is a seat node, return true.
-/// if is a miner node, return false.
+/// If current node is a state maintainer node, return true
+/// If it's a hosting node, return false.
 pub async fn apply_validator() -> Result<bool> {
 	let v = ActorId::Static(NAME).call(GetApplyValidatorRequest).await?;
 	Ok(v.0)
@@ -50,7 +50,7 @@ pub async fn is_test_mode() -> Result<bool> {
 	Ok(v.0)
 }
 
-/// Return current wasm-actor's token_id in manifest file.
+/// Return current wasm-actor's token_id in manifest file
 pub async fn get_current_wasm_actor_token_id() -> Result<Option<String>> {
 	let res = ActorId::Static(NAME)
 		.call(GetWasmActorTokenIdRequest)
@@ -90,7 +90,7 @@ pub async fn get_env_var(_env_var: &str) -> Result<String> {
 	Ok("".into())
 }
 
-/// Return empty string is the env var is not set by the OS
+/// Return empty string if the env var is not set by the OS
 #[cfg(not(feature = "__test"))]
 pub async fn get_env_var(env_var: &str) -> Result<Option<String>> {
 	let v = ActorId::Static(NAME)
@@ -99,7 +99,7 @@ pub async fn get_env_var(env_var: &str) -> Result<Option<String>> {
 	Ok(v.0)
 }
 
-/// Return current system timestamp.
+/// Return current system timestamp
 pub async fn current_timestamp(precision: Precision, trunc_base: i64) -> Result<i64> {
 	let t = ActorId::Static(NAME)
 		.call(GetCurrentTimestampRequest(precision, trunc_base))
@@ -115,7 +115,7 @@ pub async fn initial_latest_topup_height() -> Result<BlockNumber> {
 	Ok(r.0)
 }
 
-/// register a random tick, `range_start` and `range_end` specifying the min and max tick interval
+/// Register a random tick with `range_start` and `range_end` specifying the min and max tick interval
 /// in milliseconds
 pub async fn register_random_tick(args: RandomTickArgs) -> Result<()> {
 	ActorId::Static(tea_system_actors::tokenstate::NAME)
@@ -140,7 +140,7 @@ pub async fn register_cron_job(args: CronjobArgs) -> Result<()> {
 		.err_into()
 }
 
-/// Return current miner's owner address.
+/// Return current miner's owner address
 pub async fn my_machine_owner() -> Result<String> {
 	let owner = ActorId::Static(NAME).call(GetMachineOwnerRequest).await?;
 	Ok(owner.0)
