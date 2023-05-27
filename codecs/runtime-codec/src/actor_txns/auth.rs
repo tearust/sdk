@@ -41,7 +41,7 @@ impl TokenAuthOp {
 		}
 	}
 
-	/// Check auth method.
+	/// Check authorization method.
 	pub fn check_auth(
 		&self,
 		ask_acct: Account,

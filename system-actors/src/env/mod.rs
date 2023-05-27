@@ -21,12 +21,12 @@ pub struct GetRequest(pub String);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetResponse(pub Option<String>);
 
-/// Base requst to return system time.
+/// Base request to return system time.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GetSystemTimeRequest;
 
-/// Base response to return system time.
+/// Base response from returning system time.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetSystemTimeResponse(pub SystemTime);
 
@@ -35,7 +35,7 @@ pub struct GetSystemTimeResponse(pub SystemTime);
 #[price(10000)]
 pub struct GetCurrentTimestampRequest(pub Precision, pub i64);
 
-/// Base response to return current timestamp.
+/// Base response from returning current timestamp.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetCurrentTimestampResponse(pub i64);
 
@@ -71,7 +71,7 @@ pub struct WorkersTrackingResponse(pub HashMap<(ActorId, u64), HashMap<u64, Call
 #[price(10000)]
 pub struct GetTeaIdRequest;
 
-/// Base response to return the current miner's tea_id.
+/// Base response from returning the current miner's tea_id.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetTeaIdResponse(pub String);
 
@@ -80,7 +80,7 @@ pub struct GetTeaIdResponse(pub String);
 #[price(0)]
 pub struct GetMachineOwnerRequest;
 
-/// Base response to return the current miner's owner.
+/// Base response from returning the current miner's owner.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetMachineOwnerResponse(pub String);
 
@@ -93,12 +93,12 @@ pub struct GetReplicaTestModeRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetReplicaTestModeResponse(pub bool);
 
-/// Base request to check current node is a validator or not.
+/// Base request to check if the current node is a validator or not.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10)]
 pub struct GetApplyValidatorRequest;
 
-/// Base response to check current node is a validator or not.
+/// Base response from checking if current node is a validator or not.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetApplyValidatorResponse(pub bool);
 
@@ -116,7 +116,7 @@ pub struct IsTestModeResponse(pub bool);
 #[price(10000)]
 pub struct GetTappstoreTokenIdRequest;
 
-/// Base response to return tappstore token_id.
+/// Base response from return of tappstore token_id.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetTappstoreTokenIdResponse(pub String);
 
@@ -143,7 +143,7 @@ pub struct GetMiningStartupResponse(pub Vec<([u8; 32], u64, String)>);
 #[price(10000)]
 pub struct GetSystemVersionsRequest;
 
-/// Base response to return system version.
+/// Base response from returning system version.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetSystemVersionsResponse(pub VersionInfo, pub VersionInfo);
 
@@ -188,7 +188,7 @@ pub struct ProfileCast {
 #[price(10000)]
 pub struct GetWasmActorTokenIdRequest;
 
-/// Base response to get a wasm token_id in manifest.
+/// Base response from getting a wasm token_id in manifest.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GetWasmActorTokenIdResponse(pub Option<String>);
 

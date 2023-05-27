@@ -42,19 +42,19 @@ pub struct QueryMiningVariableRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningVariableResponse(pub MiningVariable);
 
-/// Base request to return mining cmls.
+/// Base request to return mining CMLs.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlsRequest(pub Vec<u8>);
 
-/// Base response to return mining cmls.
+/// Base response to return mining CMLs.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlsResponse(pub Vec<QueryCmlResultItem>);
 
-/// Base request to return all mining cml id.
+/// Base request to return all mining CML ids.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlIdsRequest;
 
-/// Base response to return all mining cml id.
+/// Base response from returning all mining CML ids.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlIdsResponse(pub Vec<CmlId>);
 
@@ -62,7 +62,7 @@ pub struct QueryMiningCmlIdsResponse(pub Vec<CmlId>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMachineInfoRequest(pub Vec<u8>);
 
-/// Base response to return machine info.
+/// Base response from returning machine info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMachineInfoResponse(pub MiningIntrinsic, pub MiningVariable);
 
@@ -102,15 +102,15 @@ pub struct NodeProfileByConnIdsResponse(pub Vec<TeaNodeProfile>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveNodesRequest(pub Vec<u8>);
 
-/// Base response to return active node.
+/// Base response from returning active node.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveNodesResponse(pub Vec<TeaNodeProfile>);
 
-/// Base request to return active cml info.
+/// Base request to return active CML info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveCmlsRequest(pub Vec<u8>);
 
-/// Base response to return active cml info.
+/// Base response to return active CML info.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryActiveCmlsResponse(pub Vec<CmlId>);
 

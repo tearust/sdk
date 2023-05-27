@@ -38,25 +38,25 @@ pub struct Sha256Request(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct Sha256Response(pub Vec<u8>);
 
-/// Base request for sign a bytes.
+/// Base sign request in bytes.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct SignRequest(pub Vec<u8>);
 
-/// Base response for sign a bytes.
+/// Base sign response in bytes.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct SignResponse(pub Vec<u8>);
 
-/// Base request for verify signature.
+/// Base request to verify signature.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct VerifyRequest(pub Vec<u8>);
 
-/// Base response for verfiy signature.
+/// Base response for verify signature.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct VerifyResponse(pub Vec<u8>);
 
-/// Baes request for verfiy signature with ether-rs.
+/// Baes request to verify signature with ether-rs.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct EtherVerifyRequest {
@@ -105,12 +105,12 @@ pub struct CombineToWitnessRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CombineToWitnessResponse(pub Vec<u8>);
 
-/// Base request for generate Aes key.
+/// Base request to generate Aes key.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct GenerateAesKeyRequest;
 
-/// Base response for generate Aes key.
+/// Base response for generating Aes key.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenerateAesKeyResponse(pub Vec<u8>);
 
@@ -146,7 +146,7 @@ pub struct GenerateRsaPemPcsk1KeypairResponse(pub Vec<u8>);
 #[price(10000)]
 pub struct RsaEncryptRequest(pub Vec<u8>);
 
-/// Base response to encrypt with RSA.
+/// Base response to encrypting with RSA.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RsaEncryptResponse(pub Vec<u8>);
 
@@ -155,6 +155,6 @@ pub struct RsaEncryptResponse(pub Vec<u8>);
 #[price(10000)]
 pub struct RsaDecryptRequest(pub Vec<u8>);
 
-/// Base response to decrypt with RSA.
+/// Base response for decrypting with RSA.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RsaDecryptResponse(pub Vec<u8>);

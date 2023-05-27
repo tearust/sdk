@@ -93,7 +93,7 @@ impl Default for MiningStatus {
 	}
 }
 
-/// Base struct for active miner.
+/// Base structure for active miner.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActiveMinerInfo {
 	pub token_id: String,

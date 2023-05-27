@@ -20,7 +20,7 @@ pub struct OracleHttpRequest {
 	pub payload: Option<String>,
 }
 
-/// Base response to send a oracle http request via tea system.
+/// Base response from sending an oracle http request via tea system.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct OracleHttpResponse {
 	pub text: String,
