@@ -30,6 +30,10 @@ pub trait TypeId {
 	const TYPE_ID: &'static str;
 }
 
+impl TypeId for () {
+	const TYPE_ID: &'static str = "()";
+}
+
 #[doc(hidden)]
 pub trait TypeIdBuf {
 	const TYPE_ID_BUF: ConstStr = ConstStr::empty();

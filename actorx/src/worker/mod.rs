@@ -8,8 +8,10 @@ pub use crate::core::worker_codec::WORKER_UNIX_SOCKET_FD;
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	sync::Arc,
+	time::SystemTime,
 };
 
+use tea_sdk::serde::get_type_id;
 use tokio::{
 	io::{AsyncReadExt, AsyncWriteExt},
 	net::{
@@ -23,7 +25,10 @@ use tokio::{
 };
 
 use crate::{
-	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
+	core::{
+		actor::ActorId,
+		worker_codec::{read_var_bytes, write_var_bytes, Operation},
+	},
 	worker::{error::Result, wasm::Host},
 };
 
@@ -99,6 +104,30 @@ impl Worker {
 		}
 	}
 
+	fn log_operation(op: &Operation, id: ActorId) -> impl FnOnce(&Operation) {
+		let calc_op = |op: &Operation| match op {
+			Operation::Call { req, .. } => {
+				format!("request {}", get_type_id(req).unwrap())
+			}
+			Operation::ReturnOk { resp } => {
+				format!("response {}", get_type_id(resp).unwrap())
+			}
+			Operation::ReturnErr { error } => {
+				format!("error {:?}", error)
+			}
+		};
+		let req = calc_op(op);
+		println!("Wasm worker {id} processing {req}");
+		let time = SystemTime::now();
+		move |op| {
+			let resp = calc_op(op);
+			println!(
+				"Wasm worker {id} finished processing {req}, resulted in {resp} in {}ms",
+				time.elapsed().unwrap().as_millis()
+			)
+		}
+	}
+
 	pub async fn channel(
 		self: Arc<Self>,
 		cid: u64,
@@ -112,6 +141,7 @@ impl Worker {
 		};
 		let mut first = true;
 		while let Some((operation, mut gas)) = input.recv().await {
+			let log = Self::log_operation(&operation, instance.metadata().id.clone());
 			let (resp, i, g) = if first {
 				first = false;
 				let op = operation.clone();
@@ -139,6 +169,7 @@ impl Worker {
 				Ok(resp) => resp,
 				Err(e) => Operation::ReturnErr { error: e.into() },
 			};
+			log(&resp);
 			let is_completed = !matches!(resp, Operation::Call { .. });
 			if is_completed {
 				let slf = self.clone();

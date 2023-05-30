@@ -363,4 +363,8 @@ impl Instance {
 
 		Ok(output)
 	}
+
+	pub fn metadata(&self) -> &Arc<Metadata> {
+		&self.0.metadata
+	}
 }
