@@ -9,13 +9,11 @@ pub const NAME: &[u8] = b"com.tea.tokenstate-service-actor";
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(())]
 pub struct IsOutdatedRequest(pub ActorId);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(())]
-pub struct IsOutdatedReply(pub bool);
+pub struct IsOutdatedResponse(pub bool);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]

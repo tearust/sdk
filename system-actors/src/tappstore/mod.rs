@@ -124,7 +124,6 @@ pub struct QueryActiveSeatsResponse(pub Vec<SeatMaintainer>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(())]
 pub struct QueryActiveSeatsAsyncRequest {
 	pub sender: ActorId,
 	pub tsid: Tsid,
@@ -132,8 +131,7 @@ pub struct QueryActiveSeatsAsyncRequest {
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(())]
-pub struct QueryActiveSeatsAsyncReply {
+pub struct QueryActiveSeatsAsyncResponse {
 	pub seat_nodes: Vec<SeatMaintainer>,
 	pub tsid: Tsid,
 }
