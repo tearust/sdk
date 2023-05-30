@@ -55,7 +55,6 @@ sdk = []
 worker = [
     "sign",
     "wasmer",
-    "wasmer-middlewares",
     "tokio",
     "tokio/io-util",
     "tokio/io-std",
@@ -83,6 +82,7 @@ host = [
 ]
 wasm = ["sdk", "futures"]
 nitro = []
+metering = []
 backtrace = ["tea-codec/backtrace"]
 llvm = ["worker", "wasmer/llvm"]
 track = []

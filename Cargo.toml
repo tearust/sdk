@@ -51,9 +51,10 @@ members = [
 ]
 
 [features]
-default = []
+default = ["metering"]
 wasm = ["system-actors", "tea-wasm-actor-utils", "tea-actorx/wasm"]
 host = ["system-actors", "tea-actorx/host", "tea-codec/runtime"]
+metering = ["tea-actorx/metering"]
 track = ["tea-actorx/track"]
 sign = ["tea-actorx/sign"]
 system-actors = ["tea-system-actors", "vmh"]

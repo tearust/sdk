@@ -8,7 +8,9 @@
         "sign",
         "sign-bin",
         "worker",
-        "track"
+        "track",
+        "metering",
+        "wasmer-middlewares"
     ],
     "rust-analyzer.cargo.extraEnv": {
         "RUSTFLAGS": "--cfg rust_analyzer"

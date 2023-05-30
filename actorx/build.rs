@@ -16,7 +16,9 @@ fn main() {
 		)*};
 	}
 
-	pass_features!("nitro", "backtrace");
+	pass_features!("nitro", "metering", "backtrace");
+	#[cfg(feature = "metering")]
+	features.push("wasmer-middlewares");
 
 	let target = env::var("TARGET").expect("TARGET is not set");
 

@@ -6,9 +6,10 @@ use std::{
 	sync::Arc,
 };
 
+#[cfg(feature = "metering")]
+use crate::core::error::GasFeeExhausted;
 use crate::{
 	core::{
-		error::GasFeeExhausted,
 		metadata::Metadata,
 		wasm::{pricing, MEMORY_LIMIT},
 		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
@@ -22,12 +23,16 @@ use crate::{
 use bincode::serialized_size;
 use tokio::{fs, sync::RwLock};
 use wasmer::{
-	imports, CompilerConfig, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
+	imports, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
 	Instance as WasmInstance, Memory, Module, Store, TypedFunction,
 };
-use wasmer_middlewares::{
-	metering::{get_remaining_points, set_remaining_points},
-	Metering,
+#[cfg(feature = "metering")]
+use ::{
+	wasmer::CompilerConfig,
+	wasmer_middlewares::{
+		metering::{get_remaining_points, set_remaining_points},
+		Metering,
+	},
 };
 
 use super::threading::execute;
@@ -175,12 +180,22 @@ impl Host {
 }
 
 fn create_store() -> Store {
-	let metering_factory = Arc::new(Metering::new(0, pricing));
-	#[cfg(feature = "LLVM")]
-	let compiler_config = wasmer::LLVM::default();
-	#[cfg(not(feature = "LLVM"))]
-	let mut compiler_config = wasmer::Cranelift::default();
-	compiler_config.push_middleware(metering_factory);
+	#[allow(unused_mut)]
+	let mut compiler_config = {
+		#[cfg(feature = "LLVM")]
+		{
+			wasmer::LLVM::default()
+		}
+		#[cfg(not(feature = "LLVM"))]
+		{
+			wasmer::Cranelift::default()
+		}
+	};
+	#[cfg(feature = "metering")]
+	{
+		let metering_factory = Arc::new(Metering::new(0, pricing));
+		compiler_config.push_middleware(metering_factory);
+	}
 	let memory_limit = MemoryLimit::new(
 		MEMORY_LIMIT
 			.map(|x| (x / PAGE_BYTES as u64).max(MAX_PAGES as _) as u32)
@@ -282,27 +297,31 @@ struct InstanceState {
 pub struct Instance(Box<InstanceState>);
 
 impl Instance {
-	pub fn invoke(&mut self, op: Operation, gas: Option<&mut u64>) -> Result<Operation> {
+	pub fn invoke(&mut self, op: Operation, _gas: Option<&mut u64>) -> Result<Operation> {
+		#[cfg(feature = "metering")]
 		set_remaining_points(
 			&mut self.0.store,
 			&self.0.instance,
-			gas.as_deref().copied().unwrap_or(u64::MAX),
+			_gas.as_deref().copied().unwrap_or(u64::MAX),
 		);
 		let result = self.inner_invoke(op);
+		#[cfg(feature = "metering")]
 		match get_remaining_points(&mut self.0.store, &self.0.instance) {
 			wasmer_middlewares::metering::MeteringPoints::Remaining(g) => {
-				if let Some(local_gas) = gas {
+				if let Some(local_gas) = _gas {
 					*local_gas = g;
 				}
 				result
 			}
 			wasmer_middlewares::metering::MeteringPoints::Exhausted => {
-				if let Some(local_gas) = gas {
+				if let Some(local_gas) = _gas {
 					*local_gas = 0;
 				}
 				Err(GasFeeExhausted(self.0.metadata.id.clone()).into())
 			}
 		}
+		#[cfg(not(feature = "metering"))]
+		result
 	}
 
 	#[allow(clippy::uninit_vec)]
