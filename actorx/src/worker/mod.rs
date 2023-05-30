@@ -12,6 +12,7 @@ use std::{
 #[cfg(feature = "verbose_log")]
 use ::{std::time::SystemTime, tea_sdk::serde::get_type_id};
 
+use tea_sdk::ResultExt;
 use tokio::{
 	io::{AsyncReadExt, AsyncWriteExt},
 	net::{
@@ -84,9 +85,20 @@ impl Worker {
 							let (tx, rx) = unbounded_channel();
 							let tx = entry.insert(tx);
 							let channel = self.clone().channel(cid, rx);
+							let slf = self.clone();
 							tokio::spawn(async move {
 								if let Err(e) = channel.await {
-									println!("Worker channel {cid} exits with error: {e:?}");
+									let mut write = slf.write.lock().await;
+									let writing = match (Operation::ReturnErr { error: e.into() }
+										.write(&mut *write, cid, gas)
+										.await)
+									{
+										Ok(_) => write.flush().await.err_into(),
+										e => e,
+									};
+									if let Err(e2) = writing {
+										println!("Worker channel {cid} fails, but the error is unable to report due to {e2:?}");
+									}
 								}
 							});
 							tx
