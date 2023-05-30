@@ -34,6 +34,10 @@ impl TypeId for () {
 	const TYPE_ID: &'static str = "()";
 }
 
+impl TypeId for Vec<u8> {
+	const TYPE_ID: &'static str = "Vec<u8>";
+}
+
 #[doc(hidden)]
 pub trait TypeIdBuf {
 	const TYPE_ID_BUF: ConstStr = ConstStr::empty();

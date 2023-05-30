@@ -107,10 +107,10 @@ impl Worker {
 	fn log_operation(op: &Operation, id: ActorId) -> impl FnOnce(&Operation) {
 		let calc_op = |op: &Operation| match op {
 			Operation::Call { req, .. } => {
-				format!("request {}", get_type_id(req).unwrap())
+				format!("request {}", get_type_id(req).unwrap_or("[untyped]"))
 			}
 			Operation::ReturnOk { resp } => {
-				format!("response {}", get_type_id(resp).unwrap())
+				format!("response {}", get_type_id(resp).unwrap_or("[untyped]"))
 			}
 			Operation::ReturnErr { error } => {
 				format!("error {:?}", error)
