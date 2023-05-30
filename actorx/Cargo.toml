@@ -83,6 +83,7 @@ host = [
 wasm = ["sdk", "futures"]
 nitro = []
 metering = []
+verbose_log = []
 backtrace = ["tea-codec/backtrace"]
 llvm = ["worker", "wasmer/llvm"]
 track = []

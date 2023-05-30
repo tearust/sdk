@@ -8,10 +8,10 @@ pub use crate::core::worker_codec::WORKER_UNIX_SOCKET_FD;
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	sync::Arc,
-	time::SystemTime,
 };
+#[cfg(feature = "verbose_log")]
+use ::{std::time::SystemTime, tea_sdk::serde::get_type_id};
 
-use tea_sdk::serde::get_type_id;
 use tokio::{
 	io::{AsyncReadExt, AsyncWriteExt},
 	net::{
@@ -24,11 +24,10 @@ use tokio::{
 	},
 };
 
+#[cfg(feature = "verbose_log")]
+use crate::core::actor::ActorId;
 use crate::{
-	core::{
-		actor::ActorId,
-		worker_codec::{read_var_bytes, write_var_bytes, Operation},
-	},
+	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
 	worker::{error::Result, wasm::Host},
 };
 
@@ -104,6 +103,7 @@ impl Worker {
 		}
 	}
 
+	#[cfg(feature = "verbose_log")]
 	fn log_operation(op: &Operation, id: ActorId) -> impl FnOnce(&Operation) {
 		let calc_op = |op: &Operation| match op {
 			Operation::Call { req, .. } => {
@@ -141,6 +141,7 @@ impl Worker {
 		};
 		let mut first = true;
 		while let Some((operation, mut gas)) = input.recv().await {
+			#[cfg(feature = "verbose_log")]
 			let log = Self::log_operation(&operation, instance.metadata().id.clone());
 			let (resp, i, g) = if first {
 				first = false;
@@ -169,6 +170,7 @@ impl Worker {
 				Ok(resp) => resp,
 				Err(e) => Operation::ReturnErr { error: e.into() },
 			};
+			#[cfg(feature = "verbose_log")]
 			log(&resp);
 			let is_completed = !matches!(resp, Operation::Call { .. });
 			if is_completed {

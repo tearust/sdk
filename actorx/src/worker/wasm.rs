@@ -383,6 +383,7 @@ impl Instance {
 		Ok(output)
 	}
 
+	#[cfg(feature = "verbose_log")]
 	pub fn metadata(&self) -> &Arc<Metadata> {
 		&self.0.metadata
 	}

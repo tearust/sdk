@@ -16,7 +16,7 @@ fn main() {
 		)*};
 	}
 
-	pass_features!("nitro", "metering", "backtrace");
+	pass_features!("nitro", "metering", "backtrace", "verbose_log");
 	#[cfg(feature = "metering")]
 	features.push("wasmer-middlewares");
 
