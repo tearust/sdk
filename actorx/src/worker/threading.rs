@@ -1,22 +1,17 @@
 use std::{
 	any::Any,
 	cell::UnsafeCell,
-	future::{poll_fn, Future},
+	future::Future,
 	mem::transmute,
 	panic::{catch_unwind, UnwindSafe},
 	pin::Pin,
-	sync::{
-		atomic::{fence, AtomicBool, Ordering},
-		Arc, OnceLock,
-	},
+	sync::{Arc, OnceLock},
 	task::Poll,
-	thread::{self},
 };
 
 use async_channel as mpmc;
-use futures::task::AtomicWaker;
 use tea_sdk::errorx::SyncErrorExt;
-use tokio::sync::oneshot;
+use tokio::sync::{mpsc, oneshot};
 
 use crate::worker::error::Result;
 
@@ -106,99 +101,56 @@ struct Task {
 	output: oneshot::Sender<Result<(), Box<dyn Any + Send>>>,
 }
 
-struct Context {
-	state: UnsafeCell<State>,
-	task_executing: AtomicBool,
-	is_running: AtomicBool,
-	waker: AtomicWaker,
+fn spawn_thread(
+	n: usize,
+) -> mpsc::UnboundedSender<(
+	Box<dyn FnOnce() + Send>,
+	oneshot::Sender<Result<(), Box<dyn Any + Send>>>,
+)> {
+	let (tx, rx) = mpsc::unbounded_channel();
+	std::thread::Builder::new()
+		.name(format!("actorx thread pool {n}"))
+		.spawn(|| thread_loop(rx))
+		.unwrap();
+	tx
 }
-
-unsafe impl Send for Context {}
-unsafe impl Sync for Context {}
-
-#[derive(Default)]
-enum State {
-	#[default]
-	OnHold,
-	Executing(Box<dyn FnOnce() + Send>),
-	Finished(Result<(), Option<Box<dyn Any + Send>>>),
-}
-
 // Daemon Coroutine
 async fn daemon(rx: mpmc::Receiver<Task>, n: usize) {
-	let context = Arc::new(Context {
-		state: UnsafeCell::new(State::OnHold),
-		task_executing: AtomicBool::new(false),
-		is_running: AtomicBool::new(true),
-		waker: AtomicWaker::new(),
-	});
-
-	let mut thread = {
-		let context = context.clone();
-		std::thread::Builder::new()
-			.name(format!("actorx thread pool {n}"))
-			.spawn(|| thread_loop(context))
-			.unwrap()
-	};
+	let mut tx = spawn_thread(n);
 
 	while let Ok(Task { func, output }) = rx.recv().await {
-		fence(Ordering::Acquire);
-		unsafe { *context.state.get() = State::Executing(func) };
-		context.task_executing.store(true, Ordering::Release);
-		thread.thread().unpark();
+		let (o, quote) = oneshot::channel();
 
-		poll_fn(|cx| {
-			if context.task_executing.load(Ordering::Relaxed) {
-				context.waker.register(cx.waker());
-				Poll::Pending
-			} else {
-				Poll::Ready(())
-			}
-		})
-		.await;
+		if let Err(_) = tx.send((func, o)) {
+			_ = output.send(Err(Box::new("thread surprisingly dropped")));
+			tx = spawn_thread(n);
+			continue;
+		}
 
-		let State::Finished(result) = std::mem::take(unsafe { &mut *context.state.get() }) else {
-			unreachable!("actorx internal error: thread pool result unfinished")
-		};
+		let result = quote
+			.await
+			.map_err(|_| Box::new("thread surprisingly dropped") as _)
+			.and_then(|x| x);
 
-		let result = result.map_err(|e| {
-			unsafe { *context.state.get() = State::OnHold };
-			context.task_executing.store(false, Ordering::Relaxed);
-			thread = {
-				let context = context.clone();
-				std::thread::Builder::new()
-					.name(format!("actorx thread pool {n}"))
-					.spawn(|| thread_loop(context))
-					.unwrap()
-			};
-			e.expect("actorx internal error: no error")
-		});
+		if result.is_err() {
+			tx = spawn_thread(n);
+		}
 
 		_ = output.send(result);
 	}
-
-	context.is_running.store(false, Ordering::Relaxed);
 }
 
 // Worker Thread
-fn thread_loop(context: Arc<Context>) {
-	while context.is_running.load(Ordering::Relaxed) {
-		if !context.task_executing.load(Ordering::Acquire) {
-			thread::park();
-			continue;
-		}
-		let mut input = State::Finished(Err(None));
-		std::mem::swap(&mut input, unsafe { &mut *context.state.get() });
-		let State::Executing(input) = input else {
-			unreachable!("actorx internal error: task_ready is set while task is not ready");
-		};
-
+fn thread_loop(
+	mut rx: mpsc::UnboundedReceiver<(
+		Box<dyn FnOnce() + Send>,
+		oneshot::Sender<Result<(), Box<dyn Any + Send>>>,
+	)>,
+) {
+	while let Some((input, output)) = rx.blocking_recv() {
 		let input: Box<dyn FnOnce() + Send + UnwindSafe> = unsafe { transmute(input) };
 		let result = catch_unwind(input);
-		unsafe { *context.state.get() = State::Finished(result.map_err(Some)) };
-		context.task_executing.store(false, Ordering::SeqCst);
-		context.waker.wake();
-		fence(Ordering::Release);
+		_ = output.send(result);
 	}
 }
 
