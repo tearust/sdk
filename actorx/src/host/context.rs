@@ -10,6 +10,7 @@ use tokio::task_local;
 
 use crate::{error::Result, host::Host};
 
+#[cfg(feature = "timeout")]
 pub(crate) mod tracker;
 
 task_local! {

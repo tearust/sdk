@@ -12,10 +12,13 @@ repository = { workspace = true }
 publish = false
 
 [dependencies]
-tea-sdk = { path = "../../..", features = ["host", "track"] }
+tea-sdk = { path = "../../..", features = ["host"] }
 tea-actorx-examples-codec = { path = "../codec" }
 tokio = { workspace = true, features = ["full"] }
 tea-actorx = { path = "../..", features = ["nitro"] }
 
 [build-dependencies]
 tea-sdk = { path = "../../..", features = ["sign"] }
+
+[features]
+timeout = ["tea-sdk/timeout"]

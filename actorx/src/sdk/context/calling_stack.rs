@@ -1,12 +1,15 @@
 #[cfg(feature = "host")]
-use ::{
-	std::{future::Future, sync::Arc},
-	tea_sdk::errorx::Scope,
-	tokio::task_local,
-};
+#[cfg(feature = "timeout")]
+use std::sync::Arc;
+#[cfg(feature = "host")]
+use ::{std::future::Future, tea_sdk::errorx::Scope, tokio::task_local};
 
 #[cfg(feature = "host")]
-use crate::{context::tracker::Tracker, error::Error};
+use crate::error::Error;
+
+#[cfg(feature = "host")]
+#[cfg(feature = "timeout")]
+use crate::context::tracker::Tracker;
 
 use crate::{
 	core::actor::ActorId,
@@ -17,6 +20,7 @@ use crate::{
 #[cfg(feature = "host")]
 task_local! {
 	static CALLING_STACK: Option<CallingStack>;
+	#[cfg(feature = "timeout")]
 	static TRACKER: Arc<Tracker>;
 }
 
@@ -89,34 +93,39 @@ where
 	#[inline(always)]
 	async fn invoke_target(self, value: ActorId) -> Self::Output {
 		let stack = CallingStack::step(value);
-		let is_first = stack.0.caller.is_none();
-		let f = async move {
-			let tracker = TRACKER.with(Arc::clone);
-			tracker.track(self).await
-		};
-		#[cfg(feature = "track")]
-		let fut = CALLING_STACK.scope(Some(stack.clone()), f);
-		#[cfg(not(feature = "track"))]
-		let fut = CALLING_STACK.scope(Some(stack), f);
-		if is_first {
-			TRACKER
-				.scope(
-					Arc::new(Tracker::new(
-						#[cfg(feature = "track")]
-						stack,
-					)),
-					fut,
-				)
-				.await
-		} else {
+		#[cfg(feature = "timeout")]
+		{
+			let is_first = stack.0.caller.is_none();
+			let f = async move {
+				let tracker = TRACKER.with(Arc::clone);
+				tracker.track(self).await
+			};
 			#[cfg(feature = "track")]
-			{
-				*TRACKER
-					.with(|tracker| tracker.full_stack().clone())
-					.write_owned()
-					.await = stack;
+			let fut = CALLING_STACK.scope(Some(stack.clone()), f);
+			#[cfg(not(feature = "track"))]
+			let fut = CALLING_STACK.scope(Some(stack), f);
+			if is_first {
+				TRACKER
+					.scope(
+						Arc::new(Tracker::new(
+							#[cfg(feature = "track")]
+							stack,
+						)),
+						fut,
+					)
+					.await
+			} else {
+				#[cfg(feature = "track")]
+				{
+					*TRACKER
+						.with(|tracker| tracker.full_stack().clone())
+						.write_owned()
+						.await = stack;
+				}
+				fut.await
 			}
-			fut.await
 		}
+		#[cfg(not(feature = "timeout"))]
+		CALLING_STACK.scope(Some(stack), self).await
 	}
 }
