@@ -19,9 +19,9 @@ use crate::{
 
 #[cfg(feature = "host")]
 task_local! {
-	static CALLING_STACK: Option<CallingStack>;
+	pub(crate) static CALLING_STACK: Option<CallingStack>;
 	#[cfg(feature = "timeout")]
-	static TRACKER: Arc<Tracker>;
+	pub(crate) static TRACKER: Arc<Tracker>;
 }
 
 #[inline(always)]
@@ -127,5 +127,135 @@ where
 		}
 		#[cfg(not(feature = "timeout"))]
 		CALLING_STACK.scope(Some(stack), self).await
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use futures::future::join_all;
+
+	use crate::context::WithCallingStack;
+	use crate::error::Result;
+	use crate::{calling_stack, current, ActorId};
+
+	const TEST_ACTOR: &[u8] = b"test_actor";
+	const TEST_ACTOR2: &[u8] = b"test_actor2";
+
+	#[tokio::test]
+	async fn single_actor_invoke_target_works() {
+		async fn fun1(req: &[u8]) -> Result<usize> {
+			assert!(calling_stack().is_some());
+			let stack = calling_stack().unwrap();
+			println!("fun1 calling stack: {:?}", stack);
+			assert_eq!(stack.current, ActorId::Static(TEST_ACTOR));
+			assert!(stack.caller.is_none());
+			Ok(req.len())
+		}
+
+		async fn fun2_1(req: &[u8]) -> Result<usize> {
+			assert!(calling_stack().is_some());
+			let root = calling_stack().unwrap();
+			println!("fun2_1 calling stack: {:?}", root);
+			assert_eq!(root.current, ActorId::Static(TEST_ACTOR));
+			// nested caller
+			assert!(root.caller.is_some());
+
+			let child = root.caller.as_ref().unwrap();
+			assert_eq!(child.current, ActorId::Static(TEST_ACTOR));
+			assert!(child.caller.is_none());
+			Ok(req.len())
+		}
+
+		async fn fun2_2(req: &[u8]) -> Result<usize> {
+			assert!(calling_stack().is_some());
+			let stack = calling_stack().unwrap();
+			println!("fun2_2 calling stack: {:?}", stack);
+			assert_eq!(stack.current, ActorId::Static(TEST_ACTOR));
+			// caller is none
+			assert!(stack.caller.is_none());
+			fun2_1(req).invoke_target(current()?).await.map(|x| x + 1)
+		}
+
+		let test_actor = ActorId::Static(TEST_ACTOR);
+		let test_request = b"test_request";
+
+		let result = fun1(test_request)
+			.invoke_target(test_actor.clone())
+			.await
+			.unwrap();
+		assert_eq!(result, test_request.len());
+
+		let result2 = fun2_2(test_request)
+			.invoke_target(test_actor.clone())
+			.await
+			.unwrap();
+		assert_eq!(result2, test_request.len() + 1);
+	}
+
+	#[tokio::test]
+	async fn multi_actor_invoke_target_works() {
+		async fn fun1(req: &[u8]) -> Result<usize> {
+			assert!(calling_stack().is_some());
+			let root = calling_stack().unwrap();
+			println!("fun1 calling stack: {:?}", root);
+			assert_eq!(root.current, ActorId::Static(TEST_ACTOR2));
+			// nested caller
+			assert!(root.caller.is_some());
+
+			let child = root.caller.as_ref().unwrap();
+			assert_eq!(child.current, ActorId::Static(TEST_ACTOR));
+			assert!(child.caller.is_none());
+			Ok(req.len())
+		}
+
+		async fn fun2(req: &[u8]) -> Result<usize> {
+			assert!(calling_stack().is_some());
+			let stack = calling_stack().unwrap();
+			println!("fun2 calling stack: {:?}", stack);
+			assert_eq!(stack.current, ActorId::Static(TEST_ACTOR));
+			// caller is none
+			assert!(stack.caller.is_none());
+
+			let actor2 = ActorId::Static(TEST_ACTOR2);
+			fun1(req).invoke_target(actor2).await.map(|x| x + 1)
+		}
+
+		let test_actor = ActorId::Static(TEST_ACTOR);
+		let test_request = b"test_request";
+
+		let result = fun2(test_request)
+			.invoke_target(test_actor.clone())
+			.await
+			.unwrap();
+		assert_eq!(result, test_request.len() + 1);
+	}
+
+	#[tokio::test]
+	#[ignore]
+	async fn hug_invoke_target_works() {
+		async fn fun1(req: &[u8]) -> Result<usize> {
+			// println!("fun1 calling stack: {:?}", calling_stack().unwrap());
+			Ok(req.len())
+		}
+
+		async fn fun2(req: &[u8]) -> Result<usize> {
+			let actor2 = ActorId::Static(TEST_ACTOR2);
+			fun1(req).invoke_target(actor2).await.map(|x| x + 1)
+		}
+
+		let join_handles = (0..1000000).map(|_| {
+			let test_actor = ActorId::Static(TEST_ACTOR);
+			let test_request = b"test_request";
+
+			tokio::spawn(async move {
+				let result = fun2(test_request)
+					.invoke_target(test_actor.clone())
+					.await
+					.unwrap();
+				assert_eq!(result, test_request.len() + 1);
+			})
+		});
+
+		join_all(join_handles).await;
 	}
 }
