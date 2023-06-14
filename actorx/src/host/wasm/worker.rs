@@ -19,6 +19,7 @@ use std::{
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
+use tokio::time::timeout;
 use tokio::{
 	fs::OpenOptions,
 	io::AsyncWriteExt,
@@ -297,7 +298,9 @@ impl Channel {
 		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
-		let (result, gas) = self.rx.recv().await.ok_or(WorkerCrashed)?;
+		let (result, gas) = timeout(Duration::from_secs(30), self.rx.recv())
+			.await?
+			.ok_or(WorkerCrashed)?;
 		set_gas(gas);
 		Ok(result)
 	}
