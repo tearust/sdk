@@ -48,8 +48,8 @@ pub enum BadWorkerOutput {
 }
 
 #[derive(Debug, Error)]
-#[error("Worker crashed")]
-pub struct WorkerCrashed;
+#[error("Worker crashed: {0}")]
+pub struct WorkerCrashed(pub Error);
 
 #[derive(Debug, Error)]
 #[error("Access to actor {0} is not permitted")]

@@ -4,7 +4,7 @@ use crate::host::OutputHandler;
 use crate::ActorId;
 use crate::{
 	context::{get_gas, set_gas},
-	error::{BadWorkerOutput, Result, WorkerCrashed},
+	error::{BadWorkerOutput, Error, Result, WorkerCrashed},
 };
 use std::{
 	collections::HashMap,
@@ -51,6 +51,7 @@ pub struct WorkerProcess {
 struct WorkerChannels {
 	channels: HashMap<u64, Sender<(Operation, u64)>>,
 	current_id: u64,
+	error: Option<Error>,
 }
 
 impl WorkerProcess {
@@ -110,6 +111,7 @@ impl WorkerProcess {
 			channels: Mutex::new(WorkerChannels {
 				channels: HashMap::new(),
 				current_id: 0,
+				error: None,
 			}),
 			#[cfg(feature = "nitro")]
 			handle_path,
@@ -209,7 +211,13 @@ impl WorkerProcess {
 
 	async fn read_loop(this: Weak<Self>) {
 		while let Some(this) = this.upgrade() {
-			if let Err(_e) = this.read_tick().await {
+			if let Err(e) = this.read_tick().await {
+				info!("worker reader exits with error: {e:?}");
+				let mut channels = this.channels.lock().await;
+				for (_, sender) in &mut channels.channels.drain() {
+					_ = sender.send((Operation::ReturnErr { error: e.clone() }, 0));
+				}
+				channels.error = Some(e);
 				break;
 			}
 			drop(this);
@@ -263,20 +271,26 @@ impl Worker {
 		})
 	}
 
-	pub async fn open(self) -> Channel {
-		let (tx, rx) = unbounded_channel();
+	pub async fn open(self) -> Result<Channel> {
+		let (mut tx, rx) = unbounded_channel();
 		let mut channels = self.proc.channels.lock().await;
-		let id = channels.current_id;
-		channels.channels.insert(id, tx);
-		channels.current_id = channels.current_id.wrapping_add(1);
+		if let Some(e) = &channels.error {
+			return Err(e.clone());
+		}
+		let mut id = channels.current_id;
+		while let Err(last_tx) = channels.channels.try_insert(id, tx) {
+			tx = last_tx.value;
+			id = id.wrapping_add(1);
+		}
+		channels.current_id = id.wrapping_add(1);
 		drop(channels);
-		Channel {
+		Ok(Channel {
 			#[cfg(feature = "track")]
 			_tracker: self.proc.tracker.create_channel(id),
 			proc: self.proc,
 			rx,
 			id,
-		}
+		})
 	}
 
 	pub fn metadata(&self) -> &Arc<Metadata> {
@@ -298,9 +312,9 @@ impl Channel {
 		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
-		let (result, gas) = timeout(Duration::from_secs(30), self.rx.recv())
-			.await?
-			.ok_or(WorkerCrashed)?;
+		let Some((result, gas)) = timeout(Duration::from_secs(30), self.rx.recv()).await? else {
+			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());
+		};
 		set_gas(gas);
 		Ok(result)
 	}

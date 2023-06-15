@@ -133,30 +133,39 @@ impl WasmActor {
 
 impl Actor for WasmActor {
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>> {
-		let worker = self.worker::<true>().await?;
-		let metadata = worker.metadata().clone();
-		let mut channel = worker.open().await;
-		let ctx = calling_stack();
-		let mut result = channel
-			.invoke(Operation::Call {
-				ctx: bincode::serialize(&ctx)?,
-				req: req.to_vec(),
-			})
-			.await?;
 		loop {
-			result = match result {
-				Operation::Call { ctx, req } => {
-					Self::host_call(&mut channel, &metadata, ctx, req).await?
+			let worker = self.worker::<true>().await?;
+			let metadata = worker.metadata().clone();
+			let mut channel = match worker.open().await {
+				Ok(c) => c,
+				Err(e) => {
+					warn!("channel error: {e:?}, resetting worker");
+					self.state.lock().await.count = MAX_COUNT;
+					continue;
 				}
+			};
+			let ctx = calling_stack();
+			let mut result = channel
+				.invoke(Operation::Call {
+					ctx: bincode::serialize(&ctx)?,
+					req: req.to_vec(),
+				})
+				.await?;
+			loop {
+				result = match result {
+					Operation::Call { ctx, req } => {
+						Self::host_call(&mut channel, &metadata, ctx, req).await?
+					}
 
-				Operation::ReturnOk { resp } => {
-					tokio::spawn(channel.close());
-					return Ok(resp);
-				}
+					Operation::ReturnOk { resp } => {
+						tokio::spawn(channel.close());
+						return Ok(resp);
+					}
 
-				Operation::ReturnErr { error } => {
-					tokio::spawn(channel.close());
-					return Err(error.into_scope());
+					Operation::ReturnErr { error } => {
+						tokio::spawn(channel.close());
+						return Err(error.into_scope());
+					}
 				}
 			}
 		}
