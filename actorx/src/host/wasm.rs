@@ -134,7 +134,7 @@ impl WasmActor {
 impl Actor for WasmActor {
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>> {
 		loop {
-			let worker = self.worker::<true>().await?;
+			let worker = self.worker::<false>().await?;
 			let metadata = worker.metadata().clone();
 			let mut channel = match worker.open().await {
 				Ok(c) => c,
