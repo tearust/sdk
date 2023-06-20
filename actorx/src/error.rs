@@ -20,6 +20,7 @@ define_scope! {
 		MissingCallingStack => MissingCallingStack;
 		ActorHostDropped => ActorHostDropped;
 		InvocationTimeout => InvocationTimeout;
+		ChannelReceivingTimeout => ChannelReceivingTimeout;
 	}
 }
 
@@ -91,3 +92,7 @@ pub struct ActorDeactivating(pub ActorId);
 pub struct InvocationTimeout(
 	#[cfg(any(feature = "host", feature = "wasm"))] pub crate::CallingStack,
 );
+
+#[derive(Debug, Error)]
+#[error("Receiving channel of actor {0} has timeout")]
+pub struct ChannelReceivingTimeout(pub ActorId);

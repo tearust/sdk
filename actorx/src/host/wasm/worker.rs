@@ -1,5 +1,6 @@
 use crate::context::host;
 use crate::core::{metadata::Metadata, worker_codec::*};
+use crate::error::ChannelReceivingTimeout;
 use crate::host::OutputHandler;
 use crate::ActorId;
 use crate::{
@@ -312,7 +313,10 @@ impl Channel {
 		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
-		let Some((result, gas)) = timeout(Duration::from_secs(30), self.rx.recv()).await? else {
+		let Some((result, gas)) = timeout(
+			Duration::from_secs(5),
+			self.rx.recv()).await.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))? 
+		 else {
 			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());
 		};
 		set_gas(gas);
