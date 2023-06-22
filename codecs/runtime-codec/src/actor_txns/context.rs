@@ -135,6 +135,8 @@ where
 	fn allowance_context_mut(&mut self) -> &mut C;
 
 	fn allowance_token_id(&self) -> Option<TokenId>;
+
+	fn encode_bytes(&self) -> Result<Vec<u8>>;
 }
 
 /// TokenContext implement the context trait
@@ -206,6 +208,10 @@ impl CheckConflict for TokenContext {
 }
 
 impl Context<ConcurrentBalances> for TokenContext {
+	fn encode_bytes(&self) -> Result<Vec<u8>> {
+		Ok(tea_sdk::serialize(self)?)
+	}
+
 	/// What token (FT/NFT) is this context associate?
 	fn get_token_id(&self) -> TokenId {
 		self.tid

@@ -69,6 +69,36 @@ impl Tsid {
 		}
 		buf
 	}
+
+	pub fn reover_from_readable(&mut self, tsid: TsidReadable) -> bool {
+		self.ts = tsid.ts;
+		if let Ok(sender) = hex::decode(tsid.sender) {
+			if sender.len() == 32 {
+				let new_sender = TryInto::<[u8; 32]>::try_into(sender.as_slice());
+				if new_sender.is_ok() {
+					self.sender = new_sender.unwrap();
+				}
+			}
+		}
+		if let Ok(hash) = hex::decode(tsid.hash) {
+			if hash.len() == 32 {
+				let new_hash = TryInto::<[u8; 32]>::try_into(hash.as_slice());
+				if new_hash.is_ok() {
+					self.hash = new_hash.unwrap();
+				}
+			}
+		}
+		if let Ok(seed) = hex::decode(tsid.seed) {
+			if seed.len() == 32 {
+				let new_seed = TryInto::<[u8; 32]>::try_into(seed.as_slice());
+				if new_seed.is_ok() {
+					self.seed = new_seed.unwrap();
+				}
+			}
+		}
+
+		true
+	}
 }
 
 impl PartialOrd for Tsid {
@@ -147,8 +177,28 @@ impl fmt::Debug for Tsid {
 	}
 }
 
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct TsidReadable {
+	pub ts: u128,
+	pub sender: String,
+	pub hash: String,
+	pub seed: String,
+}
+
+impl From<Tsid> for TsidReadable {
+	fn from(tsid: Tsid) -> Self {
+		TsidReadable {
+			ts: tsid.ts,
+			sender: hex::encode(tsid.sender),
+			hash: hex::encode(tsid.hash),
+			seed: hex::encode(tsid.get_seed()),
+		}
+	}
+}
+
 #[cfg(test)]
 mod tests {
+	use super::TsidReadable;
 	use crate::actor_txns::tsid::{Hash, Tsid};
 	use std::collections::hash_map::DefaultHasher;
 	use std::hash::{Hash as StdHash, Hasher};
@@ -312,5 +362,20 @@ mod tests {
 
 	fn max_hash() -> Hash {
 		[u8::MAX; 32]
+	}
+
+	#[test]
+	fn test_from_readable() {
+		let tsid_readable = TsidReadable {
+			ts: 1687402281641461423,
+			sender: "0000000000000000000000000000000000000000000000000000000000000000".into(),
+			hash: "0ce12f9cd99e4c3b2804ebf697762f19d28cb294561e17344f973daf264caf9d".into(),
+			seed: "715c6b9229a3e0c5974db007d2ef7a03eb939d6ca8f0a617995181a96abba019".into(),
+		};
+		let mut tsid = Tsid::genesis();
+		tsid.reover_from_readable(tsid_readable);
+
+		assert_eq!(tsid.ts, 1687402281641461423);
+		println!("{:?}", tsid);
 	}
 }

@@ -56,6 +56,13 @@ message GetConsumeAccountPubkeyResponse {
   string address = 2;
 }
 
+message QuerySyncStateRequest {
+  bytes ts = 1;
+}
+message QuerySyncStateResponse {
+  bytes result = 1;
+}
+
 message CommonSqlQueryRequest {
   oneof msg {
     QueryEntityListRequest QueryEntityListRequest = 1;

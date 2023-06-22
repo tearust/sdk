@@ -3,6 +3,7 @@ use crate::client::help;
 use crate::client::request;
 use crate::client::types::txn_callback;
 
+use crate::client::api::state;
 use crate::enclave::actors::enclave::get_my_tea_id;
 use crate::enclave::actors::util as actor_util;
 use prost::Message;
@@ -169,6 +170,8 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 	let req: HttpQueryBalanceRequest = serde_json::from_slice(&payload)?;
 	check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
 
+	let uuid = req.uuid;
+
 	let query_account = match &req.target {
 		Some(acct) => acct.to_string(),
 		None => req.address.to_string(),
@@ -180,8 +183,27 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 
 	info!("begin to query tea balance => {:?}", query_account);
 
+	if state::is_system_actor(&from_actor) {
+		let (ts, balance) =
+			state::fetch_tea_balance(query_token_id, query_account.parse()?).await?;
+		info!(
+			"query tea_balance in local state => {:?} | {:?}",
+			ts, balance
+		);
+
+		let x = serde_json::json!({
+			"balance": balance.to_string(),
+			"ts": ts.to_string(),
+			"uuid": uuid
+		});
+
+		help::cache_json_with_uuid(&uuid, x).await?;
+
+		return help::result_ok();
+	}
+
 	let auth_key = base64::decode(&req.auth_b64)?;
-	let uuid = req.uuid;
+
 	let query_data = tappstore::TeaBalanceRequest {
 		account: query_account,
 		token_id: serialize(&query_token_id)?,
@@ -199,6 +221,7 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 		"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
 		"uuid": uuid
 	});
+	info!("query tea_balance from remotely => {:?}", x);
 
 	help::cache_json_with_uuid(&uuid, x).await?;
 
@@ -213,6 +236,27 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 
 	let auth_key = base64::decode(&req.auth_b64)?;
 	let uuid = req.uuid;
+
+	if state::is_system_actor(&from_actor) {
+		let (ts, balance) =
+			state::fetch_tea_deposit(TokenId::from_hex(&req.tapp_id_b64)?, req.address.parse()?)
+				.await?;
+		info!(
+			"query tea_deposit in local state => {:?} | {:?}",
+			ts, balance
+		);
+
+		let x = serde_json::json!({
+			"balance": balance.to_string(),
+			"ts": ts.to_string(),
+			"uuid": uuid
+		});
+
+		help::cache_json_with_uuid(&uuid, x).await?;
+
+		return help::result_ok();
+	}
+
 	let query_data = tappstore::TeaBalanceRequest {
 		account: req.address.to_string(),
 		token_id: serialize(&TokenId::from_hex(&req.tapp_id_b64)?)?,
