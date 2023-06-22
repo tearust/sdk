@@ -100,6 +100,7 @@ impl Worker {
 										println!("Worker channel {cid} fails, but the error is unable to report due to {e2:?}");
 									}
 								}
+								slf.channels.lock().await.remove(&cid);
 							});
 							tx
 						}

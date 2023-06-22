@@ -9,7 +9,7 @@
 	feature = "worker",
 	feature(new_uninit, result_flattening, mutex_unpoison, once_cell)
 )]
-#![cfg_attr(feature = "host", feature(unix_chown))]
+#![cfg_attr(feature = "host", feature(unix_chown, map_try_insert))]
 #![feature(return_position_impl_trait_in_trait)]
 #![feature(async_fn_in_trait)]
 #![feature(allow_internal_unstable)]
