@@ -3,6 +3,7 @@ use crate::core::{metadata::Metadata, worker_codec::*};
 use crate::error::ChannelReceivingTimeout;
 use crate::host::OutputHandler;
 use crate::ActorId;
+use crate::host::sys::dump_sys_usages;
 use crate::{
 	context::{get_gas, set_gas},
 	error::{BadWorkerOutput, Error, Result, WorkerCrashed},

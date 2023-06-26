@@ -45,6 +45,8 @@ clap = { workspace = true, optional = true }
 openssl = { workspace = true, optional = true }
 leb128 = { workspace = true, optional = true }
 zstd = { workspace = true, optional = true }
+sysinfo = { workspace = true, optional = true }
+procfs = { workspace = true, optional = true }
 
 wasmer = { workspace = true, optional = true }
 wasmer-middlewares = { workspace = true, optional = true }
@@ -80,6 +82,8 @@ host = [
     "tokio/sync",
     "tokio-util",
     "command-fds",
+    "sysinfo",
+    "procfs",
 ]
 wasm = ["sdk", "futures"]
 nitro = []
