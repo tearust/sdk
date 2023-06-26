@@ -26,6 +26,7 @@ use crate::{
 	},
 };
 
+pub mod sys;
 mod wasm;
 pub use wasm::*;
 

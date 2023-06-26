@@ -48,7 +48,9 @@ mod export {
 	pub use crate::core::metadata;
 
 	#[cfg(feature = "host")]
-	pub use crate::host::{set_wasm_output_handler, spawn, ActorExt, WasmActor, WithActorHost};
+	pub use crate::host::{
+		set_wasm_output_handler, spawn, sys::dump_sys_usages, ActorExt, WasmActor, WithActorHost,
+	};
 
 	#[cfg(feature = "wasm")]
 	pub use crate::wasm::abi;
