@@ -17,6 +17,12 @@ pub async fn fetch_tea_deposit(token_id: TokenId, acct: Account) -> Result<(Ts, 
 	Ok((latest_tsid.ts, balance))
 }
 
+pub async fn fetch_allowance(token_id: TokenId, acct: Account) -> Result<(Ts, Balance)> {
+	let allowance = statemachine::query_allowance(&token_id, &acct).await?;
+	let latest_tsid = statemachine::query_state_tsid().await?;
+	Ok((latest_tsid.ts, allowance))
+}
+
 pub fn is_system_actor(from_actor: &str) -> bool {
 	from_actor.starts_with("com.tea.")
 }

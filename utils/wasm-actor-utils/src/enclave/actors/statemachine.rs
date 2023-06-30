@@ -500,9 +500,13 @@ pub async fn in_app_purchase(
 }
 
 /// Set address's allowance
-pub async fn set_allowance(token_id: &TokenId, address: &Account, amount: &Balance) -> Result<()> {
+pub async fn set_allowance(
+	token_ctx: Vec<u8>,
+	address: &Account,
+	amount: &Balance,
+) -> Result<Vec<u8>> {
 	let req = SetAllowanceRequest {
-		token_id: serialize(token_id)?,
+		ctx: token_ctx,
 		address: serialize(address)?,
 		amount: serialize(amount)?,
 	};
@@ -510,8 +514,8 @@ pub async fn set_allowance(token_id: &TokenId, address: &Account, amount: &Balan
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::SetAllowanceRequest(buf))
 		.await?;
-	SetAllowanceResponse::decode(res_buf.0.as_slice())?;
-	Ok(())
+	let res = SetAllowanceResponse::decode(res_buf.0.as_slice())?;
+	Ok(res.ctx)
 }
 
 /// Check if an account has enough required_amt balance. Return true if yes, false otherwise

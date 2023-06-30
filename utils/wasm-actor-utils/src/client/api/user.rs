@@ -328,6 +328,27 @@ pub async fn query_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec
 	info!("query allowance... => {:?}", req);
 
 	let uuid = req.uuid;
+
+	if state::is_system_actor(&from_actor) {
+		let (ts, allowance) =
+			state::fetch_allowance(TokenId::from_hex(&req.tapp_id_b64)?, req.address.parse()?)
+				.await?;
+		info!(
+			"query query_allowance in local state => {:?} | {:?}",
+			ts, allowance
+		);
+
+		let x = serde_json::json!({
+			"balance": allowance.to_string(),
+			"ts": ts.to_string(),
+			"uuid": uuid
+		});
+
+		help::cache_json_with_uuid(&uuid, x).await?;
+
+		return help::result_ok();
+	}
+
 	let query_data = tappstore::TokenAllowanceRequest {
 		account: req.address.to_string(),
 		token_id: serialize(&TokenId::from_hex(&req.tapp_id_b64)?)?,
@@ -341,6 +362,7 @@ pub async fn query_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec
 	let r = tappstore::TokenAllowanceResponse::decode(res.0.as_slice())?;
 	let x = json!({
 		"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
+		"ts": "0".to_string(),
 	});
 	help::cache_json_with_uuid(&uuid, x).await?;
 
