@@ -327,7 +327,7 @@ impl Channel {
 		write.flush().await?;
 		drop(write);
 		let Some((result, gas)) = timeout(
-			Duration::from_secs(5),
+			Duration::from_secs(10),
 			self.rx.recv()).await.map_err(|_| {
 				tokio::spawn(async move {
 					let info = dump_sys_usages();

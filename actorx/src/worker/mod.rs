@@ -8,6 +8,7 @@ pub use crate::core::worker_codec::WORKER_UNIX_SOCKET_FD;
 use std::{
 	collections::{hash_map::Entry, HashMap},
 	sync::Arc,
+	time::Duration,
 };
 #[cfg(feature = "verbose_log")]
 use ::{std::time::SystemTime, tea_sdk::serde::get_type_id};
@@ -23,6 +24,7 @@ use tokio::{
 		mpsc::{unbounded_channel, UnboundedReceiver as Receiver, UnboundedSender as Sender},
 		Mutex,
 	},
+	time::timeout,
 };
 
 #[cfg(feature = "verbose_log")]
@@ -32,7 +34,7 @@ use crate::{
 	worker::{error::Result, wasm::Host},
 };
 
-use self::threading::execute;
+use self::{error::WorkerError, threading::execute};
 
 pub struct Worker {
 	read: Mutex<OwnedReadHalf>,
@@ -72,13 +74,23 @@ impl Worker {
 	}
 
 	pub async fn serve(self: &Arc<Self>) -> Result<()> {
-		let mut read = self.read.lock().await;
+		let mut read = timeout(Duration::from_secs(9), self.read.lock())
+			.await
+			.map_err(|_| WorkerError::ReadLockTimeout)?;
+
 		loop {
 			let read = &mut *read;
-			let code = read.read_u8().await?;
-			match Operation::read(read, code).await? {
+			let code = timeout(Duration::from_secs(8), read.read_u8())
+				.await
+				.map_err(|_| WorkerError::ReadCodeTimeout)??;
+			match timeout(Duration::from_secs(8), Operation::read(read, code))
+				.await
+				.map_err(|_| WorkerError::ReadOperationTimeout)??
+			{
 				Ok((operation, cid, gas)) => {
-					let mut channels = self.channels.lock().await;
+					let mut channels = timeout(Duration::from_secs(7), self.channels.lock())
+						.await
+						.map_err(|_| WorkerError::ChannelsLockTimeout)?;
 					let channel = match channels.entry(cid) {
 						Entry::Occupied(entry) => entry.into_mut(),
 						Entry::Vacant(entry) => {
@@ -87,20 +99,39 @@ impl Worker {
 							let channel = self.clone().channel(cid, rx);
 							let slf = self.clone();
 							tokio::spawn(async move {
-								if let Err(e) = channel.await {
-									let mut write = slf.write.lock().await;
-									let writing = match (Operation::ReturnErr { error: e.into() }
-										.write(&mut *write, cid, gas)
-										.await)
+								if let Err(e) = timeout(Duration::from_secs(6), channel)
+									.await
+									.expect("channel wait timeout")
+								{
+									let mut write =
+										timeout(Duration::from_secs(6), slf.write.lock())
+											.await
+											.expect("worker write lock timeout");
+									let writing = match timeout(
+										Duration::from_secs(5),
+										Operation::ReturnErr { error: e.into() }.write(
+											&mut *write,
+											cid,
+											gas,
+										),
+									)
+									.await
+									.expect("worker write timeout")
 									{
-										Ok(_) => write.flush().await.err_into(),
+										Ok(_) => timeout(Duration::from_secs(5), write.flush())
+											.await
+											.expect("worker flush timeout")
+											.err_into(),
 										e => e,
 									};
 									if let Err(e2) = writing {
 										println!("Worker channel {cid} fails, but the error is unable to report due to {e2:?}");
 									}
 								}
-								slf.channels.lock().await.remove(&cid);
+								timeout(Duration::from_secs(5), slf.channels.lock())
+									.await
+									.expect("remove channels lock timeout")
+									.remove(&cid);
 							});
 							tx
 						}

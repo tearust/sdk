@@ -1,6 +1,6 @@
 use std::fmt::Write;
-
 use tea_codec::define_scope;
+use thiserror::Error;
 use wasmer::RuntimeError;
 
 define_scope! {
@@ -11,7 +11,26 @@ define_scope! {
 		wasmer::RuntimeError as v => WasmRuntime, v.message(), debug_runtime_error(v);
 		wasmer::MemoryAccessError => WasmMemoryAccess, @Display, @Debug;
 		wasmer::SerializeError => WasmMemoryAccess, @Display, @Debug;
+		WorkerError => WorkerError, @Display, @Debug;
 	}
+}
+
+#[derive(Debug, Error)]
+pub enum WorkerError {
+	#[error("Read lock timeout")]
+	ReadLockTimeout,
+
+	#[error("Read code timeout")]
+	ReadCodeTimeout,
+
+	#[error("Read operation timeout")]
+	ReadOperationTimeout,
+
+	#[error("Channels lock timeout")]
+	ChannelsLockTimeout,
+
+	#[error("Channel wait timeout")]
+	ChannelWaitTimeout,
 }
 
 fn debug_runtime_error(e: &RuntimeError) -> String {
