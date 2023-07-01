@@ -20,9 +20,6 @@ pub enum WorkerError {
 	#[error("Read lock timeout")]
 	ReadLockTimeout,
 
-	#[error("Read code timeout")]
-	ReadCodeTimeout,
-
 	#[error("Read operation timeout")]
 	ReadOperationTimeout,
 

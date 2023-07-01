@@ -80,9 +80,7 @@ impl Worker {
 
 		loop {
 			let read = &mut *read;
-			let code = timeout(Duration::from_secs(8), read.read_u8())
-				.await
-				.map_err(|_| WorkerError::ReadCodeTimeout)??;
+			let code = read.read_u8().await?;
 			match timeout(Duration::from_secs(8), Operation::read(read, code))
 				.await
 				.map_err(|_| WorkerError::ReadOperationTimeout)??
