@@ -1,6 +1,6 @@
 use crate::context::host;
 use crate::core::{metadata::Metadata, worker_codec::*};
-use crate::error::ChannelReceivingTimeout;
+use crate::error::HostInvokeTimeouts;
 use crate::host::OutputHandler;
 use crate::ActorId;
 use crate::host::sys::dump_sys_usages;
@@ -213,29 +213,38 @@ impl WorkerProcess {
 
 	async fn read_loop(this: Weak<Self>) {
 		while let Some(this) = this.upgrade() {
-			if let Err(e) = this.read_tick().await {
-				info!("worker reader exits with error: {e:?}");
-				let mut channels = this.channels.lock().await;
-				for (_, sender) in &mut channels.channels.drain() {
-					_ = sender.send((Operation::ReturnErr { error: e.clone() }, 0));
+			match timeout(Duration::from_secs(9), this.read_tick()).await {
+				Ok(rtn) => {
+					if let Err(e) = rtn {
+						info!("worker reader exits with error: {e:?}");
+						let mut channels = this.channels.lock().await;
+						for (_, sender) in &mut channels.channels.drain() {
+							_ = sender.send((Operation::ReturnErr { error: e.clone() }, 0));
+						}
+						channels.error = Some(e);
+						break;
+					}
 				}
-				channels.error = Some(e);
-				break;
+				Err(_) => error!("Host global read tick timeout"),
 			}
 			drop(this);
 		}
 	}
 
 	async fn read_tick(self: &Arc<Self>) -> Result<()> {
-		let mut read = self.read.lock().await;
-		let Some(code) = Operation::read_code(&mut *read).await? else {
+		let mut read = timeout(Duration::from_secs(8), self.read.lock()).await
+			.map_err(|_| HostInvokeTimeouts::ReadTickLockTimeout)?;
+		let Some(code) = timeout(Duration::from_secs(8), Operation::read_code(&mut *read)).await
+			.map_err(|_| HostInvokeTimeouts::ReadCodeTimeout)?? else {
 			return Ok(());
 		};
-		let input = Operation::read(&mut *read, code).await?;
+		let input = timeout(Duration::from_secs(8), Operation::read(&mut *read, code)).await
+    	.map_err(|_| HostInvokeTimeouts::ReadOperationTimeout)??;
 		drop(read);
 		match input {
 			Ok((op, cid, gas)) => {
-				let channels = self.channels.lock().await;
+				let channels = timeout(Duration::from_secs(7), self.channels.lock()).await
+					.map_err(|_| HostInvokeTimeouts::ReadChannelsLockTimeout)?;
 				let channel = channels
 					.channels
 					.get(&cid)
@@ -321,7 +330,7 @@ impl Channel {
 					let info = dump_sys_usages();
 					info!("Channel timeout, dump current system usages: {}",  info);
 				});
-				ChannelReceivingTimeout(self.proc.metadata.id.clone())
+				HostInvokeTimeouts::ChannelReceivingTimeout(self.proc.metadata.id.clone())
 	})? 
 		 else {
 			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());

@@ -20,7 +20,7 @@ define_scope! {
 		MissingCallingStack => MissingCallingStack;
 		ActorHostDropped => ActorHostDropped;
 		InvocationTimeout => InvocationTimeout;
-		ChannelReceivingTimeout => ChannelReceivingTimeout;
+		HostInvokeTimeouts => HostInvokeTimeouts;
 	}
 }
 
@@ -94,5 +94,19 @@ pub struct InvocationTimeout(
 );
 
 #[derive(Debug, Error)]
-#[error("Receiving channel of actor {0} has timeout")]
-pub struct ChannelReceivingTimeout(pub ActorId);
+pub enum HostInvokeTimeouts {
+	#[error("Receiving channel of actor {0} has timeout")]
+	ChannelReceivingTimeout(ActorId),
+
+	#[error("Host read tick lock timeout")]
+	ReadTickLockTimeout,
+
+	#[error("Host read code timeout")]
+	ReadCodeTimeout,
+
+	#[error("Host read operation timeout")]
+	ReadOperationTimeout,
+
+	#[error("Host read channels lock when tick timeout")]
+	ReadChannelsLockTimeout,
+}
