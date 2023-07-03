@@ -109,4 +109,10 @@ pub enum HostInvokeTimeouts {
 
 	#[error("Host read channels lock when tick timeout")]
 	ReadChannelsLockTimeout,
+
+	#[error("Host channel sending timeout")]
+	ChannelSendingTimeout,
+
+	#[error("Host channel sending error timeout")]
+	ChannelSendingErrorTimeout,
 }

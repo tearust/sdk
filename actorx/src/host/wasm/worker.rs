@@ -28,7 +28,7 @@ use tokio::{
 	net::unix::{OwnedReadHalf, OwnedWriteHalf},
 	process::{Child, Command},
 	sync::{
-		mpsc::{unbounded_channel, UnboundedReceiver as Receiver, UnboundedSender as Sender},
+		mpsc::{channel, Receiver, Sender},
 		Mutex, RwLock,
 	},
 };
@@ -219,7 +219,12 @@ impl WorkerProcess {
 						info!("worker reader exits with error: {e:?}");
 						let mut channels = this.channels.lock().await;
 						for (_, sender) in &mut channels.channels.drain() {
-							_ = sender.send((Operation::ReturnErr { error: e.clone() }, 0));
+							if let Ok(rtn) = timeout(Duration::from_secs(6), sender.send((Operation::ReturnErr { error: e.clone() }, 0))).await
+								.map_err(|e| {error!("Host channel sending error timeout"); e}) {
+								if rtn.is_err() {
+									error!("Host channel sending errors failed");
+								}
+							}
 						}
 						channels.error = Some(e);
 						break;
@@ -251,7 +256,8 @@ impl WorkerProcess {
 					.ok_or_else(|| BadWorkerOutput::ChannelNotExist(cid, self.metadata.id.clone()))?
 					.clone();
 				drop(channels);
-				if let Err(e) = channel.send((op, gas)) {
+				if let Err(e) = timeout(Duration::from_secs(6), channel.send((op, gas))).await
+        	.map_err(|_| HostInvokeTimeouts::ChannelSendingTimeout)? {
 					warn!("Channel dropped when receiving from worker: {e}");
 				}
 			}
@@ -283,7 +289,7 @@ impl Worker {
 	}
 
 	pub async fn open(self) -> Result<Channel> {
-		let (mut tx, rx) = unbounded_channel();
+		let (mut tx, rx) = channel(1024);
 		let mut channels = self.proc.channels.lock().await;
 		if let Some(e) = &channels.error {
 			return Err(e.clone());
