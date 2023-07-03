@@ -65,6 +65,7 @@ worker = [
     "async-channel",
     "futures",
     "num_cpus",
+    "tea-codec/runtime",
 ]
 sign = ["base64", "serde_yaml", "openssl", "leb128", "zstd"]
 sign-bin = ["sign", "clap", "tokio"]

@@ -98,7 +98,7 @@ impl WorkerProcess {
 				this.flush().await?;
 				read_var_bytes(&mut this).await
 			};
-			let bytes = match tokio::time::timeout(Duration::from_millis(500), handshake).await {
+			let bytes = match tokio::time::timeout(Duration::from_millis(6000), handshake).await {
 				Ok(result) => result?,
 				Err(_) => {
 					warn!("worker start timeout, retrying..");

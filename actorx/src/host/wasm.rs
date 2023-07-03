@@ -6,6 +6,7 @@ use crate::core::{
 	worker_codec::Operation,
 };
 use tea_codec::serde::{get_type_id, TypeId};
+use tea_sdk::timeout_retry;
 use tokio::{sync::Mutex, task::JoinHandle};
 
 use crate::{
@@ -35,6 +36,7 @@ struct State {
 const MAX_COUNT: usize = 128;
 
 impl WasmActor {
+	#[timeout_retry(5000)]
 	pub async fn new(wasm_path: &str) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
 		source.push(0);
@@ -81,6 +83,7 @@ impl WasmActor {
 		})
 	}
 
+	#[timeout_retry(5000)]
 	async fn worker<const INC: bool>(&self) -> Result<Worker> {
 		let mut state = self.state.lock().await;
 
