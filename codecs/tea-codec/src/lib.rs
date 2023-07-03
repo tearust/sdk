@@ -264,6 +264,8 @@ pub mod errorx;
 pub mod pricing;
 #[cfg(feature = "runtime")]
 pub mod runtime;
+#[cfg(feature = "runtime")]
+pub use runtime::Timeout;
 pub mod serde;
 #[cfg(test)]
 mod tests;

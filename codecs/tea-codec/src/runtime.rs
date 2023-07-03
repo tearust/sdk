@@ -1,11 +1,13 @@
 use lazy_static::lazy_static;
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use std::future::Future;
 use tokio::{
 	runtime::{Builder, EnterGuard, Runtime},
 	task::JoinHandle,
 };
+
+use crate::errorx::{Error, Global, RoutineTimeout};
 
 lazy_static! {
 	static ref RUNTIME: Arc<Runtime> = Arc::new(
@@ -43,4 +45,23 @@ where
 
 pub fn enter() -> EnterGuard<'static> {
 	RUNTIME.enter()
+}
+
+pub trait Timeout: Future {
+	type Timeout: Future<Output = Result<Self::Output, Error<Global>>>;
+	fn timeout(self, ms: u64, tag: &'static str) -> Self::Timeout;
+}
+
+impl<T> Timeout for T
+where
+	T: Future,
+{
+	type Timeout = impl Future<Output = Result<Self::Output, Error<Global>>>;
+	fn timeout(self, ms: u64, tag: &'static str) -> Self::Timeout {
+		async move {
+			tokio::time::timeout(Duration::from_millis(ms), self)
+				.await
+				.map_err(|_| RoutineTimeout(tag).into())
+		}
+	}
 }
