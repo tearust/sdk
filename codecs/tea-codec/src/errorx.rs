@@ -6,7 +6,7 @@ mod scope;
 mod serde;
 mod sync_error;
 
-pub use global::{BadBinaryFormat, CannotBeNone, Global};
+pub use global::{BadBinaryFormat, CannotBeNone, Global, RoutineTimeout};
 pub use scope::*;
 pub use sync_error::*;
 pub use tea_codec_macros::define_scope;
