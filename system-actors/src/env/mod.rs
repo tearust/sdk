@@ -221,3 +221,18 @@ pub struct RuntimeInitializedRequest;
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RuntimeInitializedResponse(pub bool);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct RegisterHitRequest(pub String);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct CurrentHitsRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct CurrentHitsResponse(pub Vec<(String, u64)>);
