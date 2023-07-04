@@ -1,9 +1,7 @@
 use crate::context::host;
 use crate::core::{metadata::Metadata, worker_codec::*};
-use crate::error::ChannelReceivingTimeout;
 use crate::host::OutputHandler;
 use crate::ActorId;
-use crate::host::sys::dump_sys_usages;
 use crate::{
 	context::{get_gas, set_gas},
 	error::{BadWorkerOutput, Error, Result, WorkerCrashed},
@@ -21,7 +19,6 @@ use std::{
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
-use tokio::time::timeout;
 use tokio::{
 	fs::OpenOptions,
 	io::AsyncWriteExt,
@@ -314,16 +311,7 @@ impl Channel {
 		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
-		let Some((result, gas)) = timeout(
-			Duration::from_secs(5),
-			self.rx.recv()).await.map_err(|_| {
-				tokio::spawn(async move {
-					let info = dump_sys_usages();
-					info!("Channel timeout, dump current system usages: {}",  info);
-				});
-				ChannelReceivingTimeout(self.proc.metadata.id.clone())
-	})? 
-		 else {
+		let Some((result, gas)) = self.rx.recv().await else {
 			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());
 		};
 		set_gas(gas);
