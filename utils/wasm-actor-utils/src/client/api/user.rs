@@ -559,3 +559,45 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 
 	help::result_ok()
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryMultiTappAllowanceFromLocalStateRequest {
+	pub address: String,
+	pub tapp_id_b64_array: Vec<String>,
+	pub uuid: String,
+}
+pub async fn query_multi_tapp_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
+	let req: QueryMultiTappAllowanceFromLocalStateRequest = serde_json::from_slice(&payload)?;
+	info!(
+		"query multi tapp allowance from local state... => {:?}",
+		req
+	);
+
+	let uuid = req.uuid;
+
+	if !state::is_system_actor(&from_actor) {
+		return help::result_error(
+			"No permission to call query_multi_tapp_allowance method.".into(),
+		);
+	}
+
+	let acct = req.address.parse()?;
+	let mut ts = String::new();
+	let mut result_arr: Vec<String> = Vec::new();
+	for token_str in req.tapp_id_b64_array {
+		let token_id = TokenId::from_hex(&token_str)?;
+		let (x_ts, allowance) = state::fetch_allowance(token_id, acct).await?;
+		ts = x_ts.to_string();
+		result_arr.push(allowance.to_string());
+	}
+
+	let x = serde_json::json!({
+		"balance": result_arr,
+		"ts": ts,
+		"uuid": uuid
+	});
+	help::cache_json_with_uuid(&uuid, x).await?;
+
+	help::result_ok()
+}

@@ -44,6 +44,9 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 		"query_tapp_metadata" => api::user::query_tapp_metadata(arg, from_actor).await?,
 		"query_error_log" => api::user::query_error_log(arg, from_actor).await?,
 		"query_system_version" => api::user::query_system_version(arg, from_actor).await?,
+		"query_multi_tapp_allowance_from_local_state" => {
+			api::user::query_multi_tapp_allowance(arg, from_actor).await?
+		}
 
 		_ => vec![],
 	};
@@ -109,5 +112,6 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"query_tapp_metadata",
 		"query_error_log",
 		"query_system_version",
+		"query_multi_tapp_allowance_from_local_state",
 	]
 }

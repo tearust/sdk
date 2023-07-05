@@ -92,12 +92,12 @@ pub async fn cache_json_with_uuid(uuid: &str, val: serde_json::Value) -> Result<
 
 /// Using to cache value for query request.
 /// The end-user will return data from miner node directly if using this for a query.
-/// The expired time is 15 minutes.
+/// The expired time is 10 minutes.
 pub async fn set_query_cache(key: &str, val: serde_json::Value) -> Result<()> {
 	let key = format!("cache_{key}");
 	let val = serde_json::json!({ "cache": val });
 	let new_val = serde_json::to_vec(&val)?;
-	kvp::set(&key, &new_val, 900).await?;
+	kvp::set(&key, &new_val, 600).await?;
 	Ok(())
 }
 
@@ -110,4 +110,11 @@ pub async fn get_query_cache(key: &str) -> Result<Option<Vec<u8>>> {
 	}
 	info!("query cache => {key}");
 	Ok(Some(val))
+}
+
+/// Remove cache value
+pub async fn remove_query_cache(key: &str) -> Result<()> {
+	let key = format!("cache_{key}");
+	kvp::del(&key).await?;
+	Ok(())
 }
