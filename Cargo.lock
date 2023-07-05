@@ -2791,6 +2791,7 @@ dependencies = [
  "tea-actorx-examples-codec",
  "tea-sdk",
  "tokio",
+ "tracing-subscriber",
 ]
 
 [[package]]

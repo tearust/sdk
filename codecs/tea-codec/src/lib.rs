@@ -264,6 +264,10 @@ pub mod errorx;
 pub mod pricing;
 #[cfg(feature = "runtime")]
 pub mod runtime;
+#[cfg(feature = "runtime")]
+pub use runtime::Timeout;
+#[cfg(feature = "runtime")]
+pub use tea_codec_macros::{timeout_retry, timeout_retry_worker};
 pub mod serde;
 #[cfg(test)]
 mod tests;

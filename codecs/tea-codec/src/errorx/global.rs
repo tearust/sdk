@@ -60,6 +60,7 @@ tea_codec_macros::define_scope_internal! {
 		futures::channel::mpsc::TryRecvError => ChannelReceive, @Display, @Debug;
 		futures::channel::oneshot::Canceled => ChannelReceive, @Display, @Debug;
 		futures::channel::mpsc::SendError => ChannelSend, @Display, @Debug;
+		RoutineTimeout => RoutineTimeout;
 	}
 }
 
@@ -113,3 +114,7 @@ pub struct CannotBeNone(pub String);
 #[derive(Error, Debug, Default, PartialEq, Eq, Clone)]
 #[error("Bad binary format")]
 pub struct BadBinaryFormat;
+
+#[derive(Error, Debug, Default, PartialEq, Eq, Clone)]
+#[error("Routine timeout at checkpoint {0}")]
+pub struct RoutineTimeout(pub &'static str);

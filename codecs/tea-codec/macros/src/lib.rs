@@ -5,9 +5,10 @@ mod errorx;
 mod handle;
 mod pricing;
 mod serde;
+mod timeout;
 
 use errorx::emit::{emit, emit_all};
-use quote::ToTokens;
+use quote::{quote, ToTokens};
 use syn::parse_macro_input;
 
 #[proc_macro]
@@ -85,4 +86,18 @@ pub fn derive_priced(input: TokenStream) -> TokenStream {
 pub fn handles(_args: TokenStream, input: TokenStream) -> TokenStream {
 	let input: handle::HandlesImpl = parse_macro_input!(input);
 	input.to_token_stream().into()
+}
+
+#[proc_macro_attribute]
+pub fn timeout_retry(args: TokenStream, input: TokenStream) -> TokenStream {
+	let ms = parse_macro_input!(args);
+	let f = parse_macro_input!(input);
+	timeout::emit_timeout_retry(ms, f, quote! {tracing::warn!}).into()
+}
+
+#[proc_macro_attribute]
+pub fn timeout_retry_worker(args: TokenStream, input: TokenStream) -> TokenStream {
+	let ms = parse_macro_input!(args);
+	let f = parse_macro_input!(input);
+	timeout::emit_timeout_retry(ms, f, quote! {println!}).into()
 }
