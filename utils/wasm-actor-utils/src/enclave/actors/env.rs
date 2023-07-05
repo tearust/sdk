@@ -145,3 +145,21 @@ pub fn tapp_dev_portal_token_id() -> Result<TokenId> {
 		"0x1000000000000000000000000000000000000006",
 	)?)
 }
+
+pub fn bank_hongkong_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0xb000000000000000000000000000000000000001",
+	)?)
+}
+
+pub fn bank_japan_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0xb000000000000000000000000000000000000002",
+	)?)
+}
+
+pub fn bank_india_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0xb000000000000000000000000000000000000003",
+	)?)
+}
