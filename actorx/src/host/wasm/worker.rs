@@ -17,10 +17,10 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
+use tea_sdk::{timeout_retry, Timeout};
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
-use tokio::time::timeout;
 use tokio::{
 	fs::OpenOptions,
 	io::AsyncWriteExt,
@@ -56,10 +56,10 @@ struct WorkerChannels {
 }
 
 impl WorkerProcess {
+	#[timeout_retry(10000)]
 	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
 
-		loop {
 			#[cfg(feature = "nitro")]
 			let handle_path;
 
@@ -93,18 +93,9 @@ impl WorkerProcess {
 				}
 			};
 
-			let handshake = async {
-				this.write_all(source).await?;
-				this.flush().await?;
-				read_var_bytes(&mut this).await
-			};
-			let bytes = match tokio::time::timeout(Duration::from_millis(6000), handshake).await {
-				Ok(result) => result?,
-				Err(_) => {
-					warn!("worker start timeout, retrying..");
-					continue;
-				}
-			};
+			this.write_all(source).await?;
+			this.flush().await?;
+			let bytes = read_var_bytes(&mut this).await?;
 			let metadata: Result<_> = bincode::deserialize(&bytes)?;
 			let metadata: Arc<Metadata> = metadata?;
 
@@ -138,8 +129,7 @@ impl WorkerProcess {
 
 			tokio::spawn(Self::read_loop(Arc::downgrade(&this)));
 
-			return Ok(this);
-		}
+			Ok(this)
 	}
 
 	#[cfg(feature = "nitro")]
@@ -325,9 +315,8 @@ impl Channel {
 		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
-		let Some((result, gas)) = timeout(
-			Duration::from_secs(5),
-			self.rx.recv()).await.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))? 
+		let Some((result, gas)) = 
+			self.rx.recv().timeout(15000, "invocation").await.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))? 
 		 else {
 			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());
 		};

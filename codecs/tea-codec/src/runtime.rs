@@ -59,9 +59,10 @@ where
 	type Timeout = impl Future<Output = Result<Self::Output, Error<Global>>>;
 	fn timeout(self, ms: u64, tag: &'static str) -> Self::Timeout {
 		async move {
-			tokio::time::timeout(Duration::from_millis(ms), self)
-				.await
-				.map_err(|_| RoutineTimeout(tag).into())
+			tokio::select! {
+				result = self => Ok(result),
+				_ = tokio::time::sleep(Duration::from_millis(ms)) => Err(RoutineTimeout(tag).into()),
+			}
 		}
 	}
 }
