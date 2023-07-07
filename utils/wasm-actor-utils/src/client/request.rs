@@ -10,7 +10,7 @@ use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize, ResultExt,
 };
-use tea_runtime_codec::actor_txns::pre_args::Arg;
+use tea_runtime_codec::actor_txns::{pre_args::Arg, Tsid};
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 
 use crate::client::help;
@@ -79,6 +79,57 @@ pub async fn send_custom_txn(
 			Box::pin(async move {
 				if let Some(tsid) = rtn {
 					info!("txn command successfully, tsid is: {:?}", tsid);
+
+					let x = serde_json::json!({
+						"ts": &tsid.ts.to_string(),
+						"hash": hex::encode(tsid.hash),
+						"sender": hex::encode(tsid.sender),
+						"uuid": uuid,
+					});
+					help::cache_json_with_uuid(&uuid, x).await?;
+				}
+
+				Ok(())
+			})
+		},
+	)
+	.await
+	.err_into()
+}
+
+pub async fn send_tappstore_txn_with_cb<T>(
+	_from_actor: &str,
+	action_name: &str,
+	uuid: &str,
+	req_bytes: Vec<u8>,
+	txn_bytes: Vec<u8>,
+	pre_args: Vec<Arg>,
+	callback: T,
+) -> Result<()>
+where
+	T: FnOnce(Tsid, String) -> CallbackReturn + Clone + Send + Sync + 'static,
+{
+	let ori_uuid = str::replace(uuid, "txn_", "");
+	let action_key = uuid_cb_key(&ori_uuid, "action_name");
+	let req_key = uuid_cb_key(&ori_uuid, "action_req");
+	help::set_mem_cache(&action_key, tea_codec::serialize(&action_name)?).await?;
+	help::set_mem_cache(&req_key, req_bytes).await?;
+
+	let uuid = uuid.to_string();
+
+	let gas_limit = crate::client::CLIENT_DEFAULT_GAS_LIMIT;
+	intelli_send_txn(
+		tea_system_actors::tappstore::NAME,
+		&txn_bytes,
+		pre_args,
+		IntelliSendMode::RemoteOnly,
+		gas_limit,
+		|rtn| {
+			Box::pin(async move {
+				if let Some(tsid) = rtn {
+					info!("txn command successfully, tsid is: {:?}", tsid);
+
+					callback(tsid.clone(), uuid.clone()).await?;
 
 					let x = serde_json::json!({
 						"ts": &tsid.ts.to_string(),
