@@ -67,7 +67,6 @@ pub async fn get_persist_file(file_name: String) -> Result<Vec<u8>> {
 	)
 	.await?;
 	let res = msg.0;
-	info!("@@ aaa => {:?}", res);
 
 	Ok(res)
 }
