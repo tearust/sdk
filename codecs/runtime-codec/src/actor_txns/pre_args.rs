@@ -13,10 +13,10 @@ pub struct Arg {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Type {
-	Cml,
-	TappstoreOwner,
-	CurrentHeight,
-	TopupLogs,
+	Cml(String),
+	TappstoreOwner(String),
+	CurrentHeight(String),
+	TopupLogs(String),
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -78,52 +78,52 @@ impl ArgResult {
 }
 
 impl Arg {
-	pub fn single_cml(cml_id: u64) -> Self {
+	pub fn single_cml(key: String, cml_id: u64) -> Self {
 		Arg {
-			ty: Type::Cml,
+			ty: Type::Cml(key),
 			filter: Filter::Single(Indentity::U64(cml_id)),
 		}
 	}
 
-	pub fn single_status(status: Status) -> Self {
+	pub fn single_status(key: String, status: Status) -> Self {
 		Arg {
-			ty: Type::Cml,
+			ty: Type::Cml(key),
 			filter: Filter::ByStatus(status),
 		}
 	}
 
-	pub fn single_tea_id(tea_id: ReplicaId) -> Self {
+	pub fn single_tea_id(key: String, tea_id: ReplicaId) -> Self {
 		Arg {
-			ty: Type::Cml,
+			ty: Type::Cml(key),
 			filter: Filter::Single(Indentity::TeaId(tea_id)),
 		}
 	}
 
-	pub fn multi_cmls(cml_ids: &[u64]) -> Self {
+	pub fn multi_cmls(key: String, cml_ids: &[u64]) -> Self {
 		let cml_ids: Vec<Indentity> = cml_ids.iter().map(|id| Indentity::U64(*id)).collect();
 		Arg {
-			ty: Type::Cml,
+			ty: Type::Cml(key),
 			filter: Filter::Multiple(cml_ids),
 		}
 	}
 
-	pub fn tappstore_owner() -> Self {
+	pub fn tappstore_owner(key: String) -> Self {
 		Arg {
-			ty: Type::TappstoreOwner,
+			ty: Type::TappstoreOwner(key),
 			filter: Filter::Uncountable,
 		}
 	}
 
-	pub fn current_height() -> Self {
+	pub fn current_height(key: String) -> Self {
 		Arg {
-			ty: Type::CurrentHeight,
+			ty: Type::CurrentHeight(key),
 			filter: Filter::Uncountable,
 		}
 	}
 
-	pub fn topup_logs() -> Self {
+	pub fn topup_logs(key: String) -> Self {
 		Arg {
-			ty: Type::TopupLogs,
+			ty: Type::TopupLogs(key),
 			filter: Filter::Uncountable,
 		}
 	}

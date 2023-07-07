@@ -83,7 +83,7 @@ pub struct GetTappstoreTokenIdResponse(pub String);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct GetTeaContractsRequest;
+pub struct GetTeaContractsRequest(pub String);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetTeaContractsResponse(pub ContractAddresses);
 
@@ -91,7 +91,7 @@ pub struct GetTeaContractsResponse(pub ContractAddresses);
 #[price(10000)]
 pub struct GetMiningStartupRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct GetMiningStartupResponse(pub Vec<([u8; 32], u64, String)>);
+pub struct GetMiningStartupResponse(pub Vec<([u8; 32], u64, String, String)>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

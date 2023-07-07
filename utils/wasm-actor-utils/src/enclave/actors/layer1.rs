@@ -17,7 +17,7 @@ pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>
 }
 
 #[cfg(not(feature = "__test"))]
-pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>> {
+pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String, String)>> {
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
 
@@ -29,11 +29,11 @@ pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>
 	Ok(rtn
 		.0
 		.into_iter()
-		.map(|(tea_id, seat_id, ip)| (tea_id.to_vec(), seat_id, ip))
+		.map(|(tea_id, seat_id, ip, key)| (tea_id.to_vec(), seat_id, ip, key))
 		.collect())
 }
 
-pub async fn get_first_mining_startup_node() -> Result<(Vec<u8>, SeatId, String)> {
+pub async fn get_first_mining_startup_node() -> Result<(Vec<u8>, SeatId, String, String)> {
 	let nodes = get_mining_startup_nodes().await?;
 	Ok(nodes
 		.first()
@@ -43,7 +43,7 @@ pub async fn get_first_mining_startup_node() -> Result<(Vec<u8>, SeatId, String)
 
 #[cfg(not(feature = "__test"))]
 pub async fn is_first_startup_node(tea_id: &[u8]) -> Result<bool> {
-	let (startup_tea_id, _, _) = get_first_mining_startup_node().await?;
+	let (startup_tea_id, _, _, _) = get_first_mining_startup_node().await?;
 	Ok(startup_tea_id.eq(tea_id))
 }
 
@@ -65,6 +65,7 @@ pub async fn get_tapp_startup_nodes(
 
 #[cfg(not(feature = "__test"))]
 pub async fn get_tapp_startup_nodes(
+	key: String,
 	at_height: Option<BlockNumber>,
 ) -> Result<Vec<(Vec<u8>, CmlId, String)>> {
 	use tea_actorx_core::RegId;
@@ -85,10 +86,13 @@ pub async fn get_tapp_startup_nodes(
 
 	let nodes = call(
 		RegId::Static(NAME).inst(0),
-		TappStartupNodesRequest(AsyncQuery {
-			at_height,
-			..Default::default()
-		}),
+		TappStartupNodesRequest(
+			key,
+			AsyncQuery {
+				at_height,
+				..Default::default()
+			},
+		),
 	)
 	.await?;
 	let startup_nodes = complete_stateup_nodes_info(nodes.0);
@@ -126,6 +130,7 @@ fn complete_stateup_nodes_info(
 #[allow(clippy::forget_copy)]
 #[mockable]
 pub async fn cmls_info_from_layer1(
+	_key: String,
 	_cml_ids: Vec<CmlId>,
 	_at_height: Option<BlockNumber>,
 ) -> Result<Vec<CmlIntrinsic>> {
@@ -135,6 +140,7 @@ pub async fn cmls_info_from_layer1(
 /// Returned result items count and order is not parented to matched with `cml_ids`
 #[cfg(not(feature = "__test"))]
 pub async fn cmls_info_from_layer1(
+	key: String,
 	cml_ids: Vec<CmlId>,
 	at_height: Option<BlockNumber>,
 ) -> Result<Vec<CmlIntrinsic>> {
@@ -154,10 +160,13 @@ pub async fn cmls_info_from_layer1(
 
 	let mut cmls = call(
 		RegId::Static(NAME).inst(0),
-		GetCmlInfoRequest(AsyncQuery {
-			at_height,
-			query_type: QueryType::CmlInfo(missing_cml_ids),
-		}),
+		GetCmlInfoRequest(
+			key,
+			AsyncQuery {
+				at_height,
+				query_type: QueryType::CmlInfo(missing_cml_ids),
+			},
+		),
 	)
 	.await?;
 	update_cml_cache(&cmls.0).await?;
@@ -200,17 +209,23 @@ async fn update_cml_cache(cmls: &[CmlIntrinsic]) -> Result<()> {
 }
 
 #[cfg(not(feature = "__test"))]
-pub async fn appstore_owner_account(at_height: Option<BlockNumber>) -> Result<Account> {
+pub async fn appstore_owner_account(
+	key: String,
+	at_height: Option<BlockNumber>,
+) -> Result<Account> {
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
 	use tea_runtime_codec::solc::queries::AsyncQuery;
 
 	let res = call(
 		RegId::Static(NAME).inst(0),
-		TappstoreOwnerRequest(AsyncQuery {
-			at_height,
-			query_type: Default::default(),
-		}),
+		TappstoreOwnerRequest(
+			key,
+			AsyncQuery {
+				at_height,
+				query_type: Default::default(),
+			},
+		),
 	)
 	.await?;
 	Ok(res.0)
@@ -219,6 +234,9 @@ pub async fn appstore_owner_account(at_height: Option<BlockNumber>) -> Result<Ac
 #[cfg(feature = "__test")]
 #[allow(clippy::forget_copy)]
 #[mockable]
-pub async fn appstore_owner_account(_at_height: Option<BlockNumber>) -> Result<Account> {
+pub async fn appstore_owner_account(
+	_key: String,
+	_at_height: Option<BlockNumber>,
+) -> Result<Account> {
 	Ok(Default::default())
 }

@@ -46,36 +46,36 @@ pub struct CmlInfoFromCacheResponse(pub Option<CmlIntrinsic>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct TappStartupNodesRequest(pub AsyncQuery);
+pub struct TappStartupNodesRequest(pub String, pub AsyncQuery);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TappStartupNodesResponse(pub Vec<(CmlId, String)>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct GetCmlInfoRequest(pub AsyncQuery);
+pub struct GetCmlInfoRequest(pub String, pub AsyncQuery);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetCmlInfoResponse(pub Vec<CmlIntrinsic>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
-pub struct SendMultisigTxnRequest(pub AsyncTxn);
+pub struct SendMultisigTxnRequest(pub String, pub AsyncTxn);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct SignMultisigTxnRequest(pub AsyncTxn);
+pub struct SignMultisigTxnRequest(pub String, pub AsyncTxn);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct SignMultisigTxnResponse(pub SingleSign);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct MultisigThresholdRequest(pub AsyncQuery);
+pub struct MultisigThresholdRequest(pub String, pub AsyncQuery);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct MultisigThresholdResponse(pub u8);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct CurrentBlockNumberRequest;
+pub struct CurrentBlockNumberRequest(pub String);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CurrentBlockNumberResponse(pub BlockNumber);
 
@@ -87,13 +87,13 @@ pub struct RegisteredActorsResponse(pub Vec<ActorId>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(100)]
-pub struct TappstoreOwnerRequest(pub AsyncQuery);
+pub struct TappstoreOwnerRequest(pub String, pub AsyncQuery);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TappstoreOwnerResponse(pub Account);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(100)]
-pub struct TopupSinceRequest(pub BlockNumber);
+pub struct TopupSinceRequest(pub String, pub BlockNumber);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TopupSinceResponse(pub Vec<TopupEventItem>);
 
