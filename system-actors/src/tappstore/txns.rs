@@ -333,6 +333,10 @@ pub enum TappstoreTxn {
 		token_id: TokenId,
 		actor_type: String,
 	},
+	UpdateExchangeRate {
+		name: Vec<String>,
+		rate: Vec<Balance>,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

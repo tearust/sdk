@@ -74,6 +74,7 @@ message CommonSqlQueryRequest {
     QueryDevTappsRequest QueryDevTappsRequest = 14;
     QueryDevTappItemByNameRequest QueryDevTappItemByNameRequest = 15;
     QueryDevTappErrorLog QueryDevTappErrorLog = 16;
+    QueryExchangeRate QueryExchangeRate = 17;
   }
 }
 
@@ -169,4 +170,8 @@ message QueryActiveNodes {
 message QueryActiveSeats {
   bool hasExclude = 2;
   bytes excludeTeaId = 1;
+}
+
+message QueryExchangeRate {
+  optional string name = 1;
 }
