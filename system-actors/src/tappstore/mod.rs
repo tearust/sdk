@@ -27,19 +27,9 @@ pub type QueryCmlResultItem = (CmlIntrinsic, CmlVariable, Vec<u8>, Option<TokenI
 pub const NAME: &[u8] = b"com.tea.tappstore-actor";
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryCmlIntrinsicRequest(pub String, pub Vec<u8>);
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryCmlIntrinsicResponse(pub CmlIntrinsic);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningVariableRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningVariableResponse(pub MiningVariable);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryMiningCmlsRequest(pub Vec<u8>);
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryMiningCmlsResponse(pub Vec<QueryCmlResultItem>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryMiningCmlIdsRequest;

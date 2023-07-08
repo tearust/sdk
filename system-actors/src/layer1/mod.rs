@@ -52,12 +52,6 @@ pub struct TappStartupNodesResponse(pub Vec<(CmlId, String)>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct GetCmlInfoRequest(pub String, pub AsyncQuery);
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct GetCmlInfoResponse(pub Vec<CmlIntrinsic>);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(10000)]
 #[response(())]
 pub struct SendMultisigTxnRequest(pub String, pub AsyncTxn);
 
