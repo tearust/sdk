@@ -47,3 +47,26 @@ pub async fn persist_file(file_name: String, data: Vec<u8>) -> Result<()> {
 	.await?;
 	Ok(())
 }
+pub async fn get_persist_file(file_name: String) -> Result<Vec<u8>> {
+	use tea_actorx_core::RegId;
+	use tea_actorx_runtime::call;
+	use tea_runtime_codec::runtime::ops::persist::OP_ASYNC_REQUEST;
+	use tea_runtime_codec::vmh::message::encode_protobuf;
+	use tea_system_actors::persist::*;
+
+	let req = persist::PersistRequest {
+		msg: Some(persist::persist_request::Msg::GetFile(persist::GetFile {
+			file_name,
+		})),
+		..Default::default()
+	};
+
+	let msg = call(
+		RegId::Static(NAME).inst(0),
+		ProtoRequest(OP_ASYNC_REQUEST.into(), encode_protobuf(req)?),
+	)
+	.await?;
+	let res = msg.0;
+
+	Ok(res)
+}

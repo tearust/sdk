@@ -83,6 +83,7 @@ pub trait Persist {
 	fn append_statements(&self, statements: Vec<(Vec<TypedStatement>, Ts, String)>) -> Result<()>;
 
 	fn write_file(&self, file_name: &str, data: &[u8]) -> Result<()>;
+	fn get_file(&self, file_name: &str) -> Result<Vec<u8>>;
 
 	fn get_statements(
 		&self,

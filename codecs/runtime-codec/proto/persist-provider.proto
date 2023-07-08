@@ -15,6 +15,7 @@ message PersistRequest {
 		AppendStatements AppendStatements = 11;
 		GetStatements GetStatements = 12;
 		WriteFile WriteFile = 13;
+		GetFile GetFile = 14;
 	}
 }
 
@@ -74,6 +75,9 @@ message AppendStatements {
 message WriteFile {
 	string fileName = 1;
 	bytes data = 2;
+}
+message GetFile {
+	string fileName = 1;
 }
 
 message GetStatements {

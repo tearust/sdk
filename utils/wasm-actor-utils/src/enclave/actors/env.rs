@@ -152,7 +152,7 @@ pub fn bank_hongkong_token_id() -> Result<TokenId> {
 	)?)
 }
 
-pub fn bank_japan_token_id() -> Result<TokenId> {
+pub fn bank_sg_token_id() -> Result<TokenId> {
 	Ok(TokenId::from_hex(
 		"0xb000000000000000000000000000000000000002",
 	)?)
@@ -161,5 +161,17 @@ pub fn bank_japan_token_id() -> Result<TokenId> {
 pub fn bank_india_token_id() -> Result<TokenId> {
 	Ok(TokenId::from_hex(
 		"0xb000000000000000000000000000000000000003",
+	)?)
+}
+
+pub fn g20_tea_swap_tapp_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0x2000000000000000000000000000000000000001",
+	)?)
+}
+
+pub fn g20_price_feeder_tapp_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0x2000000000000000000000000000000000000002",
 	)?)
 }
