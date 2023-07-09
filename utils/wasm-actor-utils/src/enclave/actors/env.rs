@@ -5,7 +5,10 @@ use std::{collections::HashMap, time::SystemTime};
 use tea_actorx_core::RegId;
 use tea_actorx_runtime::{call, post};
 use tea_codec::ResultExt;
-use tea_runtime_codec::tapp::{BlockNumber, TokenId};
+use tea_runtime_codec::{
+	tapp::{Account, BlockNumber, TokenId},
+	vmh::env::DelegateStartupItem,
+};
 use tea_system_actors::env::*;
 
 pub use tea_system_actors::tokenstate::{CronjobArgs, RandomTickArgs};
@@ -42,6 +45,16 @@ pub async fn get_current_wasm_actor_token_id() -> Result<Option<String>> {
 
 pub async fn get_genesis_enclave_pcrs() -> Result<HashMap<String, String>> {
 	let res = call(RegId::Static(NAME).inst(0), GenesisEnclavePcrsRequest).await?;
+	Ok(res.0)
+}
+
+pub async fn tappstore_owner() -> Result<Account> {
+	let res = call(RegId::Static(NAME).inst(0), GetTappstoreOwnerRequest).await?;
+	Ok(res.0.parse()?)
+}
+
+pub async fn get_delegate_startup_nodes() -> Result<Vec<DelegateStartupItem>> {
+	let res = call(RegId::Static(NAME).inst(0), GetStartupDelegatesRequest).await?;
 	Ok(res.0)
 }
 

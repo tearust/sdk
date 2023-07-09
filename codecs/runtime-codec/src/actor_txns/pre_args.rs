@@ -13,9 +13,6 @@ pub struct Arg {
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum Type {
-	Cml,
-	TappstoreOwner,
-	CurrentHeight,
 	TopupLogs,
 }
 
@@ -78,49 +75,6 @@ impl ArgResult {
 }
 
 impl Arg {
-	pub fn single_cml(cml_id: u64) -> Self {
-		Arg {
-			ty: Type::Cml,
-			filter: Filter::Single(Indentity::U64(cml_id)),
-		}
-	}
-
-	pub fn single_status(status: Status) -> Self {
-		Arg {
-			ty: Type::Cml,
-			filter: Filter::ByStatus(status),
-		}
-	}
-
-	pub fn single_tea_id(tea_id: ReplicaId) -> Self {
-		Arg {
-			ty: Type::Cml,
-			filter: Filter::Single(Indentity::TeaId(tea_id)),
-		}
-	}
-
-	pub fn multi_cmls(cml_ids: &[u64]) -> Self {
-		let cml_ids: Vec<Indentity> = cml_ids.iter().map(|id| Indentity::U64(*id)).collect();
-		Arg {
-			ty: Type::Cml,
-			filter: Filter::Multiple(cml_ids),
-		}
-	}
-
-	pub fn tappstore_owner() -> Self {
-		Arg {
-			ty: Type::TappstoreOwner,
-			filter: Filter::Uncountable,
-		}
-	}
-
-	pub fn current_height() -> Self {
-		Arg {
-			ty: Type::CurrentHeight,
-			filter: Filter::Uncountable,
-		}
-	}
-
 	pub fn topup_logs() -> Self {
 		Arg {
 			ty: Type::TopupLogs,

@@ -45,6 +45,7 @@ pub enum TappstoreTxn {
 		acct: Account,
 		amount: Balance,
 		auth_b64: String,
+		key: String,
 	},
 	PayToApp {
 		token_id: TokenId,

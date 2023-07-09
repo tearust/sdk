@@ -22,11 +22,13 @@ pub struct EnvSettings {
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct GenesisConfig {
-	pub contract_addresses: ContractAddresses,
+	pub contract_addresses: HashMap<String, ContractAddresses>,
 	pub tappstore_id: String,
-	pub chain_id: u64,
+	pub chain_ids: HashMap<String, u64>,
 	pub mining_startup_nodes: Vec<MiningStartupItem>,
 	pub enclave_pcrs: HashMap<String, String>,
+	pub delegate_startup_nodes: Vec<DelegateStartupItem>,
+	pub tappstore_owner: String,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
@@ -34,6 +36,14 @@ pub struct MiningStartupItem {
 	pub machine_id: String,
 	pub seat_id: SeatId,
 	pub conn_id: String,
+	pub key: String,
+}
+
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+pub struct DelegateStartupItem {
+	pub machine_id: String,
+	pub delegate_id: u64,
+	pub ip: String,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]

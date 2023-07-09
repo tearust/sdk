@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::solc::{BlockNumber, ContractAddresses};
+use tea_runtime_codec::vmh::env::DelegateStartupItem;
 use tea_runtime_codec::vmh::io::VersionInfo;
 
 pub mod error;
@@ -83,7 +84,7 @@ pub struct GetTappstoreTokenIdResponse(pub String);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct GetTeaContractsRequest;
+pub struct GetTeaContractsRequest(pub String);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetTeaContractsResponse(pub ContractAddresses);
 
@@ -91,7 +92,7 @@ pub struct GetTeaContractsResponse(pub ContractAddresses);
 #[price(10000)]
 pub struct GetMiningStartupRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct GetMiningStartupResponse(pub Vec<([u8; 32], u64, String)>);
+pub struct GetMiningStartupResponse(pub Vec<([u8; 32], u64, String, String)>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
@@ -147,3 +148,21 @@ pub struct RaSettingsResponse {
 	pub default_validators_count: usize,
 	pub min_validators_count: usize,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct ListLayer1KeysRequest;
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListLayer1KeysResponse(pub Vec<String>);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GetTappstoreOwnerRequest;
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetTappstoreOwnerResponse(pub String);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GetStartupDelegatesRequest;
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetStartupDelegatesResponse(pub Vec<DelegateStartupItem>);
