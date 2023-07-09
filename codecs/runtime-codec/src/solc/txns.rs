@@ -10,13 +10,7 @@ pub struct AsyncTxn {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TxnType {
 	SignWithdraw(Vec<u8>),
-	SignMintCml(Vec<u8>),
 	SendWithdraw {
-		records: Vec<u8>,
-		signatures: Vec<u8>,
-		nonce: U256,
-	},
-	SendMintCml {
 		records: Vec<u8>,
 		signatures: Vec<u8>,
 		nonce: U256,
