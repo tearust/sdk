@@ -17,7 +17,6 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
-use tea_sdk::{timeout_retry, Timeout};
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
@@ -56,80 +55,79 @@ struct WorkerChannels {
 }
 
 impl WorkerProcess {
-	#[timeout_retry(10000)]
 	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
 
+		#[cfg(feature = "nitro")]
+		let handle_path;
+
+		let (mut proc, mut this) = {
+			let mut cmd = Command::new(path.as_ref());
+			cmd.stdout(Stdio::piped()).kill_on_drop(true);
 			#[cfg(feature = "nitro")]
-			let handle_path;
+			{
+				let path = Self::calculate_temp_path(hash);
+				let listener = tokio::net::UnixListener::bind(&path)?;
+				let mut proc = cmd.stdin(Stdio::piped()).spawn()?;
+				let stdin = unsafe { proc.stdin.as_mut().unwrap_unchecked() };
+				stdin.write_all(path.as_bytes()).await?;
+				stdin.write_u8(b'\n').await?;
+				let (this, _) = listener.accept().await?;
+				handle_path = path;
+				(proc, this)
+			}
+			#[cfg(not(feature = "nitro"))]
+			{
+				use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
+				use std::os::fd::AsRawFd;
+				let (this, other) = tokio::net::UnixStream::pair()?;
+				let proc = cmd
+					.fd_mappings(vec![FdMapping {
+						parent_fd: other.as_raw_fd(),
+						child_fd: WORKER_UNIX_SOCKET_FD,
+					}])?
+					.spawn()?;
+				(proc, this)
+			}
+		};
 
-			let (mut proc, mut this) = {
-				let mut cmd = Command::new(path.as_ref());
-				cmd.stdout(Stdio::piped()).kill_on_drop(true);
-				#[cfg(feature = "nitro")]
-				{
-					let path = Self::calculate_temp_path(hash);
-					let listener = tokio::net::UnixListener::bind(&path)?;
-					let mut proc = cmd.stdin(Stdio::piped()).spawn()?;
-					let stdin = unsafe { proc.stdin.as_mut().unwrap_unchecked() };
-					stdin.write_all(path.as_bytes()).await?;
-					stdin.write_u8(b'\n').await?;
-					let (this, _) = listener.accept().await?;
-					handle_path = path;
-					(proc, this)
-				}
-				#[cfg(not(feature = "nitro"))]
-				{
-					use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
-					use std::os::fd::AsRawFd;
-					let (this, other) = tokio::net::UnixStream::pair()?;
-					let proc = cmd
-						.fd_mappings(vec![FdMapping {
-							parent_fd: other.as_raw_fd(),
-							child_fd: WORKER_UNIX_SOCKET_FD,
-						}])?
-						.spawn()?;
-					(proc, this)
-				}
-			};
+		this.write_all(source).await?;
+		this.flush().await?;
+		let bytes = read_var_bytes(&mut this).await?;
+		let metadata: Result<_> = bincode::deserialize(&bytes)?;
+		let metadata: Arc<Metadata> = metadata?;
 
-			this.write_all(source).await?;
-			this.flush().await?;
-			let bytes = read_var_bytes(&mut this).await?;
-			let metadata: Result<_> = bincode::deserialize(&bytes)?;
-			let metadata: Arc<Metadata> = metadata?;
+		let (read, write) = this.into_split();
 
-			let (read, write) = this.into_split();
+		let out = proc.stdout.take().unwrap();
+		let actor = metadata.id.clone();
 
-			let out = proc.stdout.take().unwrap();
-			let actor = metadata.id.clone();
+		let this = Arc::new(Self {
+			#[cfg(feature = "track")]
+			tracker: crate::context::tracker()?.create_worker(metadata.id.clone()),
+			_proc: proc,
+			metadata,
+			write: Mutex::new(write),
+			read: Mutex::new(read),
+			channels: Mutex::new(WorkerChannels {
+				channels: HashMap::new(),
+				current_id: 0,
+				error: None,
+			}),
+			#[cfg(feature = "nitro")]
+			handle_path,
+		});
 
-			let this = Arc::new(Self {
-				#[cfg(feature = "track")]
-				tracker: crate::context::tracker()?.create_worker(metadata.id.clone()),
-				_proc: proc,
-				metadata,
-				write: Mutex::new(write),
-				read: Mutex::new(read),
-				channels: Mutex::new(WorkerChannels {
-					channels: HashMap::new(),
-					current_id: 0,
-					error: None,
-				}),
-				#[cfg(feature = "nitro")]
-				handle_path,
-			});
+		tokio::spawn(Self::redirect_stdout(
+			out,
+			actor,
+			host()?.wasm_output_handler.clone(),
+			Arc::downgrade(&this),
+		));
 
-			tokio::spawn(Self::redirect_stdout(
-				out,
-				actor,
-				host()?.wasm_output_handler.clone(),
-				Arc::downgrade(&this),
-			));
+		tokio::spawn(Self::read_loop(Arc::downgrade(&this)));
 
-			tokio::spawn(Self::read_loop(Arc::downgrade(&this)));
-
-			Ok(this)
+		Ok(this)
 	}
 
 	#[cfg(feature = "nitro")]
@@ -315,9 +313,7 @@ impl Channel {
 		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
-		let Some((result, gas)) = 
-			self.rx.recv().timeout(15000, "invocation").await.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))? 
-		 else {
+		let Some((result, gas)) = self.rx.recv().await else {
 			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());
 		};
 		set_gas(gas);
