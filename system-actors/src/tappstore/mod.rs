@@ -6,7 +6,6 @@ use tea_runtime_codec::actor_txns::{
 	pre_args::{Arg, ArgSlots},
 	tsid::Tsid,
 };
-use tea_runtime_codec::solc::txns::{MintCmlRecordTrans, UnlockRecordTrans};
 use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic, CmlVariable},
 	machine::{MiningIntrinsic, MiningVariable},
@@ -161,7 +160,13 @@ pub struct QuerySystemVersionsResponse(pub SystemVersions);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryExpiredWithdrawsRequest(pub TimestampShort);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryExpiredWithdrawsResponse(pub Vec<(Hash, Vec<UnlockRecordTrans>, String)>);
+pub struct QueryExpiredWithdrawsResponse(
+	pub  Vec<(
+		Hash,
+		Vec<tea_runtime_codec::solc::txns::UnlockRecordTrans>,
+		String,
+	)>,
+);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ProcessPreArgsRequest(pub Vec<Arg>);

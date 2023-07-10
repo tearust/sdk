@@ -38,6 +38,7 @@ pub enum TappstoreTxn {
 		auth_b64: String,
 	},
 	Topup {
+		key: String,
 		item: TopupEventItem,
 	},
 	Withdraw {

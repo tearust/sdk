@@ -4,11 +4,11 @@ package layer1;
 message RegisterLayer1EventRequest {}
 
 message Layer1Inbound {
+    string key = 1;
     oneof msg {
         TappTopupEvent TappTopupEvent = 101;
         TappWithdrawEvent TappWithdrawEvent = 102;
         ValidatorChangedEvents ValidatorChangedEvents = 103;
-        TransferCmlEvent TransferCmlEvent = 104;
     }
 }
 
@@ -33,9 +33,3 @@ message ValidatorChangedEvents {
     uint64 height = 3;
 }
 
-message TransferCmlEvent {
-    bytes from = 1;
-    bytes to = 2;
-    uint64 cml_id = 3;
-    uint64 height = 4;
-}
