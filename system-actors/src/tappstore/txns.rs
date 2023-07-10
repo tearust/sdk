@@ -191,10 +191,6 @@ pub enum TappstoreTxn {
 		seat_id: SeatId,
 		user: Account,
 	},
-	InternalCronjobAction {
-		target: String,
-		timestamp: TimestampShort,
-	},
 	RegisterMachine {
 		tea_id: Vec<u8>,
 		issuer: IssuerId,
