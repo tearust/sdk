@@ -2,11 +2,7 @@ use crate::enclave::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use tea_codec::OptionExt;
-use tea_runtime_codec::tapp::{
-	cml::{CmlId, CmlIntrinsic},
-	seat::SeatId,
-	Account, BlockNumber,
-};
+use tea_runtime_codec::tapp::{cml::CmlId, seat::SeatId, Account, BlockNumber};
 #[cfg(not(feature = "__test"))]
 use tea_system_actors::layer1::*;
 
@@ -17,7 +13,7 @@ pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>
 }
 
 #[cfg(not(feature = "__test"))]
-pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String, String)>> {
+pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String)>> {
 	use tea_actorx_core::RegId;
 	use tea_actorx_runtime::call;
 
@@ -29,11 +25,11 @@ pub async fn get_mining_startup_nodes() -> Result<Vec<(Vec<u8>, SeatId, String, 
 	Ok(rtn
 		.0
 		.into_iter()
-		.map(|(tea_id, seat_id, ip, key)| (tea_id.to_vec(), seat_id, ip, key))
+		.map(|(tea_id, seat_id, ip)| (tea_id.to_vec(), seat_id, ip))
 		.collect())
 }
 
-pub async fn get_first_mining_startup_node() -> Result<(Vec<u8>, SeatId, String, String)> {
+pub async fn get_first_mining_startup_node() -> Result<(Vec<u8>, SeatId, String)> {
 	let nodes = get_mining_startup_nodes().await?;
 	Ok(nodes
 		.first()
@@ -43,7 +39,7 @@ pub async fn get_first_mining_startup_node() -> Result<(Vec<u8>, SeatId, String,
 
 #[cfg(not(feature = "__test"))]
 pub async fn is_first_startup_node(tea_id: &[u8]) -> Result<bool> {
-	let (startup_tea_id, _, _, _) = get_first_mining_startup_node().await?;
+	let (startup_tea_id, _, _) = get_first_mining_startup_node().await?;
 	Ok(startup_tea_id.eq(tea_id))
 }
 

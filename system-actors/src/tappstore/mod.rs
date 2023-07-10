@@ -164,11 +164,6 @@ pub struct QueryExpiredWithdrawsRequest(pub TimestampShort);
 pub struct QueryExpiredWithdrawsResponse(pub Vec<(Hash, Vec<UnlockRecordTrans>, String)>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryExpiredMintCmlsRequest(pub TimestampShort);
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryExpiredMintCmlsResponse(pub Vec<(Hash, Vec<MintCmlRecordTrans>, String)>);
-
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ProcessPreArgsRequest(pub Vec<Arg>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ProcessPreArgsResponse(pub ArgSlots);
