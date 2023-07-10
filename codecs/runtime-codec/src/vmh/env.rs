@@ -36,7 +36,6 @@ pub struct MiningStartupItem {
 	pub machine_id: String,
 	pub seat_id: SeatId,
 	pub conn_id: String,
-	pub key: String,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
@@ -44,6 +43,7 @@ pub struct DelegateStartupItem {
 	pub machine_id: String,
 	pub delegate_id: u64,
 	pub ip: String,
+	pub key: String,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
