@@ -75,6 +75,7 @@ message CommonSqlQueryRequest {
     QueryDevTappItemByNameRequest QueryDevTappItemByNameRequest = 15;
     QueryDevTappErrorLog QueryDevTappErrorLog = 16;
     QueryExchangeRate QueryExchangeRate = 17;
+    QuerySwapPrice QuerySwapPrice = 18;
   }
 }
 
@@ -173,5 +174,8 @@ message QueryActiveSeats {
 }
 
 message QueryExchangeRate {
+  optional string name = 1;
+}
+message QuerySwapPrice {
   optional string name = 1;
 }

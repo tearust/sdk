@@ -14,3 +14,9 @@ pub struct ExchangeRateItem {
 	pub rate: String,
 	pub updated_at: String,
 }
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SwapPriceItem {
+	pub name: String,
+	pub price: String,
+}

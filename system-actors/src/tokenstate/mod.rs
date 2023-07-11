@@ -384,6 +384,12 @@ pub struct BondingBurnResponse(pub Vec<u8>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
+pub struct BondingTransferRequest(pub Vec<u8>);
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct BondingTransferResponse(pub Vec<u8>);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct ReadBondingTotalSupplyRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ReadBondingTotalSupplyResponse(pub Vec<u8>);

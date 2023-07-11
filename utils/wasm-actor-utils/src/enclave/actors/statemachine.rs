@@ -442,6 +442,26 @@ pub async fn burn_bonding_token(
 	Ok(res.ctx)
 }
 
+pub async fn transfer_bonding_token(
+	from_acct: Account,
+	to_acct: Account,
+	amount: Balance,
+	ctx: Vec<u8>,
+) -> Result<Vec<u8>> {
+	let res_buf = call(
+		RegId::Static(codec::NAME).inst(0),
+		codec::BondingTransferRequest(encode_protobuf(BondingTransferRequest {
+			ctx,
+			from_acct: serialize(&from_acct)?,
+			to_acct: serialize(&to_acct)?,
+			amount: serialize(&amount)?,
+		})?),
+	)
+	.await?;
+	let res = BondingTransferResponse::decode(res_buf.0.as_slice())?;
+	Ok(res.ctx)
+}
+
 pub async fn get_reserved_token_balance(token_id: TokenId) -> Result<Balance> {
 	let res_buf = call(
 		RegId::Static(codec::NAME).inst(0),
