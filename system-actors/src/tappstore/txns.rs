@@ -346,6 +346,12 @@ pub enum TappstoreTxn {
 		amt: Balance,
 		code: String,
 	},
+	G20TransferToken {
+		from_acct: Account,
+		to_acct: Account,
+		code: String,
+		amt: Balance,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
