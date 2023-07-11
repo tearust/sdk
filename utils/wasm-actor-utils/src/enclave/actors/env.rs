@@ -58,6 +58,15 @@ pub async fn get_delegate_startup_nodes() -> Result<Vec<DelegateStartupItem>> {
 	Ok(res.0)
 }
 
+pub async fn erc20_token_id(key: &str) -> Result<TokenId> {
+	let erc20_id = call(
+		RegId::Static(NAME).inst(0),
+		GetErc20TokenIdRequest(key.to_string()),
+	)
+	.await?;
+	Ok(TokenId::from_hex(erc20_id.0)?)
+}
+
 #[cfg(not(feature = "__test"))]
 pub async fn tappstore_id() -> Result<TokenId> {
 	let tappstore_id = call(RegId::Static(NAME).inst(0), GetTappstoreTokenIdRequest).await?;

@@ -84,6 +84,12 @@ pub struct GetTappstoreTokenIdResponse(pub String);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
+pub struct GetErc20TokenIdRequest(pub String);
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetErc20TokenIdResponse(pub String);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct GetTeaContractsRequest(pub String);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetTeaContractsResponse(pub ContractAddresses);
