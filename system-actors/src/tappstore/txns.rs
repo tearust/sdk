@@ -38,6 +38,7 @@ pub enum TappstoreTxn {
 		auth_b64: String,
 	},
 	Topup {
+		key: String,
 		item: TopupEventItem,
 	},
 	Withdraw {
@@ -190,10 +191,6 @@ pub enum TappstoreTxn {
 	GiveupSeatOwnership {
 		seat_id: SeatId,
 		user: Account,
-	},
-	InternalCronjobAction {
-		target: String,
-		timestamp: TimestampShort,
 	},
 	RegisterMachine {
 		tea_id: Vec<u8>,
