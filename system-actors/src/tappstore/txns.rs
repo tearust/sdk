@@ -335,6 +335,17 @@ pub enum TappstoreTxn {
 		name: Vec<String>,
 		rate: Vec<Balance>,
 	},
+	G20SwapToken {
+		acct: Account,
+		amt: Balance,
+		from_code: String,
+		to_code: String,
+	},
+	G20MintTokenForTest {
+		acct: Account,
+		amt: Balance,
+		code: String,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

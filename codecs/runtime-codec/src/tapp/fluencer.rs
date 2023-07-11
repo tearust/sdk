@@ -19,4 +19,11 @@ pub struct ExchangeRateItem {
 pub struct SwapPriceItem {
 	pub name: String,
 	pub price: String,
+	pub lp: Vec<String>,
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct SwapTokenBalanceItem {
+	pub name: String,
+	pub price: String,
 }

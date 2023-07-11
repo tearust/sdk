@@ -76,6 +76,7 @@ message CommonSqlQueryRequest {
     QueryDevTappErrorLog QueryDevTappErrorLog = 16;
     QueryExchangeRate QueryExchangeRate = 17;
     QuerySwapPrice QuerySwapPrice = 18;
+    QuerySwapTokenBalance QuerySwapTokenBalance = 19;
   }
 }
 
@@ -178,4 +179,8 @@ message QueryExchangeRate {
 }
 message QuerySwapPrice {
   optional string name = 1;
+}
+
+message QuerySwapTokenBalance {
+  string user = 1;
 }
