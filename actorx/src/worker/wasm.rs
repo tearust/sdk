@@ -15,7 +15,6 @@ use crate::{
 		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
 	},
 	sign::verify,
-	timeout_retry,
 	worker::{
 		error::{Error, Result},
 		wasm::memory::MemoryLimit,
@@ -96,7 +95,6 @@ impl Host {
 		Ok(())
 	}
 
-	#[timeout_retry(4000)]
 	pub(crate) async fn read_new(&self) -> Result<()> {
 		let metadata = Arc::new(verify(&self.source)?);
 		let source = self.source.clone();
@@ -122,7 +120,6 @@ impl Host {
 		Ok(())
 	}
 
-	#[timeout_retry(3000)]
 	async fn crate_wasm(&self) -> Result<(Store, Module, Arc<Metadata>)> {
 		let state = self.state.read().await;
 		let metadata = state.metadata.clone();
@@ -137,7 +134,6 @@ impl Host {
 		.await?
 	}
 
-	#[timeout_retry(3000)]
 	pub async fn create_instance(&self) -> Result<Instance> {
 		let (mut store, module, metadata) = self.crate_wasm().await?;
 		execute(move || {

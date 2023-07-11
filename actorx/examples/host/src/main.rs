@@ -9,10 +9,7 @@ use error::Result;
 use tea_actorx_examples_codec::{
 	AddRequest, AddResponse, FactorialRequest, FactorialResponse, GreetingsRequest, WASM_ID,
 };
-use tea_sdk::{
-	actorx::{get_gas, set_gas, ActorExt, WasmActor, WithActorHost},
-	timeout_retry_worker,
-};
+use tea_sdk::actorx::{get_gas, set_gas, ActorExt, WasmActor, WithActorHost};
 #[cfg(feature = "timeout")]
 use ::{std::time::Duration, tea_sdk::actorx::context::tracker};
 
@@ -35,7 +32,6 @@ async fn init() -> Result<()> {
 	Ok(())
 }
 
-#[timeout_retry_worker(9000)]
 async fn run() -> Result<()> {
 	init().await?;
 
