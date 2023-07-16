@@ -15,6 +15,7 @@ pub type CmlId = u64;
 pub struct ContractAddresses {
 	pub lock: String,
 	pub maintainer: String,
+	pub erc20: String,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
