@@ -331,6 +331,33 @@ pub enum TappstoreTxn {
 		token_id: TokenId,
 		actor_type: String,
 	},
+	UpdateExchangeRate {
+		name: Vec<String>,
+		rate: Vec<Balance>,
+	},
+	G20SwapToken {
+		acct: Account,
+		amt: Balance,
+		from_code: String,
+		to_code: String,
+	},
+	G20MintTokenForTest {
+		acct: Account,
+		amt: Balance,
+		code: String,
+	},
+	G20TransferToken {
+		from_acct: Account,
+		to_acct: Account,
+		code: String,
+		amt: Balance,
+	},
+	G20TopupToLP {
+		from_acct: Account,
+		code: String,
+		to_code: String,
+		amt: Balance,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

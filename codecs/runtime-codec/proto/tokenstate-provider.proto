@@ -200,11 +200,13 @@ message TopupRequest {
   bytes ctx = 1;
   bytes to = 2;
   bytes amt = 3;
+  string key = 4;
 }
 message WithdrawRequest {
   bytes ctx = 1;
   bytes from = 2;
   bytes amt = 3;
+  string key = 4;
 }
 
 /// To simplify the coding and process, we did not use One_of the
@@ -451,6 +453,16 @@ message BondingBurnRequest {
   bytes amount = 3;
 }
 message BondingBurnResponse {
+  bytes ctx = 1;
+}
+
+message BondingTransferRequest {
+  bytes ctx = 1;
+  bytes from_acct = 2;
+  bytes to_acct = 3;
+  bytes amount = 4;
+}
+message BondingTransferResponse {
   bytes ctx = 1;
 }
 
