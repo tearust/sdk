@@ -352,6 +352,12 @@ pub enum TappstoreTxn {
 		code: String,
 		amt: Balance,
 	},
+	G20TopupToLP {
+		from_acct: Account,
+		code: String,
+		to_code: String,
+		amt: Balance,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
