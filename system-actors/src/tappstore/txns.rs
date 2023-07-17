@@ -357,6 +357,7 @@ pub enum TappstoreTxn {
 		code: String,
 		to_code: String,
 		amt: Balance,
+		increase: bool,
 	},
 }
 
