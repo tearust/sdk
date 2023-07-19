@@ -161,3 +161,8 @@ pub struct IsTxnAlreadyExecutedResponse(pub bool);
 #[price(10)]
 #[response(())]
 pub struct ExecTxnCast(pub Tsid, pub Vec<u8>, pub Option<ArgSlots>);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10)]
+#[response(())]
+pub struct IncreaseSpsRequest;
