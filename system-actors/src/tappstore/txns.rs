@@ -338,6 +338,7 @@ pub enum TappstoreTxn {
 	G20SwapToken {
 		acct: Account,
 		amt: Balance,
+		to_acct: Option<Account>,
 		from_code: String,
 		to_code: String,
 	},

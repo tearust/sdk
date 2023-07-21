@@ -78,9 +78,11 @@ pub async fn set_query_cache(key: &str, val: serde_json::Value) -> Result<()> {
 	let key = format!("cache_{key}");
 	let val = serde_json::json!({ "cache": val });
 	let new_val = serde_json::to_vec(&val)?;
-	kvp::set(&key, &new_val, 900).await?;
+	kvp::set(&key, &new_val, 600).await?;
 	Ok(())
 }
+
+/// Return cache value if set query cache before.
 pub async fn get_query_cache(key: &str) -> Result<Option<Vec<u8>>> {
 	let key = format!("cache_{key}");
 	let val: Vec<u8> = kvp::get(&key).await?.ok_or_err_else(|| "")?;
@@ -89,4 +91,11 @@ pub async fn get_query_cache(key: &str) -> Result<Option<Vec<u8>>> {
 	}
 	info!("query cache => {key}");
 	Ok(Some(val))
+}
+
+/// Remove cache value
+pub async fn remove_query_cache(key: &str) -> Result<()> {
+	let key = format!("cache_{key}");
+	kvp::del(&key).await?;
+	Ok(())
 }
