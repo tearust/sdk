@@ -97,14 +97,14 @@ where
 	T: FnOnce(Option<Tsid>) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
 	let (cmd, hash, uuid) = gen_command_messages(txn_serial, pre_args).await?;
-	info!(
-		"try send transaction 0x{} remotely{}",
-		hex::encode(hash),
-		e.as_ref().map_or_else(
-			|| "".to_string(),
-			|e| format!(" because send transaction locally failed: {e:?}")
-		)
-	);
+	// info!(
+	// 	"try send transaction 0x{} remotely{}",
+	// 	hex::encode(hash),
+	// 	e.as_ref().map_or_else(
+	// 		|| "".to_string(),
+	// 		|e| format!(" because send transaction locally failed: {e:?}")
+	// 	)
+	// );
 
 	let from_token = env::get_current_wasm_actor_token_id().await?;
 	try_send_remotely::<Option<Tsid>, T>(
@@ -180,14 +180,14 @@ pub async fn send_transaction_locally_ex(
 ) -> Result<Option<Tsid>> {
 	let txn_bytes = serialize(txn_serial)?;
 	let txn_hash: Hash = sha256(txn_bytes.clone()).await?.as_slice().try_into()?;
-	info!(
-		"try send transaction 0x{} locally {} followup",
-		hex::encode(txn_hash),
-		match gen_followup {
-			true => "with",
-			false => "without",
-		}
-	);
+	// info!(
+	// 	"try send transaction 0x{} locally {} followup",
+	// 	hex::encode(txn_hash),
+	// 	match gen_followup {
+	// 		true => "with",
+	// 		false => "without",
+	// 	}
+	// );
 
 	let tsid = call(
 		RegId::Static(NAME).inst(0),

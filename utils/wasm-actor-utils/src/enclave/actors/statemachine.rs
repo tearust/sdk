@@ -150,12 +150,12 @@ impl CommitContextList {
 			}
 		}
 
-		info!(
-			"actual_neutual_balance: {:?}, neutual_hidden_acct_balance: (credit: {}, debit: {})",
-			&actual_neutral_balance,
-			self.neutralize_hidden_acct_credit,
-			self.neutralize_hidden_acct_debit,
-		);
+		// info!(
+		// 	"actual_neutual_balance: {:?}, neutual_hidden_acct_balance: (credit: {}, debit: {})",
+		// 	&actual_neutral_balance,
+		// 	self.neutralize_hidden_acct_credit,
+		// 	self.neutralize_hidden_acct_debit,
+		// );
 
 		if (actual_neutral_balance.0 != self.neutralize_hidden_acct_debit
 			|| actual_neutral_balance.1 != self.neutralize_hidden_acct_credit)
@@ -173,23 +173,23 @@ impl CommitContextList {
 			.into());
 		}
 
-		if !global_statements.is_empty() {
-			let res = async_persist_request(persist::PersistRequest {
-				msg: Some(persist::persist_request::Msg::AppendStatements(
-					persist::AppendStatements {
-						statements_serial: serialize(&global_statements)?,
-					},
-				)),
-				..Default::default()
-			})
-			.await?;
-			if let Some(persist::persist_response::Msg::ErrorMessage(e)) = res.msg.as_ref() {
-				warn!(
-					"persist statements with tsid {:?} failed: {}",
-					tsid, e.message
-				);
-			}
-		}
+		// if !global_statements.is_empty() {
+		// 	let res = async_persist_request(persist::PersistRequest {
+		// 		msg: Some(persist::persist_request::Msg::AppendStatements(
+		// 			persist::AppendStatements {
+		// 				statements_serial: serialize(&global_statements)?,
+		// 			},
+		// 		)),
+		// 		..Default::default()
+		// 	})
+		// 	.await?;
+		// 	if let Some(persist::persist_response::Msg::ErrorMessage(e)) = res.msg.as_ref() {
+		// 		warn!(
+		// 			"persist statements with tsid {:?} failed: {}",
+		// 			tsid, e.message
+		// 		);
+		// 	}
+		// }
 
 		Ok(())
 	}

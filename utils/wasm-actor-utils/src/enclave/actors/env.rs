@@ -39,7 +39,7 @@ pub async fn is_test_mode() -> Result<bool> {
 
 pub async fn get_current_wasm_actor_token_id() -> Result<Option<String>> {
 	let res = call(RegId::Static(NAME).inst(0), GetWasmActorTokenIdRequest).await?;
-	info!("Current caller wasm token_id => {:?}", res.0);
+	trace!("Current caller wasm token_id => {:?}", res.0);
 	Ok(res.0)
 }
 
