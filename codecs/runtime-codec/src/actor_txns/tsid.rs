@@ -68,6 +68,36 @@ impl Tsid {
 		}
 		buf
 	}
+
+	pub fn reover_from_readable(&mut self, tsid: TsidReadable) -> bool {
+		self.ts = tsid.ts;
+		if let Ok(sender) = hex::decode(tsid.sender) {
+			if sender.len() == 32 {
+				let new_sender = TryInto::<[u8; 32]>::try_into(sender.as_slice());
+				if new_sender.is_ok() {
+					self.sender = new_sender.unwrap();
+				}
+			}
+		}
+		if let Ok(hash) = hex::decode(tsid.hash) {
+			if hash.len() == 32 {
+				let new_hash = TryInto::<[u8; 32]>::try_into(hash.as_slice());
+				if new_hash.is_ok() {
+					self.hash = new_hash.unwrap();
+				}
+			}
+		}
+		if let Ok(seed) = hex::decode(tsid.seed) {
+			if seed.len() == 32 {
+				let new_seed = TryInto::<[u8; 32]>::try_into(seed.as_slice());
+				if new_seed.is_ok() {
+					self.seed = new_seed.unwrap();
+				}
+			}
+		}
+
+		true
+	}
 }
 
 impl PartialOrd for Tsid {
@@ -143,6 +173,25 @@ impl fmt::Debug for Tsid {
 			.field("seed(hex)", &hex::encode(self.seed))
 			.field("arg_hash(hex)", &self.args_hash.map(hex::encode))
 			.finish()
+	}
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct TsidReadable {
+	pub ts: u128,
+	pub sender: String,
+	pub hash: String,
+	pub seed: String,
+}
+
+impl From<Tsid> for TsidReadable {
+	fn from(tsid: Tsid) -> Self {
+		TsidReadable {
+			ts: tsid.ts,
+			sender: hex::encode(tsid.sender),
+			hash: hex::encode(tsid.hash),
+			seed: hex::encode(tsid.get_seed()),
+		}
 	}
 }
 
