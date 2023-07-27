@@ -186,6 +186,24 @@ pub fn bank_india_token_id() -> Result<TokenId> {
 	)?)
 }
 
+pub fn gov_hongkong_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0xc000000000000000000000000000000000000001",
+	)?)
+}
+
+pub fn gov_sg_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0xc000000000000000000000000000000000000002",
+	)?)
+}
+
+pub fn gov_india_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0xc000000000000000000000000000000000000003",
+	)?)
+}
+
 pub fn g20_tea_swap_tapp_token_id() -> Result<TokenId> {
 	Ok(TokenId::from_hex(
 		"0x2000000000000000000000000000000000000001",
