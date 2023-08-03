@@ -3,14 +3,15 @@ use crate::enclave::{
 	action::CallbackReturn,
 	actors::{
 		libp2p::intelli_actor_query_ex,
-		replica::{intelli_send_txn, IntelliSendMode},
+		replica::{calculate_txn_hash, intelli_send_txn, IntelliSendMode},
+		statemachine::new_txn_serial_with_nonce,
 	},
 };
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize, ResultExt,
 };
-use tea_runtime_codec::actor_txns::{pre_args::Arg, Tsid};
+use tea_runtime_codec::actor_txns::{pre_args::Arg, tsid::Hash, Tsid};
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 
 use crate::client::help;
@@ -176,4 +177,19 @@ pub fn cb_key_to_uuid(key: &str, stype: &str) -> String {
 	let ss = format!("{stype}_msg_");
 
 	str::replace(key, &ss, "")
+}
+
+pub async fn calculate_txn_hash_with_args(
+	from_actor: Option<&str>,
+	txn_bytes: Vec<u8>,
+	nonce: u64,
+) -> Result<Hash> {
+	let actor = if let Some(x) = from_actor {
+		x.as_bytes()
+	} else {
+		tea_system_actors::tappstore::NAME
+	};
+	let txn_serial = new_txn_serial_with_nonce(actor, txn_bytes, nonce)?;
+
+	Ok(calculate_txn_hash(&txn_serial).await?)
 }

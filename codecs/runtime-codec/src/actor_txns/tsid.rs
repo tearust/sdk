@@ -15,6 +15,7 @@ pub struct Tsid {
 	seed: Hash,
 	/// hash of all txn pre-args and related values
 	args_hash: Option<Hash>,
+	pub nonce: u64,
 }
 
 impl Tsid {
@@ -29,6 +30,7 @@ impl Tsid {
 			hash: followup.hash,
 			seed,
 			args_hash,
+			nonce: followup.nonce,
 		}
 	}
 	pub fn genesis() -> Self {
@@ -38,6 +40,7 @@ impl Tsid {
 			hash: [0u8; 32],
 			seed: [0u8; 32],
 			args_hash: Default::default(),
+			nonce: 100_u64,
 		}
 	}
 	pub fn get_seed(&self) -> Hash {
@@ -56,6 +59,10 @@ impl Tsid {
 			}
 		}
 		true
+	}
+
+	pub fn get_nonce(&self) -> u64 {
+		self.nonce
 	}
 
 	pub fn raw(&self) -> Vec<u8> {
@@ -172,6 +179,7 @@ impl fmt::Debug for Tsid {
 			.field("hash(hex)", &hex::encode(self.hash))
 			.field("seed(hex)", &hex::encode(self.seed))
 			.field("arg_hash(hex)", &self.args_hash.map(hex::encode))
+			.field("nonce", &self.get_nonce())
 			.finish()
 	}
 }
@@ -211,6 +219,7 @@ mod tests {
 			hash: [3; 32],
 			seed: [4; 32],
 			args_hash: Some([5; 32]),
+			nonce: 1,
 		};
 
 		let mut id2 = id1;
@@ -244,6 +253,7 @@ mod tests {
 			hash: [3; 32],
 			seed: [4; 32],
 			args_hash: Some([5; 32]),
+			nonce: 1,
 		};
 
 		let mut id2 = id1;
@@ -323,6 +333,7 @@ mod tests {
 			hash: [3; 32],
 			seed: [4; 32],
 			args_hash: Some([5; 32]),
+			nonce: 1,
 		};
 
 		let mut id2 = id1;

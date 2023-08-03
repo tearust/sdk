@@ -9,6 +9,7 @@ pub struct Followup {
 	pub ts: Ts,
 	pub hash: crate::actor_txns::Hash,
 	pub sender: ReplicaId,
+	pub nonce: u64,
 }
 
 impl Followup {
@@ -23,6 +24,7 @@ impl Followup {
 			ts,
 			hash: hash_key,
 			sender,
+			nonce: 0_64,
 		}
 	}
 
@@ -41,6 +43,7 @@ impl Followup {
 			ts,
 			hash: hash_key,
 			sender,
+			nonce: 0_u64,
 		}
 	}
 }

@@ -96,14 +96,15 @@ async fn try_send_transaction_remotely<T>(
 where
 	T: FnOnce(Option<Tsid>) -> CallbackReturn + Clone + Send + Sync + 'static,
 {
-	let (cmd, hash, uuid) = gen_command_messages(txn_serial, pre_args).await?;
+	let (cmd, hash, uuid, nonce) = gen_command_messages(txn_serial, pre_args).await?;
 	info!(
-		"try send transaction 0x{} remotely{}",
+		"try send transaction 0x{} remotely{} | nonce: {}",
 		hex::encode(hash),
 		e.as_ref().map_or_else(
 			|| "".to_string(),
-			|e| format!(" because send transaction locally failed: {e:?}")
-		)
+			|e| format!(" because send transaction locally failed: {e:?}"),
+		),
+		nonce,
 	);
 
 	let from_token = env::get_current_wasm_actor_token_id().await?;
@@ -119,6 +120,7 @@ where
 							ts: system_time_as_nanos().await?,
 							hash,
 							sender: get_my_tea_id().await?.as_slice().try_into()?,
+							nonce,
 						})?,
 					}),
 				},
@@ -131,10 +133,16 @@ where
 	.await
 }
 
+pub async fn calculate_txn_hash(txn_serial: &TxnSerial) -> Result<Hash> {
+	let bytes = serialize(txn_serial)?;
+	Ok(sha256(bytes).await?.as_slice().try_into()?)
+}
+
 async fn gen_command_messages(
 	txn_serial: &TxnSerial,
 	pre_args: Vec<Arg>,
-) -> Result<(tokenstate::StateCommand, Hash, String)> {
+) -> Result<(tokenstate::StateCommand, Hash, String, u64)> {
+	let nonce = txn_serial.nonce();
 	let txn_bytes = serialize(txn_serial)?;
 	let txn_hash: Hash = sha256(txn_bytes).await?.as_slice().try_into()?;
 	let uuid = generate_uuid().await?;
@@ -149,6 +157,7 @@ async fn gen_command_messages(
 		},
 		txn_hash,
 		uuid,
+		nonce,
 	))
 }
 
@@ -178,15 +187,17 @@ pub async fn send_transaction_locally_ex(
 	gen_followup: bool,
 	ts: Option<Ts>,
 ) -> Result<Option<Tsid>> {
+	let nonce = txn_serial.nonce();
 	let txn_bytes = serialize(txn_serial)?;
 	let txn_hash: Hash = sha256(txn_bytes.clone()).await?.as_slice().try_into()?;
 	info!(
-		"try send transaction 0x{} locally {} followup",
+		"try send transaction 0x{} locally {} followup | nonce: {}",
 		hex::encode(txn_hash),
 		match gen_followup {
 			true => "with",
 			false => "without",
-		}
+		},
+		nonce,
 	);
 
 	let tsid = call(
@@ -206,6 +217,7 @@ pub async fn send_transaction_locally_ex(
 			},
 			hash: txn_hash,
 			sender: get_my_tea_id().await?.as_slice().try_into()?,
+			nonce,
 		})?;
 		let fol_rtn = call(
 			RegId::Static(NAME).inst(0),

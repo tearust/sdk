@@ -29,12 +29,12 @@ pub struct TxnSerial {
 }
 
 impl TxnSerial {
-	pub fn new(actor_name: Vec<u8>, bytes: Vec<u8>, nonce: u64, gas_limit: u64) -> Self {
+	pub fn new(actor_name: Vec<u8>, bytes: Vec<u8>, nonce: u64, _gas_limit: u64) -> Self {
 		TxnSerial {
 			actor_name,
 			bytes,
 			nonce,
-			gas_limit,
+			gas_limit: 1_000_000_u64,
 		}
 	}
 

@@ -265,12 +265,16 @@ pub async fn new_txn_serial(
 	bytes: Vec<u8>,
 	gas_limit: u64,
 ) -> Result<TxnSerial> {
-	Ok(TxnSerial::new(
-		actor_name.to_vec(),
-		bytes,
-		random_u64().await?,
-		gas_limit,
-	))
+	let nonce = random_u64().await?;
+	Ok(TxnSerial::new(actor_name.to_vec(), bytes, nonce, gas_limit))
+}
+
+pub fn new_txn_serial_with_nonce(
+	actor_name: &[u8],
+	bytes: Vec<u8>,
+	nonce: u64,
+) -> Result<TxnSerial> {
+	Ok(TxnSerial::new(actor_name.to_vec(), bytes, nonce, u64::MAX))
 }
 
 pub async fn query_auth_ops_bytes(auth: AuthKey, gas_limit: u64) -> Result<Vec<u8>> {
