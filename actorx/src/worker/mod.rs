@@ -23,6 +23,7 @@ use tokio::{
 		mpsc::{unbounded_channel, UnboundedReceiver as Receiver, UnboundedSender as Sender},
 		Mutex,
 	},
+	time::Instant,
 };
 
 #[cfg(feature = "verbose_log")]
@@ -31,8 +32,6 @@ use crate::{
 	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
 	worker::{error::Result, wasm::Host},
 };
-
-use self::threading::execute;
 
 pub struct Worker {
 	read: Mutex<OwnedReadHalf>,
@@ -43,14 +42,22 @@ pub struct Worker {
 
 impl Worker {
 	pub async fn init(mut socket: UnixStream) -> Result<Arc<Self>> {
+		println!("@@ Worker init");
+		let now = Instant::now();
 		let is_path = socket.read_u8().await?;
 		let host = if is_path == 0 {
 			let path = String::from_utf8(read_var_bytes(&mut socket).await?)?;
 			let wasm = tokio::fs::read(path).await?;
-			Host::new(wasm).await
+			println!("@@ befor host new-a: {:?}", now.elapsed());
+			let r = Host::new(wasm).await;
+			println!("@@ after host new-a: {:?}", now.elapsed());
+			r
 		} else {
 			let wasm = read_var_bytes(&mut socket).await?;
-			Host::new(wasm).await
+			println!("@@ befor host new-b: {:?}", now.elapsed());
+			let r = Host::new(wasm).await;
+			println!("@@ after host new-b: {:?}", now.elapsed());
+			r
 		};
 		let (host, metadata) = match host {
 			Ok(host) => {
@@ -61,6 +68,8 @@ impl Worker {
 		};
 		write_var_bytes(&mut socket, &bincode::serialize(&metadata)?).await?;
 		socket.flush().await?;
+
+		println!("@@ Worker init done in {:?}", now.elapsed());
 		let host = host?;
 		let (read, write) = socket.into_split();
 		Ok(Arc::new(Self {
@@ -146,43 +155,42 @@ impl Worker {
 		cid: u64,
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
-		let mut instance = if let Ok(instance) = self.host.create_instance().await {
-			instance
-		} else {
-			self.host.read_new().await?;
-			self.host.create_instance().await?
+		let mut instance = match self.host.create_instance("a").await {
+			Ok(instance) => instance,
+			Err(e) => {
+				println!(
+					"create instance failed due to {}, begin to create new and retry...",
+					e
+				);
+				self.host.read_new().await?;
+				self.host.create_instance("b").await?
+			}
 		};
 		let mut first = true;
 		while let Some((operation, mut gas)) = input.recv().await {
 			#[cfg(feature = "verbose_log")]
 			let log = Self::log_operation(&operation, instance.metadata().id.clone());
-			let (resp, i, g) = if first {
+			let resp = if first {
 				first = false;
 				let op = operation.clone();
-				match execute(move || (instance.invoke(op, Some(&mut gas)), instance, gas))
-					.await
-					.await
-				{
+				match instance.invoke(op, Some(&mut gas)) {
 					Ok(r) => r,
-					Err(_) => {
+					Err(e) => {
+						println!("Worker channel fails due to {e:?}, restarting...");
 						self.host.read_new().await?;
-						let mut instance = self.host.create_instance().await?;
-						execute(move || (instance.invoke(operation, Some(&mut gas)), instance, gas))
-							.await
-							.await?
+						let mut instance = self.host.create_instance("c").await?;
+						instance.invoke(operation, Some(&mut gas))?
 					}
 				}
 			} else {
-				execute(move || (instance.invoke(operation, Some(&mut gas)), instance, gas))
-					.await
-					.await?
+				instance.invoke(operation, Some(&mut gas))?
 			};
-			instance = i;
-			gas = g;
-			let resp = match resp {
-				Ok(resp) => resp,
-				Err(e) => Operation::ReturnErr { error: e.into() },
-			};
+			// instance = i;
+			// gas = g;
+			// let resp = match resp {
+			// 	Ok(resp) => resp,
+			// 	Err(e) => Operation::ReturnErr { error: e.into() },
+			// };
 			#[cfg(feature = "verbose_log")]
 			log(&resp);
 			let is_completed = !matches!(resp, Operation::Call { .. });

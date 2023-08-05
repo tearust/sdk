@@ -56,7 +56,7 @@ struct WorkerChannels {
 }
 
 impl WorkerProcess {
-	#[timeout_retry(10000)]
+	#[timeout_retry(12000)]
 	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
 

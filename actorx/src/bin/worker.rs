@@ -6,6 +6,7 @@ use tokio::net::UnixStream;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+	println!("@@ begin of worker main");
 	set_hook(Box::new(|_| {}));
 	let socket = {
 		#[cfg(feature = "nitro")]
@@ -35,5 +36,6 @@ async fn main() -> Result<()> {
 			return Err(e);
 		}
 	}
+	println!("@@ end of worker main");
 	Ok(())
 }

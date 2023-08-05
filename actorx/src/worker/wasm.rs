@@ -22,7 +22,7 @@ use crate::{
 	},
 };
 use bincode::serialized_size;
-use tokio::{fs, sync::RwLock};
+use tokio::{fs, sync::RwLock, time::Instant};
 use wasmer::{
 	imports, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
 	Instance as WasmInstance, Memory, Module, Store, TypedFunction,
@@ -36,8 +36,6 @@ use ::{
 	},
 };
 
-use super::threading::execute;
-
 mod memory;
 
 const CACHE_DIR: &str = ".cache";
@@ -49,11 +47,11 @@ pub struct Host {
 	source: Arc<[u8]>,
 	compiled_path: String,
 	state: RwLock<State>,
+	wasm: RwLock<Vec<u8>>,
 }
 
 struct State {
 	metadata: Arc<Metadata>,
-	wasm: Arc<[u8]>,
 }
 
 impl Host {
@@ -67,8 +65,8 @@ impl Host {
 			compiled_path,
 			state: RwLock::new(State {
 				metadata: Arc::new(Metadata::EMPTY),
-				wasm: Arc::new([]),
 			}),
+			wasm: Default::default(),
 		};
 
 		if result.read_cache().await.is_err() {
@@ -83,6 +81,8 @@ impl Host {
 	}
 
 	async fn read_cache(&self) -> Result<()> {
+		let now = Instant::now();
+		let mut wasm_write = self.wasm.write().await;
 		let mut file = fs::OpenOptions::new()
 			.read(true)
 			.open(&self.compiled_path)
@@ -92,21 +92,28 @@ impl Host {
 		let wasm = read_var_bytes(&mut file).await?;
 		let mut state = self.state.write().await;
 		state.metadata = metadata;
-		state.wasm = wasm.into();
+		*wasm_write = wasm;
+		println!("@@ read cache takes {:?}", now.elapsed());
 		Ok(())
 	}
 
-	#[timeout_retry(4000)]
+	#[timeout_retry(10000)]
 	pub(crate) async fn read_new(&self) -> Result<()> {
+		let now = Instant::now();
+		let mut wasm_write = self.wasm.write().await;
 		let metadata = Arc::new(verify(&self.source)?);
+		println!("@@ read new for {}", metadata.id);
 		let source = self.source.clone();
-		let module_bytes = execute(|| {
+		let module_bytes = {
+			let now = Instant::now();
 			let store = create_store();
+			println!("@@ create store takes: {:?}", now.elapsed());
 			let module = Module::new(&store, source)?;
-			module.serialize().map_err(Error::from)
-		})
-		.await
-		.await??;
+			println!("@@ create module takes: {:?}", now.elapsed());
+			let r = module.serialize().map_err(Error::from);
+			println!("@@ serialize module takes: {:?}", now.elapsed());
+			r
+		}?;
 		_ = fs::create_dir(CACHE_DIR).await;
 		let mut file = fs::OpenOptions::new()
 			.write(true)
@@ -118,68 +125,134 @@ impl Host {
 		write_var_bytes(&mut file, &module_bytes).await?;
 		let mut state = self.state.write().await;
 		state.metadata = metadata;
-		state.wasm = (&*module_bytes).into();
+		*wasm_write = (&*module_bytes).into();
+		println!("@@ read new takes: {:?}", now.elapsed());
 		Ok(())
 	}
 
 	#[timeout_retry(3000)]
 	async fn crate_wasm(&self) -> Result<(Store, Module, Arc<Metadata>)> {
+		let wasm_read = self.wasm.read().await;
 		let state = self.state.read().await;
 		let metadata = state.metadata.clone();
-		let wasm = state.wasm.clone();
+		let wasm = wasm_read.clone();
 
-		execute(move || {
-			let store = create_store();
-			let module = unsafe { Module::deserialize(&store, &*wasm)? };
-			Ok((store, module, metadata))
-		})
-		.await
-		.await?
+		drop(wasm_read);
+		drop(state);
+
+		let store = create_store();
+		let module = unsafe { Module::deserialize(&store, &wasm)? };
+		Ok((store, module, metadata))
 	}
 
-	#[timeout_retry(3000)]
-	pub async fn create_instance(&self) -> Result<Instance> {
-		let (mut store, module, metadata) = self.crate_wasm().await?;
-		execute(move || {
-			let mut instance_state = Box::new(MaybeUninit::uninit());
-			let print = create_print(&mut store, unsafe {
-				as_static_mut(instance_state.assume_init_mut())
-			});
-			let mut imports = imports! {
-				"env" => {
-					"print" => print
-				},
-			};
-			wasm_bindgen_polyfill(&mut store, &mut imports);
-			let instance = WasmInstance::new(&mut store, &module, &imports)?;
-			let init = instance.exports.get_typed_function(&store, "init")?;
-			let memory = instance.exports.get_memory("memory")?.clone();
-			let init_handle = instance.exports.get_typed_function(&store, "init_handle")?;
-			let handler = instance.exports.get_typed_function(&store, "handle")?;
-			let finish_handle = instance
-				.exports
-				.get_typed_function(&store, "finish_handle")?;
+	#[timeout_retry(3100)]
+	pub async fn create_instance(&self, tag: &str) -> Result<Instance> {
+		let now = Instant::now();
+		let mut logs = vec![];
+		let (mut store, module, metadata) = self.crate_wasm().await.map_err(|e| {
+			println!("@@ ({tag}) create_instance error: {}", e);
+			e
+		})?;
 
-			let instance = Instance(unsafe {
-				instance_state.as_mut_ptr().write(InstanceState {
-					metadata,
-					store,
-					_module: module,
-					instance,
-					memory,
-					init_handle,
-					handler,
-					finish_handle,
-					init,
-					abi_ptr: 0,
-				});
-				instance_state.assume_init()
-			});
+		let tag = tag.to_string();
+		logs.push(format!(
+			"@@ ({tag}) create_instance takes: {:?}",
+			now.elapsed()
+		));
 
-			Ok(instance)
-		})
-		.await
-		.await?
+		let mut instance_state = Box::new(MaybeUninit::uninit());
+		let print = create_print(&mut store, unsafe {
+			as_static_mut(instance_state.assume_init_mut())
+		});
+		let mut imports = imports! {
+			"env" => {
+				"print" => print
+			},
+		};
+		logs.push(format!(
+			"@@ ({tag}) create_imports takes: {:?}",
+			now.elapsed()
+		));
+		wasm_bindgen_polyfill(&mut store, &mut imports);
+		let instance = WasmInstance::new(&mut store, &module, &imports).map_err(|e| {
+			println!("@@ ({tag}) wasm instance error: {}", e);
+			e
+		})?;
+		let init = instance
+			.exports
+			.get_typed_function(&store, "init")
+			.map_err(|e| {
+				println!("@@ ({tag}) wasm init error: {}", e);
+				e
+			})?;
+		logs.push(format!("@@ ({tag}) wasm init takes: {:?}", now.elapsed()));
+		let memory = instance
+			.exports
+			.get_memory("memory")
+			.map_err(|e| {
+				println!("@@ ({tag}) wasm memory error: {}", e);
+				e
+			})?
+			.clone();
+		logs.push(format!("@@ ({tag}) wasm memory takes: {:?}", now.elapsed()));
+		let init_handle = instance
+			.exports
+			.get_typed_function(&store, "init_handle")
+			.map_err(|e| {
+				println!("@@ ({tag}) wasm init_handle error: {}", e);
+				e
+			})?;
+		logs.push(format!(
+			"@@ ({tag}) wasm init_handle takes: {:?}",
+			now.elapsed()
+		));
+		let handler = instance
+			.exports
+			.get_typed_function(&store, "handle")
+			.map_err(|e| {
+				println!("@@ ({tag}) wasm handler error: {}", e);
+				e
+			})?;
+		logs.push(format!(
+			"@@ ({tag}) wasm handler takes: {:?}",
+			now.elapsed()
+		));
+		let finish_handle = instance
+			.exports
+			.get_typed_function(&store, "finish_handle")
+			.map_err(|e| {
+				println!("@@ ({tag}) wasm finish_handle error: {}", e);
+				e
+			})?;
+		logs.push(format!("wasm finish_handle takes: {:?}", now.elapsed()));
+
+		let instance = Instance(unsafe {
+			instance_state.as_mut_ptr().write(InstanceState {
+				metadata,
+				store,
+				_module: module,
+				instance,
+				memory,
+				init_handle,
+				handler,
+				finish_handle,
+				init,
+				abi_ptr: 0,
+			});
+			instance_state.assume_init()
+		});
+
+		if now.elapsed().as_secs() > 3 {
+			logs.push(format!(
+				"@@ ({tag}) create instance global takes: {:?}",
+				now.elapsed()
+			));
+			for log in logs {
+				println!("{}", log);
+			}
+		}
+
+		Ok(instance)
 	}
 }
 
@@ -188,7 +261,7 @@ fn create_store() -> Store {
 	let mut compiler_config = {
 		#[cfg(feature = "LLVM")]
 		{
-			wasmer::LLVM::default()
+			wasmer::LLVM::new()
 		}
 		#[cfg(not(feature = "LLVM"))]
 		{

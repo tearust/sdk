@@ -19,7 +19,7 @@ pub fn emit_timeout_retry(
 		{
 			let mut i = 0;
 			loop {
-				match tea_sdk::Timeout::timeout(async {#block}, (#ms + i * 1000), concat!(#tag, " at ", file!(), " ", line!(), ":", column!())).await {
+				match tea_sdk::Timeout::timeout(async {#block}, (#ms + i * 1000), concat!("'", #tag, "' at ", file!(), " ", line!(), ":", column!())).await {
 					Err(e) => {
 						#warner("{}, retry {}", e, i);
 						i += 1;

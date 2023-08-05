@@ -7,7 +7,7 @@ use crate::core::{
 };
 use tea_codec::serde::{get_type_id, TypeId};
 use tea_sdk::timeout_retry;
-use tokio::{sync::Mutex, task::JoinHandle};
+use tokio::{sync::Mutex, task::JoinHandle, time::Instant};
 
 use crate::{
 	error::{AccessNotPermitted, Result},
@@ -36,12 +36,13 @@ struct State {
 const MAX_COUNT: usize = 128;
 
 impl WasmActor {
-	#[timeout_retry(5000)]
+	#[timeout_retry(11000)]
 	pub async fn new(wasm_path: &str) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
 		source.push(0);
 		source.extend_from_slice(&(wasm_path.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_path.as_bytes());
+		info!("@@ begin of load {wasm_path}");
 		Self::new_source(source).await
 	}
 
@@ -54,6 +55,7 @@ impl WasmActor {
 	}
 
 	async fn new_source(source: Vec<u8>) -> Result<Self> {
+		let now = Instant::now();
 		#[cfg(feature = "nitro")]
 		let hash = {
 			use std::{
@@ -70,6 +72,7 @@ impl WasmActor {
 			hash,
 		)
 		.await?;
+		info!("@@ end of load, elapsed: {:?}", now.elapsed());
 		let id = worker.metadata().id.clone();
 		Ok(Self {
 			state: Mutex::new(State {
@@ -83,7 +86,7 @@ impl WasmActor {
 		})
 	}
 
-	#[timeout_retry(5000)]
+	#[timeout_retry(11000)]
 	async fn worker<const INC: bool>(&self) -> Result<Worker> {
 		let mut state = self.state.lock().await;
 
