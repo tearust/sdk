@@ -85,6 +85,7 @@ pub struct DumpTappStateIntermediate {
 	pub tea_tsid: Option<Tsid>,
 	pub tea_balances: Vec<(TokenId, Vec<(Account, Balance)>)>,
 	pub tea_deposit_balances: Vec<(TokenId, Vec<(Account, Balance)>)>,
+	pub tea_allowance: Vec<(TokenId, Vec<(Account, Balance)>)>,
 	pub token_balances: Vec<(TokenId, Vec<(Account, Balance)>)>,
 	pub token_reserved_balances: Vec<(TokenId, Vec<(Account, Balance)>)>,
 }
@@ -95,6 +96,7 @@ pub struct DumpTappStateResponse {
 	pub tea_tsid: Option<TsidReadable>,
 	pub tea_balances: Vec<(String, Vec<(String, Balance)>)>,
 	pub tea_deposit_balances: Vec<(String, Vec<(String, Balance)>)>,
+	pub tea_allowance: Vec<(String, Vec<(String, Balance)>)>,
 	pub token_balances: Vec<(String, Vec<(String, Balance)>)>,
 	pub token_reserved_balances: Vec<(String, Vec<(String, Balance)>)>,
 }
@@ -204,6 +206,7 @@ impl From<DumpTappStateIntermediate> for DumpTappStateResponse {
 			tea_tsid: val.tea_tsid.map(|v| v.into()),
 			tea_balances: to_visiable_balances(&val.tea_balances),
 			tea_deposit_balances: to_visiable_balances(&val.tea_deposit_balances),
+			tea_allowance: to_visiable_balances(&val.tea_allowance),
 			token_balances: to_visiable_balances(&val.token_balances),
 			token_reserved_balances: to_visiable_balances(&val.token_reserved_balances),
 		}

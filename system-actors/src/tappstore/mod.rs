@@ -87,15 +87,13 @@ pub struct QueryActiveSeatsRequest(pub Vec<u8>);
 pub struct QueryActiveSeatsResponse(pub Vec<SeatMaintainer>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(())]
 pub struct QueryActiveSeatsAsyncRequest {
 	pub sender: ActorId,
 	pub tsid: Tsid,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(())]
-pub struct QueryActiveSeatsAsyncReply {
+pub struct QueryActiveSeatsAsyncResponse {
 	pub seat_nodes: Vec<SeatMaintainer>,
 	pub tsid: Tsid,
 }
@@ -137,6 +135,14 @@ pub struct CheckUserSessionResponse {
 pub struct CommonSqlQueryRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CommonSqlQueryResponse(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct SyncLocalStateRequest(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct SyncLocalStateResponse(pub Option<Vec<u8>>, pub Option<Vec<u8>>);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetStatementsRequest(pub Vec<u8>);

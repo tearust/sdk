@@ -11,7 +11,10 @@ pub const NAME: &[u8] = b"tea:libp2p";
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 #[response(())]
-pub struct ReplyMessageRequest(pub Vec<u8>);
+pub struct ReplyMessageRequest {
+	pub reply_msg: Vec<u8>,
+	pub caller: ActorId,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

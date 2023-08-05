@@ -245,7 +245,7 @@ impl WasmActor {
 						if let Claim::ActorAccess(id) = x {
 							target_id.reg == id.as_slice()
 						} else {
-							false
+							self.context.id.reg == target_id.reg
 						}
 					}) {
 						return Err(AccessNotPermitted(target_id.reg.to_owned()).into());

@@ -529,12 +529,12 @@ message HasGlueDbInitResponse {
   bool hasInit = 1;
 }
 message SetAllowanceRequest {
-  bytes tokenId = 1;
+  bytes ctx = 1;
   bytes address = 2;
   bytes amount = 3;
 }
 message SetAllowanceResponse{
-
+  bytes ctx = 1;
 }
 message QueryAllowanceRequest {
   bytes tokenId = 1;

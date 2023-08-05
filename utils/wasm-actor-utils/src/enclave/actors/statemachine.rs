@@ -493,9 +493,13 @@ pub async fn in_app_purchase(
 	Ok((res.tappstore_ctx, res.payee_ctx))
 }
 
-pub async fn set_allowance(token_id: &TokenId, address: &Account, amount: &Balance) -> Result<()> {
+pub async fn set_allowance(
+	token_ctx: Vec<u8>,
+	address: &Account,
+	amount: &Balance,
+) -> Result<Vec<u8>> {
 	let req = SetAllowanceRequest {
-		token_id: serialize(token_id)?,
+		ctx: token_ctx,
 		address: serialize(address)?,
 		amount: serialize(amount)?,
 	};
@@ -505,8 +509,8 @@ pub async fn set_allowance(token_id: &TokenId, address: &Account, amount: &Balan
 		codec::SetAllowanceRequest(buf),
 	)
 	.await?;
-	SetAllowanceResponse::decode(res_buf.0.as_slice())?;
-	Ok(())
+	let res = SetAllowanceResponse::decode(res_buf.0.as_slice())?;
+	Ok(res.ctx)
 }
 
 /// check if an account has enough requried_amt balance. return true if yes. else false

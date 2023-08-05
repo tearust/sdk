@@ -44,7 +44,8 @@ pub async fn get_aes_key(tapp_id_b64: &str) -> Result<Vec<u8>> {
 
 pub fn result_ok() -> Result<Vec<u8>> {
 	let json = serde_json::json!({
-		"data": "ok"
+		"data": "ok",
+		"status": true,
 	});
 	Ok(serde_json::to_vec(&json)?)
 }
@@ -78,7 +79,7 @@ pub async fn set_query_cache(key: &str, val: serde_json::Value) -> Result<()> {
 	let key = format!("cache_{key}");
 	let val = serde_json::json!({ "cache": val });
 	let new_val = serde_json::to_vec(&val)?;
-	kvp::set(&key, &new_val, 900).await?;
+	kvp::set(&key, &new_val, 600).await?;
 	Ok(())
 }
 pub async fn get_query_cache(key: &str) -> Result<Option<Vec<u8>>> {
@@ -89,4 +90,10 @@ pub async fn get_query_cache(key: &str) -> Result<Option<Vec<u8>>> {
 	}
 	info!("query cache => {key}");
 	Ok(Some(val))
+}
+
+pub async fn remove_query_cache(key: &str) -> Result<()> {
+	let key = format!("cache_{key}");
+	kvp::del(&key).await?;
+	Ok(())
 }

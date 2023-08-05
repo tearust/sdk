@@ -340,6 +340,34 @@ pub struct DumpTappStatesRequest(pub Vec<u8>);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct DumpTappStatesResponse(pub Vec<u8>);
 
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(0)]
+pub struct ReturnStateCacheListRequest {
+	pub ts: Ts,
+}
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ReturnStateCacheListResponse(pub Option<Vec<u8>>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(0)]
+pub struct CommitForStateCacheRequest(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct CommitForStateCacheResponse(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(0)]
+pub struct RecoverTappStatesRequest(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct RecoverTappStatesResponse(pub Vec<u8>);
+
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
 pub struct DumpGluedbDataRequest(pub Vec<u8>);

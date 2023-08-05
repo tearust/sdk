@@ -87,6 +87,9 @@ pub enum Errors {
 	#[error("local validiators is empty")]
 	ValidatorIsEmpty,
 
+	#[error("connected peers is empty")]
+	ConnectedPeersIsEmpty,
+
 	#[error("async persisted request failed: {0}")]
 	AsyncPersistFailed(String),
 

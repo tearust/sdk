@@ -1,7 +1,9 @@
 use crate::client::error::Result;
 use crate::client::help;
 use crate::client::request;
+use crate::client::types::txn_callback;
 
+use crate::client::api::state;
 use crate::enclave::actors::enclave::get_my_tea_id;
 use crate::enclave::actors::util as actor_util;
 use prost::Message;
@@ -16,6 +18,7 @@ use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
 };
+
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 use tea_system_actors::tappstore::CheckUserSessionRequest;
 use tea_system_actors::tappstore::CommonSqlQueryRequest;
@@ -184,8 +187,27 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 
 	info!("begin to query tea balance => {:?}", query_account);
 
-	let auth_key = base64::decode(&req.auth_b64)?;
 	let uuid = req.uuid;
+	if state::is_system_actor(&from_actor) {
+		let (ts, balance) =
+			state::fetch_tea_balance(query_token_id, query_account.parse()?).await?;
+		info!(
+			"query tea_balance in local state => {:?} | {:?}",
+			ts, balance
+		);
+
+		let x = serde_json::json!({
+			"balance": balance.to_string(),
+			"ts": ts.to_string(),
+			"uuid": uuid
+		});
+
+		help::cache_json_with_uuid(&uuid, x).await?;
+
+		return help::result_ok();
+	}
+
+	let auth_key = base64::decode(&req.auth_b64)?;
 	let query_data = tappstore::TeaBalanceRequest {
 		account: query_account,
 		token_id: serialize(&query_token_id)?,
@@ -203,6 +225,7 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 					"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
 					"uuid": uuid
 				});
+				info!("query tea_balance from remotely => {:?}", x);
 
 				help::cache_json_with_uuid(&uuid, x).await?;
 				Ok(())
@@ -222,6 +245,27 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 
 	let auth_key = base64::decode(&req.auth_b64)?;
 	let uuid = req.uuid;
+
+	if state::is_system_actor(&from_actor) {
+		let (ts, balance) =
+			state::fetch_tea_deposit(TokenId::from_hex(&req.tapp_id_b64)?, req.address.parse()?)
+				.await?;
+		info!(
+			"query tea_deposit in local state => {:?} | {:?}",
+			ts, balance
+		);
+
+		let x = serde_json::json!({
+			"balance": balance.to_string(),
+			"ts": ts.to_string(),
+			"uuid": uuid
+		});
+
+		help::cache_json_with_uuid(&uuid, x).await?;
+
+		return help::result_ok();
+	}
+
 	let query_data = tappstore::TeaBalanceRequest {
 		account: req.address.to_string(),
 		token_id: serialize(&TokenId::from_hex(&req.tapp_id_b64)?)?,
@@ -303,6 +347,27 @@ pub async fn query_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec
 	info!("query allowance... => {:?}", req);
 
 	let uuid = req.uuid;
+
+	if state::is_system_actor(&from_actor) {
+		let (ts, allowance) =
+			state::fetch_allowance(TokenId::from_hex(&req.tapp_id_b64)?, req.address.parse()?)
+				.await?;
+		info!(
+			"query query_allowance in local state => {:?} | {:?}",
+			ts, allowance
+		);
+
+		let x = serde_json::json!({
+			"balance": allowance.to_string(),
+			"ts": ts.to_string(),
+			"uuid": uuid
+		});
+
+		help::cache_json_with_uuid(&uuid, x).await?;
+
+		return help::result_ok();
+	}
+
 	let query_data = tappstore::TokenAllowanceRequest {
 		account: req.address.to_string(),
 		token_id: serialize(&TokenId::from_hex(&req.tapp_id_b64)?)?,
@@ -316,6 +381,7 @@ pub async fn query_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec
 				let r = tappstore::TokenAllowanceResponse::decode(res.0.as_slice())?;
 				let x = json!({
 					"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
+					"ts": "0".to_string(),
 				});
 				help::cache_json_with_uuid(&uuid, x).await?;
 				Ok(())
@@ -418,6 +484,8 @@ pub struct QueryHashRequest {
 	pub hash: String,
 	pub ts: String,
 }
+
+#[allow(unused_must_use)]
 pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
 	let req: QueryHashRequest = serde_json::from_slice(&payload)?;
 	info!("begin to query hash result...");
@@ -429,7 +497,7 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 	let query_data = replica::FindExecutedTxnRequest { txn_hash, ts };
 
 	request::send_tappstore_query(
-		&from_actor,
+		&from_actor.clone(),
 		FindExecutedTxnRequest(encode_protobuf(query_data)?),
 		move |res| {
 			Box::pin(async move {
@@ -438,12 +506,33 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 				if r.success {
 					if r.executed_txn.is_some() {
 						info!("Txn hash return success. go to next step...");
-						let x = json!({
-							"status": true,
-						});
-						help::cache_json_with_uuid(&uuid, x).await?;
+						let x = {
+							let x_bytes = txn_callback(&uuid, from_actor).await;
+							if let Err(e) = x_bytes {
+								if e.name() == tea_codec::errorx::Global::UnexpectedType {
+									json!({
+										"status": true,
+									})
+								} else {
+									json!({
+										"status": false,
+										"error": e.to_string(),
+									})
+								}
+							} else {
+								let x_bytes = x_bytes.unwrap();
+								if x_bytes.is_empty() {
+									// no cb
+									json!({
+										"status": true,
+									})
+								} else {
+									serde_json::from_slice(&x_bytes)?
+								}
+							}
+						};
 
-					// TODO trigger txn cb
+						help::cache_json_with_uuid(&uuid, x).await?;
 					} else {
 						info!("Txn hash no error. but not success. wait for next loop...");
 
@@ -507,6 +596,48 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 		},
 	)
 	.await?;
+
+	help::result_ok()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryMultiTappAllowanceFromLocalStateRequest {
+	pub address: String,
+	pub tapp_id_b64_array: Vec<String>,
+	pub uuid: String,
+}
+pub async fn query_multi_tapp_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
+	let req: QueryMultiTappAllowanceFromLocalStateRequest = serde_json::from_slice(&payload)?;
+	info!(
+		"query multi tapp allowance from local state... => {:?}",
+		req
+	);
+
+	let uuid = req.uuid;
+
+	if !state::is_system_actor(&from_actor) {
+		return help::result_error(
+			"No permission to call query_multi_tapp_allowance method.".into(),
+		);
+	}
+
+	let acct = req.address.parse()?;
+	let mut ts = String::new();
+	let mut result_arr: Vec<String> = Vec::new();
+	for token_str in req.tapp_id_b64_array {
+		let token_id = TokenId::from_hex(&token_str)?;
+		let (x_ts, allowance) = state::fetch_allowance(token_id, acct).await?;
+		ts = x_ts.to_string();
+		result_arr.push(allowance.to_string());
+	}
+
+	let x = serde_json::json!({
+		"balance": result_arr,
+		"ts": ts,
+		"uuid": uuid
+	});
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }

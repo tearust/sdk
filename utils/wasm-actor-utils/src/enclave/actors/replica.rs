@@ -312,7 +312,7 @@ pub async fn random_select_connect_peers(
 	peers.retain(|(_, peer)| connected_peers.contains(peer));
 
 	if peers.is_empty() {
-		return Err(Errors::ValidatorIsEmpty.into());
+		return Err(Errors::ConnectedPeersIsEmpty.into());
 	}
 	let validators = random_select(peers, count).await?;
 	Ok(validators)
