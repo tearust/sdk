@@ -30,6 +30,7 @@ fn main() {
 	}
 
 	prost_build::Config::new()
+		.protoc_arg("--experimental_allow_proto3_optional")
 		.out_dir(out_path)
 		.compile_protos(&proto_files, &[include_path])
 		.unwrap()
