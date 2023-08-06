@@ -36,7 +36,7 @@ struct State {
 const MAX_COUNT: usize = 128;
 
 impl WasmActor {
-	#[timeout_retry(11000)]
+	// #[timeout_retry(11000)]
 	pub async fn new(wasm_path: &str) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
 		source.push(0);
@@ -86,7 +86,7 @@ impl WasmActor {
 		})
 	}
 
-	#[timeout_retry(11000)]
+	// #[timeout_retry(11000)]
 	async fn worker<const INC: bool>(&self) -> Result<Worker> {
 		let mut state = self.state.lock().await;
 
@@ -140,7 +140,7 @@ impl WasmActor {
 impl Actor for WasmActor {
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>> {
 		loop {
-			let worker = self.worker::<true>().await?;
+			let worker = self.worker::<false>().await?;
 			let metadata = worker.metadata().clone();
 			let mut channel = match worker.open().await {
 				Ok(c) => c,

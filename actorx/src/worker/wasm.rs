@@ -1,9 +1,9 @@
+use futures::future::join_all;
 use std::{
-	collections::hash_map::DefaultHasher,
-	hash::{Hash, Hasher},
 	io::{stderr, stdout, Write},
 	mem::{size_of, MaybeUninit},
 	sync::Arc,
+	time::Duration,
 };
 
 #[cfg(feature = "metering")]
@@ -12,17 +12,14 @@ use crate::{
 	core::{
 		metadata::Metadata,
 		wasm::{pricing, MEMORY_LIMIT},
-		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
+		worker_codec::{Operation, OperationAbi},
 	},
 	sign::verify,
 	timeout_retry,
-	worker::{
-		error::{Error, Result},
-		wasm::memory::MemoryLimit,
-	},
+	worker::{error::Result, wasm::memory::MemoryLimit},
 };
 use bincode::serialized_size;
-use tokio::{fs, sync::RwLock, time::Instant};
+use tokio::{sync::RwLock, time::Instant};
 use wasmer::{
 	imports, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
 	Instance as WasmInstance, Memory, Module, Store, TypedFunction,
@@ -38,127 +35,111 @@ use ::{
 
 mod memory;
 
-const CACHE_DIR: &str = ".cache";
-
 const PAGE_BYTES: u32 = 64 * 1024;
 const MAX_PAGES: u32 = 65536;
 
 pub struct Host {
 	source: Arc<[u8]>,
-	compiled_path: String,
-	state: RwLock<State>,
-	wasm: RwLock<Vec<u8>>,
+	metadata: Arc<Metadata>,
+	states: RwLock<StateArray>,
+	instance_count: usize,
 }
 
-struct State {
-	metadata: Arc<Metadata>,
+#[derive(Default)]
+pub(crate) struct StateArray {
+	states: Vec<SharedState>,
+}
+
+pub(crate) type SharedState = Arc<RwLock<State>>;
+
+pub(crate) struct State {
+	instance: Instance,
+	idle: bool,
+}
+
+impl State {
+	pub(crate) fn reset_idle(&mut self) {
+		self.idle = true;
+	}
+
+	pub(crate) fn instance(&mut self) -> &mut Instance {
+		&mut self.instance
+	}
 }
 
 impl Host {
-	pub async fn new(source: Vec<u8>) -> Result<Self> {
-		let mut hasher = DefaultHasher::new();
-		source.hash(&mut hasher);
-		let hash = hasher.finish();
-		let compiled_path = format!("{CACHE_DIR}/{hash:x}");
+	pub async fn new(source: Vec<u8>, instance_count: usize) -> Result<Self> {
+		let metadata = Arc::new(verify(&source)?);
+
 		let result = Self {
+			metadata: metadata.clone(),
 			source: source.into(),
-			compiled_path,
-			state: RwLock::new(State {
-				metadata: Arc::new(Metadata::EMPTY),
-			}),
-			wasm: Default::default(),
+			states: Default::default(),
+			instance_count,
 		};
 
-		if result.read_cache().await.is_err() {
-			result.read_new().await?;
-		}
-
+		result.create_instances().await?;
 		Ok(result)
 	}
 
-	pub async fn metadata(&self) -> Arc<Metadata> {
-		self.state.read().await.metadata.clone()
+	pub fn metadata(&self) -> Arc<Metadata> {
+		self.metadata.clone()
 	}
 
-	async fn read_cache(&self) -> Result<()> {
+	// #[timeout_retry(12000)]
+	pub(crate) async fn create_instances(&self) -> Result<()> {
 		let now = Instant::now();
-		let mut wasm_write = self.wasm.write().await;
-		let mut file = fs::OpenOptions::new()
-			.read(true)
-			.open(&self.compiled_path)
-			.await?;
-		let metadata = read_var_bytes(&mut file).await?;
-		let metadata = bincode::deserialize(&metadata)?;
-		let wasm = read_var_bytes(&mut file).await?;
-		let mut state = self.state.write().await;
-		state.metadata = metadata;
-		*wasm_write = wasm;
-		println!("@@ read cache takes {:?}", now.elapsed());
-		Ok(())
-	}
-
-	#[timeout_retry(10000)]
-	pub(crate) async fn read_new(&self) -> Result<()> {
-		let now = Instant::now();
-		let mut wasm_write = self.wasm.write().await;
-		let metadata = Arc::new(verify(&self.source)?);
-		println!("@@ read new for {}", metadata.id);
+		let metadata = self.metadata();
 		let source = self.source.clone();
-		let module_bytes = {
-			let now = Instant::now();
-			let store = create_store();
-			println!("@@ create store takes: {:?}", now.elapsed());
-			let module = Module::new(&store, source)?;
-			println!("@@ create module takes: {:?}", now.elapsed());
-			let r = module.serialize().map_err(Error::from);
-			println!("@@ serialize module takes: {:?}", now.elapsed());
-			r
-		}?;
-		_ = fs::create_dir(CACHE_DIR).await;
-		let mut file = fs::OpenOptions::new()
-			.write(true)
-			.create(true)
-			.open(&self.compiled_path)
-			.await?;
-		let metadata_bytes = bincode::serialize(&metadata)?;
-		write_var_bytes(&mut file, &metadata_bytes).await?;
-		write_var_bytes(&mut file, &module_bytes).await?;
-		let mut state = self.state.write().await;
-		state.metadata = metadata;
-		*wasm_write = (&*module_bytes).into();
-		println!("@@ read new takes: {:?}", now.elapsed());
+
+		let mut handles = vec![];
+		for _ in 0..self.instance_count {
+			let handle = tokio::spawn(Self::new_state(metadata.clone(), source.clone()));
+			handles.push(handle);
+		}
+
+		let results = join_all(handles).await;
+
+		let mut states = self.states.write().await;
+		for r in results {
+			match r? {
+				Ok(state) => states.states.push(Arc::new(RwLock::new(state))),
+				Err(e) => {
+					println!("ignored a create instance state result because error: {e:?}");
+				}
+			}
+		}
+
+		println!(
+			"create instances takes: {:?}, expect intances count {} actual is {}",
+			now.elapsed(),
+			self.instance_count,
+			states.states.len()
+		);
 		Ok(())
 	}
 
-	#[timeout_retry(3000)]
-	async fn crate_wasm(&self) -> Result<(Store, Module, Arc<Metadata>)> {
-		let wasm_read = self.wasm.read().await;
-		let state = self.state.read().await;
-		let metadata = state.metadata.clone();
-		let wasm = wasm_read.clone();
-
-		drop(wasm_read);
-		drop(state);
-
+	async fn new_state(metadata: Arc<Metadata>, source: Arc<[u8]>) -> Result<State> {
+		let now = Instant::now();
 		let store = create_store();
-		let module = unsafe { Module::deserialize(&store, &wasm)? };
-		Ok((store, module, metadata))
+		println!("@@ create store takes: {:?}", now.elapsed());
+		let module = Module::new(&store, source)?;
+		println!("@@ create module takes: {:?}", now.elapsed());
+		let instance = Self::create_instance(metadata, store, module).await?;
+		println!("@@ create instance takes: {:?}", now.elapsed());
+		Ok(State {
+			instance,
+			idle: true,
+		})
 	}
 
-	#[timeout_retry(3100)]
-	pub async fn create_instance(&self, tag: &str) -> Result<Instance> {
+	pub(crate) async fn create_instance(
+		metadata: Arc<Metadata>,
+		mut store: Store,
+		module: Module,
+	) -> Result<Instance> {
 		let now = Instant::now();
 		let mut logs = vec![];
-		let (mut store, module, metadata) = self.crate_wasm().await.map_err(|e| {
-			println!("@@ ({tag}) create_instance error: {}", e);
-			e
-		})?;
-
-		let tag = tag.to_string();
-		logs.push(format!(
-			"@@ ({tag}) create_instance takes: {:?}",
-			now.elapsed()
-		));
 
 		let mut instance_state = Box::new(MaybeUninit::uninit());
 		let print = create_print(&mut store, unsafe {
@@ -169,59 +150,52 @@ impl Host {
 				"print" => print
 			},
 		};
-		logs.push(format!(
-			"@@ ({tag}) create_imports takes: {:?}",
-			now.elapsed()
-		));
 		wasm_bindgen_polyfill(&mut store, &mut imports);
+		logs.push(format!("@@ create_imports takes: {:?}", now.elapsed()));
+
 		let instance = WasmInstance::new(&mut store, &module, &imports).map_err(|e| {
-			println!("@@ ({tag}) wasm instance error: {}", e);
+			println!("@@ wasm instance error: {}", e);
 			e
 		})?;
+
 		let init = instance
 			.exports
 			.get_typed_function(&store, "init")
 			.map_err(|e| {
-				println!("@@ ({tag}) wasm init error: {}", e);
+				println!("@@ wasm init error: {}", e);
 				e
 			})?;
-		logs.push(format!("@@ ({tag}) wasm init takes: {:?}", now.elapsed()));
+		logs.push(format!("@@ wasm init takes: {:?}", now.elapsed()));
 		let memory = instance
 			.exports
 			.get_memory("memory")
 			.map_err(|e| {
-				println!("@@ ({tag}) wasm memory error: {}", e);
+				println!("@@ wasm memory error: {}", e);
 				e
 			})?
 			.clone();
-		logs.push(format!("@@ ({tag}) wasm memory takes: {:?}", now.elapsed()));
+		logs.push(format!("@@ wasm memory takes: {:?}", now.elapsed()));
 		let init_handle = instance
 			.exports
 			.get_typed_function(&store, "init_handle")
 			.map_err(|e| {
-				println!("@@ ({tag}) wasm init_handle error: {}", e);
+				println!("@@ wasm init_handle error: {}", e);
 				e
 			})?;
-		logs.push(format!(
-			"@@ ({tag}) wasm init_handle takes: {:?}",
-			now.elapsed()
-		));
+		logs.push(format!("@@ wasm init_handle takes: {:?}", now.elapsed()));
 		let handler = instance
 			.exports
 			.get_typed_function(&store, "handle")
 			.map_err(|e| {
-				println!("@@ ({tag}) wasm handler error: {}", e);
+				println!("@@ wasm handler error: {}", e);
 				e
 			})?;
-		logs.push(format!(
-			"@@ ({tag}) wasm handler takes: {:?}",
-			now.elapsed()
-		));
+		logs.push(format!("@@ wasm handler takes: {:?}", now.elapsed()));
 		let finish_handle = instance
 			.exports
 			.get_typed_function(&store, "finish_handle")
 			.map_err(|e| {
-				println!("@@ ({tag}) wasm finish_handle error: {}", e);
+				println!("@@ wasm finish_handle error: {}", e);
 				e
 			})?;
 		logs.push(format!("wasm finish_handle takes: {:?}", now.elapsed()));
@@ -244,7 +218,7 @@ impl Host {
 
 		if now.elapsed().as_secs() > 3 {
 			logs.push(format!(
-				"@@ ({tag}) create instance global takes: {:?}",
+				"@@ create instance global takes: {:?}",
 				now.elapsed()
 			));
 			for log in logs {
@@ -253,6 +227,18 @@ impl Host {
 		}
 
 		Ok(instance)
+	}
+
+	// #[timeout_retry(3100)]
+	pub(crate) async fn get_instance(&self) -> SharedState {
+		loop {
+			if let Some(i) = self.states.read().await.idle_instance().await {
+				let s = i.clone();
+				s.write().await.idle = false;
+				return s;
+			}
+			tokio::time::sleep(Duration::from_millis(1)).await;
+		}
 	}
 }
 
@@ -358,7 +344,18 @@ fn wasm_bindgen_polyfill(store: &mut Store, imports: &mut Imports) {
 	);
 }
 
-struct InstanceState {
+impl StateArray {
+	pub(crate) async fn idle_instance(&self) -> Option<&SharedState> {
+		for item in self.states.iter() {
+			if item.read().await.idle {
+				return Some(item);
+			}
+		}
+		None
+	}
+}
+
+pub(crate) struct InstanceState {
 	metadata: Arc<Metadata>,
 	store: Store,
 	_module: Module,

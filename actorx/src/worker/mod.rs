@@ -33,6 +33,8 @@ use crate::{
 	worker::{error::Result, wasm::Host},
 };
 
+const DEFAULT_INSTANCE_COUNT: usize = 5;
+
 pub struct Worker {
 	read: Mutex<OwnedReadHalf>,
 	write: Mutex<OwnedWriteHalf>,
@@ -49,19 +51,19 @@ impl Worker {
 			let path = String::from_utf8(read_var_bytes(&mut socket).await?)?;
 			let wasm = tokio::fs::read(path).await?;
 			println!("@@ befor host new-a: {:?}", now.elapsed());
-			let r = Host::new(wasm).await;
+			let r = Host::new(wasm, DEFAULT_INSTANCE_COUNT).await;
 			println!("@@ after host new-a: {:?}", now.elapsed());
 			r
 		} else {
 			let wasm = read_var_bytes(&mut socket).await?;
 			println!("@@ befor host new-b: {:?}", now.elapsed());
-			let r = Host::new(wasm).await;
+			let r = Host::new(wasm, DEFAULT_INSTANCE_COUNT).await;
 			println!("@@ after host new-b: {:?}", now.elapsed());
 			r
 		};
 		let (host, metadata) = match host {
 			Ok(host) => {
-				let metadata = host.metadata().await;
+				let metadata = host.metadata();
 				(Ok(host), Ok(metadata))
 			}
 			Err(e) => (Err(e.clone()), Err(e)),
@@ -69,8 +71,8 @@ impl Worker {
 		write_var_bytes(&mut socket, &bincode::serialize(&metadata)?).await?;
 		socket.flush().await?;
 
-		println!("@@ Worker init done in {:?}", now.elapsed());
 		let host = host?;
+		println!("@@ Worker init done in {:?}", now.elapsed());
 		let (read, write) = socket.into_split();
 		Ok(Arc::new(Self {
 			host,
@@ -81,6 +83,7 @@ impl Worker {
 	}
 
 	pub async fn serve(self: &Arc<Self>) -> Result<()> {
+		println!("@@ begin of serve");
 		let mut read = self.read.lock().await;
 		loop {
 			let read = &mut *read;
@@ -155,21 +158,13 @@ impl Worker {
 		cid: u64,
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
-		let mut instance = match self.host.create_instance("a").await {
-			Ok(instance) => instance,
-			Err(e) => {
-				println!(
-					"create instance failed due to {}, begin to create new and retry...",
-					e
-				);
-				self.host.read_new().await?;
-				self.host.create_instance("b").await?
-			}
-		};
+		let state = self.host.get_instance().await;
 		let mut first = true;
+
 		while let Some((operation, mut gas)) = input.recv().await {
-			#[cfg(feature = "verbose_log")]
-			let log = Self::log_operation(&operation, instance.metadata().id.clone());
+			let mut state_write = state.write().await;
+			let instance = state_write.instance();
+
 			let resp = if first {
 				first = false;
 				let op = operation.clone();
@@ -177,9 +172,12 @@ impl Worker {
 					Ok(r) => r,
 					Err(e) => {
 						println!("Worker channel fails due to {e:?}, restarting...");
-						self.host.read_new().await?;
-						let mut instance = self.host.create_instance("c").await?;
-						instance.invoke(operation, Some(&mut gas))?
+						// TODO: create new instance
+						return Ok(());
+
+						// self.host.read_new().await?;
+						// let mut instance = self.host.get_instance("c").await?;
+						// instance.invoke(operation, Some(&mut gas))?
 					}
 				}
 			} else {
@@ -191,8 +189,7 @@ impl Worker {
 			// 	Ok(resp) => resp,
 			// 	Err(e) => Operation::ReturnErr { error: e.into() },
 			// };
-			#[cfg(feature = "verbose_log")]
-			log(&resp);
+
 			let is_completed = !matches!(resp, Operation::Call { .. });
 			if is_completed {
 				let slf = self.clone();
@@ -208,6 +205,8 @@ impl Worker {
 				break;
 			}
 		}
+
+		state.write().await.reset_idle();
 		Ok(())
 	}
 }
