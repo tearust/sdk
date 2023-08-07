@@ -39,6 +39,7 @@ struct State {
 }
 
 const MAX_COUNT: usize = 128;
+const CACHE_COUNT: usize = 100;
 
 impl WasmActor {
 	#[timeout_retry(11000)]
@@ -116,7 +117,7 @@ impl WasmActor {
 			if state.count > MAX_COUNT {
 				self.new_state(&mut state);
 				state.count = 0;
-			} else if state.count > MAX_COUNT / 2 && state.cached.is_none() {
+			} else if state.count > CACHE_COUNT && state.cached.is_none() {
 				self.new_cache(&mut state);
 			}
 		}

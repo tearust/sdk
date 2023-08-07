@@ -33,7 +33,7 @@ use crate::{
 	worker::{error::Result, wasm::Host},
 };
 
-const DEFAULT_INSTANCE_COUNT: usize = 5;
+const DEFAULT_INSTANCE_COUNT: usize = 3;
 
 pub struct Worker {
 	read: Mutex<OwnedReadHalf>,
