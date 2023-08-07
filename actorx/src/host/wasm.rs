@@ -7,7 +7,11 @@ use crate::core::{
 };
 use tea_codec::serde::{get_type_id, TypeId};
 use tea_sdk::timeout_retry;
-use tokio::{sync::Mutex, task::JoinHandle, time::Instant};
+use tokio::{
+	sync::{Mutex, MutexGuard},
+	task::JoinHandle,
+	time::Instant,
+};
 
 use crate::{
 	error::{AccessNotPermitted, Result},
@@ -30,13 +34,14 @@ pub struct WasmActor {
 
 struct State {
 	current: Result<Worker, JoinHandle<Result<Worker>>>,
+	cached: Option<Result<Worker, JoinHandle<Result<Worker>>>>,
 	count: usize,
 }
 
 const MAX_COUNT: usize = 128;
 
 impl WasmActor {
-	// #[timeout_retry(11000)]
+	#[timeout_retry(11000)]
 	pub async fn new(wasm_path: &str) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
 		source.push(0);
@@ -77,6 +82,7 @@ impl WasmActor {
 		Ok(Self {
 			state: Mutex::new(State {
 				current: Ok(worker),
+				cached: None,
 				count: 0,
 			}),
 			source,
@@ -86,7 +92,7 @@ impl WasmActor {
 		})
 	}
 
-	// #[timeout_retry(11000)]
+	#[timeout_retry(11000)]
 	async fn worker<const INC: bool>(&self) -> Result<Worker> {
 		let mut state = self.state.lock().await;
 
@@ -95,17 +101,7 @@ impl WasmActor {
 			Err(task) => {
 				let r = match task.await.unwrap() {
 					Err(e) => {
-						let source = self.source.clone();
-						#[cfg(feature = "nitro")]
-						let hash = self.hash;
-						state.current = Err(crate::spawn(async move {
-							Worker::new(
-								&source,
-								#[cfg(feature = "nitro")]
-								hash,
-							)
-							.await
-						}));
+						self.new_state(&mut state);
 						return Err(e);
 					}
 					Ok(r) => r,
@@ -118,29 +114,55 @@ impl WasmActor {
 		if INC {
 			state.count += 1;
 			if state.count > MAX_COUNT {
-				let source = self.source.clone();
-				#[cfg(feature = "nitro")]
-				let hash = self.hash;
-				state.current = Err(crate::spawn(async move {
-					Worker::new(
-						&source,
-						#[cfg(feature = "nitro")]
-						hash,
-					)
-					.await
-				}));
+				self.new_state(&mut state);
 				state.count = 0;
+			} else if state.count > MAX_COUNT / 2 && state.cached.is_none() {
+				self.new_cache(&mut state);
 			}
 		}
 
 		Ok(result)
+	}
+
+	fn new_cache(&self, state: &mut MutexGuard<State>) {
+		let source = self.source.clone();
+		#[cfg(feature = "nitro")]
+		let hash = self.hash;
+		state.cached = Some(Err(crate::spawn(async move {
+			Worker::new(
+				&source,
+				#[cfg(feature = "nitro")]
+				hash,
+			)
+			.await
+		})));
+	}
+
+	fn new_state(&self, state: &mut MutexGuard<State>) {
+		let source = self.source.clone();
+		#[cfg(feature = "nitro")]
+		let hash = self.hash;
+
+		if let Some(cached) = state.cached.take() {
+			state.current = cached;
+			info!("@@ use cached worker");
+		} else {
+			state.current = Err(crate::spawn(async move {
+				Worker::new(
+					&source,
+					#[cfg(feature = "nitro")]
+					hash,
+				)
+				.await
+			}));
+		}
 	}
 }
 
 impl Actor for WasmActor {
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>> {
 		loop {
-			let worker = self.worker::<false>().await?;
+			let worker = self.worker::<true>().await?;
 			let metadata = worker.metadata().clone();
 			let mut channel = match worker.open().await {
 				Ok(c) => c,

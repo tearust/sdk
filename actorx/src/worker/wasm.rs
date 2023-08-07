@@ -1,4 +1,3 @@
-use futures::future::join_all;
 use std::{
 	io::{stderr, stdout, Write},
 	mem::{size_of, MaybeUninit},
@@ -41,13 +40,13 @@ const MAX_PAGES: u32 = 65536;
 pub struct Host {
 	source: Arc<[u8]>,
 	metadata: Arc<Metadata>,
-	states: RwLock<StateArray>,
+	states: Arc<RwLock<StateArray>>,
 	instance_count: usize,
 }
 
-#[derive(Default)]
 pub(crate) struct StateArray {
 	states: Vec<SharedState>,
+	module_bytes: Arc<[u8]>,
 }
 
 pub(crate) type SharedState = Arc<RwLock<State>>;
@@ -74,7 +73,10 @@ impl Host {
 		let result = Self {
 			metadata: metadata.clone(),
 			source: source.into(),
-			states: Default::default(),
+			states: Arc::new(RwLock::new(StateArray {
+				states: vec![],
+				module_bytes: Arc::new([]),
+			})),
 			instance_count,
 		};
 
@@ -86,47 +88,78 @@ impl Host {
 		self.metadata.clone()
 	}
 
-	// #[timeout_retry(12000)]
+	#[timeout_retry(12000)]
 	pub(crate) async fn create_instances(&self) -> Result<()> {
 		let now = Instant::now();
-		let metadata = self.metadata();
 		let source = self.source.clone();
 
-		let mut handles = vec![];
-		for _ in 0..self.instance_count {
-			let handle = tokio::spawn(Self::new_state(metadata.clone(), source.clone()));
-			handles.push(handle);
-		}
+		let (first_module, first_store, module_bytes) =
+			Self::first_proto_module(source.clone()).await?;
 
-		let results = join_all(handles).await;
+		let module_bytes: Arc<[u8]> = module_bytes.into();
 
 		let mut states = self.states.write().await;
-		for r in results {
-			match r? {
-				Ok(state) => states.states.push(Arc::new(RwLock::new(state))),
-				Err(e) => {
-					println!("ignored a create instance state result because error: {e:?}");
+		states.states.push(Arc::new(RwLock::new(
+			Self::new_state(self.metadata(), first_module, first_store).await?,
+		)));
+		states.module_bytes = module_bytes.clone();
+		drop(states);
+
+		for _ in 0..self.instance_count - 1 {
+			let source = source.clone();
+			let metadata = self.metadata.clone();
+			let module_bytes = module_bytes.clone();
+			let states = self.states.clone();
+
+			tokio::spawn(async move {
+				match Self::state_from_proto(metadata, module_bytes, source).await {
+					Ok(state) => {
+						let mut states = states.write().await;
+						states.states.push(Arc::new(RwLock::new(state)));
+						println!(
+							"create instance state success, current instance count: {}",
+							states.states.len()
+						);
+					}
+					Err(e) => {
+						println!("ignored a create instance state result because error: {e:?}");
+					}
 				}
-			}
+			});
 		}
 
-		println!(
-			"create instances takes: {:?}, expect intances count {} actual is {}",
-			now.elapsed(),
-			self.instance_count,
-			states.states.len()
-		);
+		println!("@@ create instance takes: {:?}", now.elapsed());
 		Ok(())
 	}
 
-	async fn new_state(metadata: Arc<Metadata>, source: Arc<[u8]>) -> Result<State> {
-		let now = Instant::now();
+	async fn first_proto_module(source: Arc<[u8]>) -> Result<(Module, Store, Vec<u8>)> {
 		let store = create_store();
-		println!("@@ create store takes: {:?}", now.elapsed());
 		let module = Module::new(&store, source)?;
-		println!("@@ create module takes: {:?}", now.elapsed());
+		let bytes = module.serialize()?.into();
+		Ok((module, store, bytes))
+	}
+
+	async fn state_from_proto(
+		metadata: Arc<Metadata>,
+		proto_module: Arc<[u8]>,
+		source: Arc<[u8]>,
+	) -> Result<State> {
+		let store = create_store();
+		let module = match Module::deserialize_checked(&store, proto_module.as_ref()) {
+			Ok(module) => module,
+			Err(e) => {
+				println!(
+					"re-compile module because deserialize checked error: {:?}",
+					e
+				);
+				Module::new(&store, source)?
+			}
+		};
+		Self::new_state(metadata, module, store).await
+	}
+
+	async fn new_state(metadata: Arc<Metadata>, module: Module, store: Store) -> Result<State> {
 		let instance = Self::create_instance(metadata, store, module).await?;
-		println!("@@ create instance takes: {:?}", now.elapsed());
 		Ok(State {
 			instance,
 			idle: true,
@@ -229,7 +262,7 @@ impl Host {
 		Ok(instance)
 	}
 
-	// #[timeout_retry(3100)]
+	#[timeout_retry(3100)]
 	pub(crate) async fn get_instance(&self) -> SharedState {
 		loop {
 			if let Some(i) = self.states.read().await.idle_instance().await {

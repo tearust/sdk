@@ -3,7 +3,6 @@ use crate::core::{metadata::Metadata, worker_codec::*};
 use crate::error::ChannelReceivingTimeout;
 use crate::host::OutputHandler;
 use crate::ActorId;
-use crate::host::sys::dump_sys_usages;
 use crate::{
 	context::{get_gas, set_gas},
 	error::{BadWorkerOutput, Error, Result, WorkerCrashed},
@@ -18,7 +17,7 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
-use tea_sdk::{timeout_retry, Timeout};
+use tea_sdk::{Timeout, timeout_retry};
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
@@ -57,7 +56,7 @@ struct WorkerChannels {
 }
 
 impl WorkerProcess {
-	// #[timeout_retry(12000)]
+	#[timeout_retry(12000)]
 	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
 
