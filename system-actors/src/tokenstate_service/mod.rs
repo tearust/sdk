@@ -8,10 +8,12 @@ pub mod error;
 pub const NAME: &[u8] = b"com.tea.tokenstate-service-actor";
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+#[response(())]
 pub struct IsOutdatedRequest(pub ActorId);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct IsOutdatedResponse(pub bool);
+#[response(())]
+pub struct IsOutdatedReply(pub bool);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(Vec<u8>)]

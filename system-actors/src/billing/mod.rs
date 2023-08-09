@@ -3,7 +3,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 pub use tea_actorx_core::billing::*;
 use tea_codec::serde::TypeId;
-use tea_runtime_codec::tapp::AccountId;
+// use tea_runtime_codec::tapp::AccountId;
 
 pub mod error;
 
@@ -18,9 +18,9 @@ pub struct RegisterGasFeeHandlerRequest;
 #[response(())]
 pub struct HandleGasFeeRequest(pub Vec<u8>);
 
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(())]
-pub struct GasFeeCostRequest {
-	pub acct: AccountId,
-	pub gas: u64,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+// #[response(())]
+// pub struct GasFeeCostRequest {
+// 	pub acct: AccountId,
+// 	pub gas: u64,
+// }

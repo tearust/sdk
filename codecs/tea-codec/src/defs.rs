@@ -23,3 +23,5 @@ pub struct SetFreezeRequest(pub FreezeTimeSettings);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct CancelFreezeRequest;
+
+pub const RUNTIME_NAME: &[u8] = b"com.tea.system";
