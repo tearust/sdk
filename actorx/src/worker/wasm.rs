@@ -41,7 +41,7 @@ pub struct Host {
 	source: Arc<[u8]>,
 	metadata: Arc<Metadata>,
 	states: Arc<RwLock<StateArray>>,
-	instance_count: usize,
+	instance_count: u8,
 }
 
 pub(crate) struct StateArray {
@@ -67,7 +67,7 @@ impl State {
 }
 
 impl Host {
-	pub async fn new(source: Vec<u8>, instance_count: usize) -> Result<Self> {
+	pub async fn new(source: Vec<u8>, instance_count: u8) -> Result<Self> {
 		let metadata = Arc::new(verify(&source)?);
 
 		let result = Self {
@@ -105,27 +105,29 @@ impl Host {
 		states.module_bytes = module_bytes.clone();
 		drop(states);
 
-		for _ in 0..self.instance_count - 1 {
-			let source = source.clone();
-			let metadata = self.metadata.clone();
-			let module_bytes = module_bytes.clone();
-			let states = self.states.clone();
+		if self.instance_count > 1 {
+			for _ in 0..self.instance_count - 1 {
+				let source = source.clone();
+				let metadata = self.metadata.clone();
+				let module_bytes = module_bytes.clone();
+				let states = self.states.clone();
 
-			tokio::spawn(async move {
-				match Self::state_from_proto(metadata, module_bytes, source).await {
-					Ok(state) => {
-						let mut states = states.write().await;
-						states.states.push(Arc::new(RwLock::new(state)));
-						println!(
-							"create instance state success, current instance count: {}",
-							states.states.len()
-						);
+				tokio::spawn(async move {
+					match Self::state_from_proto(metadata, module_bytes, source).await {
+						Ok(state) => {
+							let mut states = states.write().await;
+							states.states.push(Arc::new(RwLock::new(state)));
+							println!(
+								"create instance state success, current instance count: {}",
+								states.states.len()
+							);
+						}
+						Err(e) => {
+							println!("ignored a create instance state result because error: {e:?}");
+						}
 					}
-					Err(e) => {
-						println!("ignored a create instance state result because error: {e:?}");
-					}
-				}
-			});
+				});
+			}
 		}
 
 		println!("@@ create instance takes: {:?}", now.elapsed());

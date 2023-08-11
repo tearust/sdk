@@ -23,10 +23,13 @@ async fn main() -> Result<()> {
 }
 
 async fn init() -> Result<()> {
-	WasmActor::from_binary(include_bytes!(concat!(
-		env!("OUT_DIR"),
-		"/wasm32-unknown-unknown/release/tea_actorx_examples_actor.wasm"
-	)))
+	WasmActor::from_binary(
+		include_bytes!(concat!(
+			env!("OUT_DIR"),
+			"/wasm32-unknown-unknown/release/tea_actorx_examples_actor.wasm"
+		)),
+		1,
+	)
 	.await?
 	.register()
 	.await?;

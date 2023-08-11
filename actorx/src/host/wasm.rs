@@ -43,18 +43,20 @@ const CACHE_COUNT: usize = 100;
 
 impl WasmActor {
 	#[timeout_retry(11000)]
-	pub async fn new(wasm_path: &str) -> Result<Self> {
+	pub async fn new(wasm_path: &str, instance_count: u8) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
 		source.push(0);
+		source.push(instance_count);
 		source.extend_from_slice(&(wasm_path.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_path.as_bytes());
 		info!("@@ begin of load {wasm_path}");
 		Self::new_source(source).await
 	}
 
-	pub async fn from_binary(wasm_binary: &[u8]) -> Result<Self> {
+	pub async fn from_binary(wasm_binary: &[u8], instance_count: u8) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_binary.len() + size_of::<u64>() + 1);
 		source.push(1);
+		source.push(instance_count);
 		source.extend_from_slice(&(wasm_binary.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_binary);
 		Self::new_source(source).await

@@ -65,7 +65,7 @@ pub enum HostCommand {
 	Shutdown,
 	Export,
 	Import(Vec<u8>),
-	LoadActor(Vec<u8>),
+	LoadActor(String, Vec<u8>),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -79,7 +79,7 @@ pub enum AppCommand {
 	DeactiveAll,
 	Export,
 	Import(Vec<u8>),
-	LoadActor(Vec<u8>),
+	LoadActor(String, Vec<u8>),
 }
 
 impl std::fmt::Display for AppCommand {

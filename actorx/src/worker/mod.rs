@@ -33,8 +33,6 @@ use crate::{
 	worker::{error::Result, wasm::Host},
 };
 
-const DEFAULT_INSTANCE_COUNT: usize = 3;
-
 pub struct Worker {
 	read: Mutex<OwnedReadHalf>,
 	write: Mutex<OwnedWriteHalf>,
@@ -47,17 +45,18 @@ impl Worker {
 		println!("@@ Worker init");
 		let now = Instant::now();
 		let is_path = socket.read_u8().await?;
+		let instance_count = socket.read_u8().await?;
 		let host = if is_path == 0 {
 			let path = String::from_utf8(read_var_bytes(&mut socket).await?)?;
 			let wasm = tokio::fs::read(path).await?;
 			println!("@@ befor host new-a: {:?}", now.elapsed());
-			let r = Host::new(wasm, DEFAULT_INSTANCE_COUNT).await;
+			let r = Host::new(wasm, instance_count).await;
 			println!("@@ after host new-a: {:?}", now.elapsed());
 			r
 		} else {
 			let wasm = read_var_bytes(&mut socket).await?;
 			println!("@@ befor host new-b: {:?}", now.elapsed());
-			let r = Host::new(wasm, DEFAULT_INSTANCE_COUNT).await;
+			let r = Host::new(wasm, instance_count).await;
 			println!("@@ after host new-b: {:?}", now.elapsed());
 			r
 		};

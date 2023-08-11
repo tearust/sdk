@@ -22,6 +22,7 @@ pub struct ImportStateRequest(pub String);
 #[price(10000)]
 #[response(())]
 pub struct LoadActorRequest {
+	pub id: String,
 	pub file_path: String,
 }
 
