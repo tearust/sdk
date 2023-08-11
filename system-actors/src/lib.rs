@@ -11,7 +11,6 @@ pub mod http;
 pub mod ipfs_relay;
 pub mod keyvalue;
 pub mod layer1;
-pub mod layer1_service;
 pub mod libp2p;
 pub mod nitro;
 pub mod orbitdb;
