@@ -171,23 +171,13 @@ impl Worker {
 					Ok(r) => r,
 					Err(e) => {
 						println!("Worker channel fails due to {e:?}, restarting...");
-						// TODO: create new instance
+						// TODO: consider create new instance
 						return Ok(());
-
-						// self.host.read_new().await?;
-						// let mut instance = self.host.get_instance("c").await?;
-						// instance.invoke(operation, Some(&mut gas))?
 					}
 				}
 			} else {
 				instance.invoke(operation, Some(&mut gas))?
 			};
-			// instance = i;
-			// gas = g;
-			// let resp = match resp {
-			// 	Ok(resp) => resp,
-			// 	Err(e) => Operation::ReturnErr { error: e.into() },
-			// };
 
 			let is_completed = !matches!(resp, Operation::Call { .. });
 			if is_completed {

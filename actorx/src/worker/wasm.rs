@@ -1,6 +1,9 @@
 use std::{
+	collections::hash_map::DefaultHasher,
+	hash::{Hash, Hasher},
 	io::{stderr, stdout, Write},
 	mem::{size_of, MaybeUninit},
+	path::Path,
 	sync::Arc,
 	time::Duration,
 };
@@ -11,14 +14,14 @@ use crate::{
 	core::{
 		metadata::Metadata,
 		wasm::{pricing, MEMORY_LIMIT},
-		worker_codec::{Operation, OperationAbi},
+		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
 	},
 	sign::verify,
 	timeout_retry,
 	worker::{error::Result, wasm::memory::MemoryLimit},
 };
 use bincode::serialized_size;
-use tokio::{sync::RwLock, time::Instant};
+use tokio::{fs, sync::RwLock, time::Instant};
 use wasmer::{
 	imports, EngineBuilder, Extern, Function, FunctionEnv, FunctionEnvMut, Imports,
 	Instance as WasmInstance, Memory, Module, Store, TypedFunction,
@@ -34,19 +37,20 @@ use ::{
 
 mod memory;
 
+const CACHE_DIR: &str = ".cache";
+
 const PAGE_BYTES: u32 = 64 * 1024;
 const MAX_PAGES: u32 = 65536;
 
 pub struct Host {
-	source: Arc<[u8]>,
 	metadata: Arc<Metadata>,
 	states: Arc<RwLock<StateArray>>,
 	instance_count: u8,
+	compiled_path: String,
 }
 
 pub(crate) struct StateArray {
 	states: Vec<SharedState>,
-	module_bytes: Arc<[u8]>,
 }
 
 pub(crate) type SharedState = Arc<RwLock<State>>;
@@ -69,18 +73,19 @@ impl State {
 impl Host {
 	pub async fn new(source: Vec<u8>, instance_count: u8) -> Result<Self> {
 		let metadata = Arc::new(verify(&source)?);
+		let mut hasher = DefaultHasher::new();
+		source.hash(&mut hasher);
+		let hash = hasher.finish();
+		let compiled_path = format!("{CACHE_DIR}/{hash:x}");
 
 		let result = Self {
 			metadata: metadata.clone(),
-			source: source.into(),
-			states: Arc::new(RwLock::new(StateArray {
-				states: vec![],
-				module_bytes: Arc::new([]),
-			})),
+			states: Arc::new(RwLock::new(StateArray { states: vec![] })),
 			instance_count,
+			compiled_path,
 		};
 
-		result.create_instances().await?;
+		result.create_instances(source).await?;
 		Ok(result)
 	}
 
@@ -88,21 +93,27 @@ impl Host {
 		self.metadata.clone()
 	}
 
-	#[timeout_retry(12000)]
-	pub(crate) async fn create_instances(&self) -> Result<()> {
+	pub(crate) async fn create_instances(&self, source: Vec<u8>) -> Result<()> {
 		let now = Instant::now();
-		let source = self.source.clone();
+		let source: Arc<[u8]> = source.into();
 
-		let (first_module, first_store, module_bytes) =
-			Self::first_proto_module(source.clone()).await?;
-
-		let module_bytes: Arc<[u8]> = module_bytes.into();
+		let (first_module, first_store, module_bytes): (Module, Store, Arc<[u8]>) =
+			if Path::new(&self.compiled_path).exists() {
+				let module_bytes = self.read_module_cache().await?;
+				let s = create_store();
+				let m = Module::deserialize_checked(&s, &module_bytes)?;
+				let bytes: Arc<[u8]> = module_bytes.into();
+				Self::write_module_cache(self.compiled_path.clone(), bytes.clone());
+				(m, s, bytes)
+			} else {
+				let (m, s, b) = Self::first_proto_module(source.clone()).await?;
+				(m, s, b.into())
+			};
 
 		let mut states = self.states.write().await;
 		states.states.push(Arc::new(RwLock::new(
 			Self::new_state(self.metadata(), first_module, first_store).await?,
 		)));
-		states.module_bytes = module_bytes.clone();
 		drop(states);
 
 		if self.instance_count > 1 {
@@ -130,7 +141,12 @@ impl Host {
 			}
 		}
 
-		println!("@@ create instance takes: {:?}", now.elapsed());
+		println!(
+			r#"create instance takes: {:?}, worker source size: {}M bytes, cached module size: {}M bytes"#,
+			now.elapsed(),
+			source.len() / 1024 / 1024,
+			module_bytes.len() / 1024 / 1024,
+		);
 		Ok(())
 	}
 
@@ -154,6 +170,9 @@ impl Host {
 					"re-compile module because deserialize checked error: {:?}",
 					e
 				);
+				if source.is_empty() {
+					return Err(e.into());
+				}
 				Module::new(&store, source)?
 			}
 		};
@@ -274,6 +293,35 @@ impl Host {
 			}
 			tokio::time::sleep(Duration::from_millis(1)).await;
 		}
+	}
+
+	pub fn write_module_cache(compiled_path: String, module_bytes: Arc<[u8]>) {
+		tokio::spawn(async move {
+			if let Err(e) = async {
+				_ = fs::create_dir(CACHE_DIR).await;
+				let mut file = fs::OpenOptions::new()
+					.write(true)
+					.create(true)
+					.append(false)
+					.open(compiled_path)
+					.await?;
+				write_var_bytes(&mut file, &module_bytes).await?;
+				Ok(()) as Result<_>
+			}
+			.await
+			{
+				println!("write module cache error: {}", e);
+			}
+		});
+	}
+
+	async fn read_module_cache(&self) -> Result<Vec<u8>> {
+		let mut file = fs::OpenOptions::new()
+			.read(true)
+			.open(&self.compiled_path)
+			.await?;
+		let wasm = read_var_bytes(&mut file).await?;
+		Ok(wasm)
 	}
 }
 
