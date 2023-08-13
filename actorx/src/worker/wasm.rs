@@ -200,9 +200,6 @@ impl Host {
 		mut store: Store,
 		module: Module,
 	) -> Result<Instance> {
-		let now = Instant::now();
-		let mut logs = vec![];
-
 		let mut instance_state = Box::new(MaybeUninit::uninit());
 		let print = create_print(&mut store, unsafe {
 			as_static_mut(instance_state.assume_init_mut())
@@ -213,54 +210,16 @@ impl Host {
 			},
 		};
 		wasm_bindgen_polyfill(&mut store, &mut imports);
-		logs.push(format!("@@ create_imports takes: {:?}", now.elapsed()));
 
-		let instance = WasmInstance::new(&mut store, &module, &imports).map_err(|e| {
-			println!("@@ wasm instance error: {}", e);
-			e
-		})?;
+		let instance = WasmInstance::new(&mut store, &module, &imports)?;
 
-		let init = instance
-			.exports
-			.get_typed_function(&store, "init")
-			.map_err(|e| {
-				println!("@@ wasm init error: {}", e);
-				e
-			})?;
-		logs.push(format!("@@ wasm init takes: {:?}", now.elapsed()));
-		let memory = instance
-			.exports
-			.get_memory("memory")
-			.map_err(|e| {
-				println!("@@ wasm memory error: {}", e);
-				e
-			})?
-			.clone();
-		logs.push(format!("@@ wasm memory takes: {:?}", now.elapsed()));
-		let init_handle = instance
-			.exports
-			.get_typed_function(&store, "init_handle")
-			.map_err(|e| {
-				println!("@@ wasm init_handle error: {}", e);
-				e
-			})?;
-		logs.push(format!("@@ wasm init_handle takes: {:?}", now.elapsed()));
-		let handler = instance
-			.exports
-			.get_typed_function(&store, "handle")
-			.map_err(|e| {
-				println!("@@ wasm handler error: {}", e);
-				e
-			})?;
-		logs.push(format!("@@ wasm handler takes: {:?}", now.elapsed()));
+		let init = instance.exports.get_typed_function(&store, "init")?;
+		let memory = instance.exports.get_memory("memory")?.clone();
+		let init_handle = instance.exports.get_typed_function(&store, "init_handle")?;
+		let handler = instance.exports.get_typed_function(&store, "handle")?;
 		let finish_handle = instance
 			.exports
-			.get_typed_function(&store, "finish_handle")
-			.map_err(|e| {
-				println!("@@ wasm finish_handle error: {}", e);
-				e
-			})?;
-		logs.push(format!("wasm finish_handle takes: {:?}", now.elapsed()));
+			.get_typed_function(&store, "finish_handle")?;
 
 		let instance = Instance(unsafe {
 			instance_state.as_mut_ptr().write(InstanceState {
@@ -277,16 +236,6 @@ impl Host {
 			});
 			instance_state.assume_init()
 		});
-
-		if now.elapsed().as_secs() > 3 {
-			logs.push(format!(
-				"@@ create instance global takes: {:?}",
-				now.elapsed()
-			));
-			for log in logs {
-				println!("{}", log);
-			}
-		}
 
 		Ok(instance)
 	}

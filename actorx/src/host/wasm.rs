@@ -10,7 +10,6 @@ use tea_sdk::timeout_retry;
 use tokio::{
 	sync::{Mutex, MutexGuard},
 	task::JoinHandle,
-	time::Instant,
 };
 
 use crate::{
@@ -49,7 +48,7 @@ impl WasmActor {
 		source.push(instance_count);
 		source.extend_from_slice(&(wasm_path.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_path.as_bytes());
-		info!("@@ begin of load {wasm_path}");
+		info!("begin of load {wasm_path}");
 		Self::new_source(source).await
 	}
 
@@ -63,7 +62,6 @@ impl WasmActor {
 	}
 
 	async fn new_source(source: Vec<u8>) -> Result<Self> {
-		let now = Instant::now();
 		#[cfg(feature = "nitro")]
 		let hash = {
 			use std::{
@@ -80,7 +78,6 @@ impl WasmActor {
 			hash,
 		)
 		.await?;
-		info!("@@ end of load, elapsed: {:?}", now.elapsed());
 		let id = worker.metadata().id.clone();
 		Ok(Self {
 			state: Mutex::new(State {
@@ -148,7 +145,6 @@ impl WasmActor {
 
 		if let Some(cached) = state.cached.take() {
 			state.current = cached;
-			info!("@@ use cached worker");
 		} else {
 			state.current = Err(crate::spawn(async move {
 				Worker::new(

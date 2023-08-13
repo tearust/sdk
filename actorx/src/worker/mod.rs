@@ -42,23 +42,16 @@ pub struct Worker {
 
 impl Worker {
 	pub async fn init(mut socket: UnixStream) -> Result<Arc<Self>> {
-		println!("@@ Worker init");
 		let now = Instant::now();
 		let is_path = socket.read_u8().await?;
 		let instance_count = socket.read_u8().await?;
 		let host = if is_path == 0 {
 			let path = String::from_utf8(read_var_bytes(&mut socket).await?)?;
 			let wasm = tokio::fs::read(path).await?;
-			println!("@@ befor host new-a: {:?}", now.elapsed());
-			let r = Host::new(wasm, instance_count).await;
-			println!("@@ after host new-a: {:?}", now.elapsed());
-			r
+			Host::new(wasm, instance_count).await
 		} else {
 			let wasm = read_var_bytes(&mut socket).await?;
-			println!("@@ befor host new-b: {:?}", now.elapsed());
-			let r = Host::new(wasm, instance_count).await;
-			println!("@@ after host new-b: {:?}", now.elapsed());
-			r
+			Host::new(wasm, instance_count).await
 		};
 		let (host, metadata) = match host {
 			Ok(host) => {
@@ -71,7 +64,7 @@ impl Worker {
 		socket.flush().await?;
 
 		let host = host?;
-		println!("@@ Worker init done in {:?}", now.elapsed());
+		println!("Worker init done in {:?}", now.elapsed());
 		let (read, write) = socket.into_split();
 		Ok(Arc::new(Self {
 			host,
@@ -82,7 +75,6 @@ impl Worker {
 	}
 
 	pub async fn serve(self: &Arc<Self>) -> Result<()> {
-		println!("@@ begin of serve");
 		let mut read = self.read.lock().await;
 		loop {
 			let read = &mut *read;
