@@ -99,15 +99,16 @@ impl Host {
 
 		let (first_module, first_store, module_bytes): (Module, Store, Arc<[u8]>) =
 			if Path::new(&self.compiled_path).exists() {
-				let module_bytes = self.read_module_cache().await?;
+				println!("try load module from cache file {}", self.compiled_path);
+				let bytes = self.read_module_cache().await?;
 				let s = create_store();
-				let m = Module::deserialize_checked(&s, &module_bytes)?;
-				let bytes: Arc<[u8]> = module_bytes.into();
-				Self::write_module_cache(self.compiled_path.clone(), bytes.clone());
-				(m, s, bytes)
+				let m = Module::deserialize_checked(&s, &bytes)?;
+				(m, s, bytes.into())
 			} else {
 				let (m, s, b) = Self::first_proto_module(source.clone()).await?;
-				(m, s, b.into())
+				let bytes: Arc<[u8]> = b.into();
+				Self::write_module_cache(self.compiled_path.clone(), bytes.clone());
+				(m, s, bytes)
 			};
 
 		let mut states = self.states.write().await;
@@ -155,6 +156,13 @@ impl Host {
 		let module = Module::new(&store, source)?;
 		let bytes = module.serialize()?.into();
 		Ok((module, store, bytes))
+	}
+
+	pub(crate) async fn instance_from_cache(&self) -> Result<State> {
+		let module_bytes = self.read_module_cache().await?;
+		let store = create_store();
+		let module = Module::deserialize_checked(&store, &module_bytes)?;
+		Self::new_state(self.metadata.clone(), module, store).await
 	}
 
 	async fn state_from_proto(
@@ -311,6 +319,8 @@ impl Host {
 			.await
 			{
 				println!("write module cache error: {}", e);
+			} else {
+				println!("write module cache successfully");
 			}
 		});
 	}

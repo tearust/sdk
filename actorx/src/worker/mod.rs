@@ -171,8 +171,10 @@ impl Worker {
 					Ok(r) => r,
 					Err(e) => {
 						println!("Worker channel fails due to {e:?}, restarting...");
-						// TODO: consider create new instance
-						return Ok(());
+						let mut new_state = self.host.instance_from_cache().await?;
+						let result = new_state.instance().invoke(operation, Some(&mut gas))?;
+						*state_write = new_state;
+						result
 					}
 				}
 			} else {
