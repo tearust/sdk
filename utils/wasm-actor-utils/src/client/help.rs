@@ -1,5 +1,6 @@
 use crate::client::{Errors, Result};
 use crate::enclave::actors::kvp;
+use serde::Serialize;
 use tea_codec::OptionExt;
 
 /// Set a cache value for 1800 senond.
@@ -70,6 +71,17 @@ pub fn result_error(e: String) -> Result<Vec<u8>> {
 /// Return a custom json value.
 pub fn result_json(v: serde_json::Value) -> Result<Vec<u8>> {
 	Ok(serde_json::to_vec(&v)?)
+}
+
+pub fn http_json<T>(v: T) -> Result<Vec<u8>>
+where
+	T: Serialize + Clone,
+{
+	let json = serde_json::json!({
+		"status": true,
+		"data": v
+	});
+	Ok(serde_json::to_vec(&json)?)
 }
 
 /// Transform a u128 value from u8 buffer.
