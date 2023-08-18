@@ -161,9 +161,15 @@ pub struct SetOperationResponse {
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-#[response(GetResponse)]
-pub struct KeyExistsQuery {
+pub struct KeyExistsQueryRequest {
 	pub key: String,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct KeyExistsQueryResponse {
+	pub exists: bool,
+	pub value: Option<Vec<u8>>,
 }
 
 #[doc(hidden)]

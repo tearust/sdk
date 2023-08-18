@@ -199,7 +199,7 @@ pub async fn set_query<T: DeserializeOwned>(key: &str) -> Result<Vec<T>> {
 }
 
 pub async fn exists(key: &str) -> Result<bool> {
-	let req = KeyExistsQuery {
+	let req = KeyExistsQueryRequest {
 		key: key.to_owned(),
 	};
 	let res = KVP_ACTOR.call(req).await?;
