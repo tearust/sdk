@@ -360,11 +360,12 @@ impl TryFrom<TxnSerial> for TappstoreTxn {
 impl IntoSerial for TappstoreTxn {
 	type Error = Error;
 
-	fn into_serial(self, nonce: u64, gas_limit: u64) -> Result<TxnSerial, Self::Error> {
+	fn into_serial(self, nonce: u64, extra: u32, gas_limit: u64) -> Result<TxnSerial, Self::Error> {
 		Ok(TxnSerial::new(
 			super::NAME.to_vec(),
 			serialize(&self)?,
 			nonce,
+			extra,
 			gas_limit,
 		))
 	}

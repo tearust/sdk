@@ -34,7 +34,7 @@ impl Followup {
 	{
 		let serial: TxnSerial = txn
 			.clone()
-			.into_serial(0, 10000)
+			.into_serial(0, 0, 10000)
 			.expect("convert txn serial failed");
 		let hash_key =
 			txn_hash(&serialize(&serial).expect("serialize failed")).expect("wrong length hash");

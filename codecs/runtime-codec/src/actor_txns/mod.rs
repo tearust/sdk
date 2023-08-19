@@ -20,21 +20,33 @@ pub trait ToHash<H> {
 	fn to_hash(&self) -> H;
 }
 
+// Txn extra
+// bit_1 - 0: system txn, 1: user send
+// bit_2 - 0: from B node, 1: from http
+
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct TxnSerial {
 	actor_name: Vec<u8>,
 	bytes: Vec<u8>,
 	nonce: u64,
+	extra: u32,
 	gas_limit: u64,
 }
 
 impl TxnSerial {
-	pub fn new(actor_name: Vec<u8>, bytes: Vec<u8>, nonce: u64, gas_limit: u64) -> Self {
+	pub fn new(
+		actor_name: Vec<u8>,
+		bytes: Vec<u8>,
+		nonce: u64,
+		extra: u32,
+		gas_limit: u64,
+	) -> Self {
 		TxnSerial {
 			actor_name,
 			bytes,
 			nonce,
+			extra,
 			gas_limit,
 		}
 	}
@@ -51,8 +63,24 @@ impl TxnSerial {
 		self.nonce
 	}
 
+	pub fn extra(&self) -> u32 {
+		self.extra
+	}
+
 	pub fn gas_limit(&self) -> u64 {
 		self.gas_limit
+	}
+
+	pub fn hasy_bytes(&self) -> Result<Vec<u8>> {
+		let new_entity = TxnSerial {
+			actor_name: self.actor_name.clone(),
+			bytes: self.bytes.clone(),
+			nonce: self.nonce(),
+			extra: u32::MAX,
+			gas_limit: u64::MAX,
+		};
+		let new_bytes = tea_codec::serialize(&new_entity)?;
+		Ok(new_bytes)
 	}
 }
 
@@ -73,7 +101,7 @@ pub trait Transferable {
 
 pub trait IntoSerial {
 	type Error;
-	fn into_serial(self, nonce: u64, gas_limit: u64) -> Result<TxnSerial, Self::Error>;
+	fn into_serial(self, nonce: u64, extra: u32, gas_limit: u64) -> Result<TxnSerial, Self::Error>;
 }
 
 pub trait Txn<'a>:

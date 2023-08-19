@@ -388,6 +388,7 @@ message StateCommand {
   uint64 nonce = 3;
   bytes pre_args = 4;
   uint64 gas_limit = 5;
+  uint32 extra = 6;
 }
 
 message StateFollowup {

@@ -4,6 +4,8 @@ use crate::tapp::Hash;
 use serde::{Deserialize, Serialize};
 use tea_sdk::ResultExt;
 
+use super::TxnSerial;
+
 #[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct FullTxn {
@@ -32,7 +34,8 @@ impl FullTxn {
 	}
 
 	pub fn txn_hash(&self) -> Result<Hash> {
-		txn_hash(self.txn_bytes.as_slice()).err_into()
+		let txn_serial: TxnSerial = tea_codec::deserialize(&self.txn_bytes)?;
+		txn_hash(txn_serial.hasy_bytes()?.as_slice()).err_into()
 	}
 
 	pub fn args_hash(&self) -> Result<Option<Hash>> {

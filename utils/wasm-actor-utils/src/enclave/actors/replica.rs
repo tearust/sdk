@@ -56,7 +56,7 @@ pub async fn intelli_send_txn(
 	mode: IntelliSendMode,
 	gas_limit: u64,
 ) -> Result<Option<Tsid>> {
-	let txn_serial = new_txn_serial(target_actor, txn_bytes.to_vec(), gas_limit).await?;
+	let txn_serial = new_txn_serial(target_actor, txn_bytes.to_vec(), 0b01, gas_limit).await?;
 
 	if mode == IntelliSendMode::RemoteOnly {
 		return try_send_transaction_remotely(&txn_serial, pre_args, &None).await;
@@ -123,7 +123,7 @@ async fn gen_command_messages(
 	txn_serial: &TxnSerial,
 	pre_args: Vec<Arg>,
 ) -> Result<(tokenstate::StateCommand, Hash, String)> {
-	let txn_bytes = serialize(txn_serial)?;
+	let txn_bytes = txn_serial.hasy_bytes()?;
 	let txn_hash: Hash = sha256(txn_bytes).await?.as_slice().try_into()?;
 	let uuid = generate_uuid().await?;
 
@@ -132,6 +132,7 @@ async fn gen_command_messages(
 			data: txn_serial.bytes().to_vec(),
 			target: txn_serial.actor_name().to_vec(),
 			nonce: txn_serial.nonce(),
+			extra: txn_serial.extra().into(),
 			gas_limit: txn_serial.gas_limit(),
 			pre_args: serialize(&pre_args)?,
 		},
@@ -160,7 +161,8 @@ pub async fn send_transaction_locally_ex(
 	ts: Option<Ts>,
 ) -> Result<Option<Tsid>> {
 	let txn_bytes = serialize(txn_serial)?;
-	let txn_hash: Hash = sha256(txn_bytes.clone()).await?.as_slice().try_into()?;
+	let hash_bytes = txn_serial.hasy_bytes()?;
+	let txn_hash: Hash = sha256(hash_bytes).await?.as_slice().try_into()?;
 	info!(
 		"try send transaction 0x{} locally {} followup",
 		hex::encode(txn_hash),

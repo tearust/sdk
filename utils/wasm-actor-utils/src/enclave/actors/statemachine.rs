@@ -267,12 +267,14 @@ pub async fn commit(ctx: CommitContext) -> Result<(Balance, Balance, Vec<TypedSt
 pub async fn new_txn_serial(
 	actor_name: &[u8],
 	bytes: Vec<u8>,
+	extra: u32,
 	gas_limit: u64,
 ) -> Result<TxnSerial> {
 	Ok(TxnSerial::new(
 		actor_name.to_vec(),
 		bytes,
 		random_u64().await?,
+		extra,
 		gas_limit,
 	))
 }
@@ -319,6 +321,7 @@ pub async fn send_tx_new_auth_key_expired(
 			tea_system_actors::tappstore::NAME.to_vec(),
 			serialize(&txn)?,
 			random_u64().await?,
+			0,
 			gas_limit,
 		),
 		vec![],
