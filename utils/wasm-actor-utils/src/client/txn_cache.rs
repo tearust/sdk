@@ -1,11 +1,12 @@
 use crate::client::error::Result;
 use crate::client::help;
 use crate::enclave::actors::kvp;
-use prost::Message;
+// use prost::Message;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use std::str::FromStr;
 use tea_runtime_codec::actor_txns::tsid::Tsid;
-use tea_runtime_codec::tapp::{Account, Balance, TokenId};
+use tea_runtime_codec::tapp::Account;
 
 pub const CACHE_TXN_KEY: &str = "cache_txn_key";
 
@@ -94,7 +95,7 @@ pub async fn add_to_txn_cache(
 	from_actor: String,
 ) -> Result<()> {
 	let cache_item = TxnCacheItem {
-		time: system_time_as_nanos().await?,
+		time: crate::enclave::actors::env::system_time_as_nanos().await?,
 		from_actor,
 		hash_hex: None,
 		ts: None,
@@ -184,7 +185,8 @@ pub async fn set_item_tsid(item: &TxnCacheItem, tsid: Tsid) -> Result<()> {
 	let mut item = list.get_mut(index).unwrap();
 	item.hash_hex = Some(hex::encode(tsid.hash));
 	item.ts = Some(tsid.ts);
-	item.nonce = Some(tsid.get_nonce());
+	// item.nonce = Some(tsid.get_nonce());
+	item.nonce = Some(123_u64);
 
 	info!("After set_item_tsid => {:?}", item);
 	set_cache_instance(list).await?;
@@ -192,7 +194,7 @@ pub async fn set_item_tsid(item: &TxnCacheItem, tsid: Tsid) -> Result<()> {
 	Ok(())
 }
 
-pub async fn set_item_status(bank_code: String, hash: &str, error: Option<&str>) -> Result<()> {
+pub async fn set_item_status(hash: &str, error: Option<&str>) -> Result<()> {
 	let wrap = get_cache_item_by_hash(hash).await?;
 	if wrap.is_none() {
 		return Ok(());
