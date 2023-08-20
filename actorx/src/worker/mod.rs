@@ -1,5 +1,4 @@
 pub mod error;
-pub mod threading;
 mod wasm;
 
 #[cfg(not(feature = "nitro"))]
