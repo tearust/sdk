@@ -3,6 +3,7 @@ mod error;
 pub mod help;
 mod query_cb;
 pub mod request;
+pub mod txn_cache;
 pub mod types;
 pub mod utility;
 

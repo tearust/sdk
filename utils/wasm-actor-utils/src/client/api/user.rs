@@ -13,6 +13,7 @@ use serde_json::json;
 use std::str::FromStr;
 use tea_codec::OptionExt;
 use tea_codec::{deserialize, serialize};
+use tea_runtime_codec::actor_txns::Tsid;
 use tea_runtime_codec::tapp::{Balance, TokenId};
 use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
@@ -476,13 +477,14 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 	if r.success {
 		if r.executed_txn.is_some() {
 			info!("Txn hash return success. go to next step...");
-
+			let tsid: Tsid = tea_codec::deserialize(r.executed_txn.unwrap().tsid)?;
 			let x = {
 				let x_bytes = txn_callback(&uuid, from_actor).await;
 				if let Err(e) = x_bytes {
 					if e.name() == tea_codec::errorx::Global::UnexpectedType {
 						json!({
 							"status": true,
+							"ts": tsid.ts.to_string()
 						})
 					} else {
 						json!({
