@@ -35,6 +35,10 @@ impl TxnCacheItem {
 				None => "".to_string(),
 			},
 			"txn_name": self.txn_name,
+			"txn_args": match serde_json::from_slice(self.txn_bytes) {
+				Ok(v) => v,
+				Err(_) => serde_json::json!({}),
+			}
 			"txn_status": self.txn_status,
 			"nonce": match &self.nonce {
 				Some(t) => t.to_string(),
@@ -93,7 +97,7 @@ pub async fn add_to_txn_cache(
 	payload: Vec<u8>,
 	sender: String,
 	from_actor: String,
-) -> Result<()> {
+) -> Result<&TxnCacheItem> {
 	let cache_item = TxnCacheItem {
 		time: crate::enclave::actors::env::system_time_as_nanos().await?,
 		from_actor,
@@ -110,9 +114,14 @@ pub async fn add_to_txn_cache(
 
 	let mut cache_list = get_cache_instance().await?;
 	cache_list.push(cache_item);
+
+	if cache_list.len() > 500 {
+		//TODO
+		cache_list.pop();
+	}
 	set_cache_instance(cache_list).await?;
 
-	Ok(())
+	Ok(&cache_item)
 }
 
 fn cache_key() -> String {
@@ -185,8 +194,7 @@ pub async fn set_item_tsid(item: &TxnCacheItem, tsid: Tsid) -> Result<()> {
 	let mut item = list.get_mut(index).unwrap();
 	item.hash_hex = Some(hex::encode(tsid.hash));
 	item.ts = Some(tsid.ts);
-	// item.nonce = Some(tsid.get_nonce());
-	item.nonce = Some(123_u64);
+	item.nonce = Some(tsid.nonce);
 
 	info!("After set_item_tsid => {:?}", item);
 	set_cache_instance(list).await?;

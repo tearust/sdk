@@ -1,6 +1,7 @@
 use crate::client::error::Result;
 use crate::client::help;
 use crate::client::request;
+use crate::client::txn_cache;
 use crate::client::types::txn_callback;
 
 use crate::client::api::state;
@@ -465,6 +466,8 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 	let txn_hash = hex::decode(req.hash.clone())?;
 	let ts = tea_codec::serialize(&u128::from_str(&req.ts)?)?;
 
+	let x_hash = req.hash.clone();
+
 	let query_data = replica::FindExecutedTxnRequest { txn_hash, ts };
 
 	let res = request::send_tappstore_query(
@@ -479,6 +482,8 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 			info!("Txn hash return success. go to next step...");
 			let tsid: Tsid = tea_codec::deserialize(r.executed_txn.unwrap().tsid)?;
 			let x = {
+				txn_cache::set_item_status(&x_hash, None).await?;
+
 				let x_bytes = txn_callback(&uuid, from_actor).await;
 				if let Err(e) = x_bytes {
 					if e.name() == tea_codec::errorx::Global::UnexpectedType {
@@ -498,6 +503,7 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 						// no cb
 						json!({
 							"status": true,
+							"ts": tsid.ts.to_string()
 						})
 					} else {
 						serde_json::from_slice(&x_bytes)?
@@ -516,6 +522,7 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 			help::cache_json_with_uuid(&uuid, x).await?;
 		}
 	} else {
+		txn_cache::set_item_status(&x_hash, Some(&r.error_msg)).await?;
 		let x = json!({
 			"status": false,
 			"error": &r.error_msg,
