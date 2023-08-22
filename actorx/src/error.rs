@@ -21,6 +21,7 @@ define_scope! {
 		ActorHostDropped => ActorHostDropped;
 		InvocationTimeout => InvocationTimeout;
 		ChannelReceivingTimeout => ChannelReceivingTimeout;
+		InvokeDeserializeError => InvokeDeserializeError;
 	}
 }
 
@@ -96,3 +97,7 @@ pub struct InvocationTimeout(
 #[derive(Debug, Error)]
 #[error("Receiving channel of actor {0} has timeout")]
 pub struct ChannelReceivingTimeout(pub ActorId);
+
+#[derive(Debug, Error)]
+#[error("Failed to deserialize the invoke response to actor '{0}': {1}")]
+pub struct InvokeDeserializeError(pub ActorId, pub String);
