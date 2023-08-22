@@ -486,7 +486,9 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 
 				let x_bytes = txn_callback(&uuid, from_actor).await;
 				if let Err(e) = x_bytes {
-					if e.name() == tea_codec::errorx::Global::UnexpectedType {
+					if e.name() == tea_codec::errorx::Global::UnexpectedType
+						|| e.name() == tea_codec::errorx::Global::CannotBeNone
+					{
 						json!({
 							"status": true,
 							"ts": tsid.ts.to_string()
@@ -510,7 +512,6 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 					}
 				}
 			};
-
 			help::cache_json_with_uuid(&uuid, x).await?;
 		} else {
 			info!("Txn hash no error. but not success. wait for next loop...");

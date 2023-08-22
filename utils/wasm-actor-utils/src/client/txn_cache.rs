@@ -35,10 +35,10 @@ impl TxnCacheItem {
 				None => "".to_string(),
 			},
 			"txn_name": self.txn_name,
-			"txn_args": match serde_json::from_slice(self.txn_bytes) {
+			"txn_args": match serde_json::from_slice(self.txn_bytes.as_slice()) {
 				Ok(v) => v,
 				Err(_) => serde_json::json!({}),
-			}
+			},
 			"txn_status": self.txn_status,
 			"nonce": match &self.nonce {
 				Some(t) => t.to_string(),
@@ -93,27 +93,27 @@ pub async fn query_txn_cache_list(payload: Vec<u8>, _from_actor: String) -> Resu
 
 #[allow(clippy::too_many_arguments)]
 pub async fn add_to_txn_cache(
-	txn_name: String,
+	txn_name: &str,
 	payload: Vec<u8>,
-	sender: String,
-	from_actor: String,
-) -> Result<&TxnCacheItem> {
+	sender: &str,
+	from_actor: &str,
+) -> Result<TxnCacheItem> {
 	let cache_item = TxnCacheItem {
 		time: crate::enclave::actors::env::system_time_as_nanos().await?,
-		from_actor,
+		from_actor: from_actor.to_string(),
 		hash_hex: None,
 		ts: None,
 		nonce: None,
-		txn_name,
+		txn_name: txn_name.to_string(),
 		txn_bytes: payload,
 		txn_status: "Normal".into(),
-		sender: sender.parse()?,
+		sender: sender.to_string().parse()?,
 		status: None,
 		error: None,
 	};
 
 	let mut cache_list = get_cache_instance().await?;
-	cache_list.push(cache_item);
+	cache_list.push(cache_item.clone());
 
 	if cache_list.len() > 500 {
 		//TODO
@@ -121,7 +121,7 @@ pub async fn add_to_txn_cache(
 	}
 	set_cache_instance(cache_list).await?;
 
-	Ok(&cache_item)
+	Ok(cache_item)
 }
 
 fn cache_key() -> String {
@@ -194,7 +194,7 @@ pub async fn set_item_tsid(item: &TxnCacheItem, tsid: Tsid) -> Result<()> {
 	let mut item = list.get_mut(index).unwrap();
 	item.hash_hex = Some(hex::encode(tsid.hash));
 	item.ts = Some(tsid.ts);
-	item.nonce = Some(tsid.nonce);
+	item.nonce = tsid.nonce;
 
 	info!("After set_item_tsid => {:?}", item);
 	set_cache_instance(list).await?;
