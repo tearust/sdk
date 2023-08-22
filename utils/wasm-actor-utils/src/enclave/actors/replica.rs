@@ -119,6 +119,11 @@ async fn try_send_transaction_remotely(
 	.await
 }
 
+pub async fn calculate_txn_hash(txn_serial: &TxnSerial) -> Result<Hash> {
+	let bytes = txn_serial.hasy_bytes()?;
+	Ok(sha256(bytes).await?.as_slice().try_into()?)
+}
+
 async fn gen_command_messages(
 	txn_serial: &TxnSerial,
 	pre_args: Vec<Arg>,
