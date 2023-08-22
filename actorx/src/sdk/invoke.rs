@@ -1,10 +1,7 @@
 use std::{borrow::Borrow, future::Future};
 
 use crate::core::actor::ActorId;
-use tea_codec::{
-	serde::{handle::Request, FromBytes, ToBytes},
-	ResultExt,
-};
+use tea_codec::serde::{handle::Request, FromBytes, ToBytes};
 
 use crate::error::Result;
 #[cfg(feature = "host")]
@@ -37,8 +34,9 @@ impl ActorId {
 		let req = req.borrow().to_bytes();
 		async move {
 			let req = req?;
-			let resp = invoke(target, &req).await?;
-			FromBytes::from_bytes(&resp).err_into()
+			let resp = invoke(target.clone(), &req).await?;
+			FromBytes::from_bytes(&resp)
+				.map_err(|e| crate::error::InvokeDeserializeError(target, e.to_string()).into())
 		}
 	}
 

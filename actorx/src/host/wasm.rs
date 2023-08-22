@@ -114,9 +114,11 @@ impl WasmActor {
 		if INC {
 			state.count += 1;
 			if state.count > MAX_COUNT {
+				info!("reset worker {:?}", result.metadata().id);
 				self.new_state(&mut state);
 				state.count = 0;
 			} else if state.count > CACHE_COUNT && state.cached.is_none() {
+				info!("cache worker {:?}", result.metadata().id);
 				self.new_cache(&mut state);
 			}
 		}
