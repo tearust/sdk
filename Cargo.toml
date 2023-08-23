@@ -61,7 +61,11 @@ track = ["tea-actorx/track"]
 sign = ["tea-actorx/sign"]
 system-actors = ["tea-system-actors", "vmh"]
 vmh = ["tea-runtime-codec/vmh"]
-nitro = ["tea-runtime-codec/nitro", "tea-system-actors/nitro"]
+nitro = [
+    "tea-runtime-codec/nitro",
+    "tea-system-actors/nitro",
+    "tea-actorx/nitro",
+]
 backtrace = ["tea-codec/backtrace", "tea-actorx/backtrace"]
 dev = ["tea-runtime-codec/dev"]
 __test = [
