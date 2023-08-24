@@ -278,10 +278,12 @@ impl Worker {
 		let (mut tx, rx) = unbounded_channel();
 		let mut channels = self.proc.channels.lock().await;
 		if let Some(e) = &channels.error {
+			warn!("Worker open returned because of error: {e}");
 			return Err(e.clone());
 		}
 		let mut id = channels.current_id;
 		while let Err(last_tx) = channels.channels.try_insert(id, tx) {
+			warn!("Channel id {} already exists, try next.", id);
 			tx = last_tx.value;
 			id = id.wrapping_add(1);
 		}
