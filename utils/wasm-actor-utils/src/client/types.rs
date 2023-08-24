@@ -5,9 +5,7 @@ use crate::client::request::uuid_cb_key;
 use crate::client::txn_cache;
 pub use crate::enclave::action::HttpRequest;
 use futures::Future;
-use lazy_static::lazy_static;
-use std::sync::Mutex;
-use std::{collections::HashMap, pin::Pin};
+use std::pin::Pin;
 use tea_actorx::ActorId;
 
 use serde::{Deserialize, Serialize};
@@ -24,11 +22,6 @@ pub struct ClientTxnCbRequest {
 
 type CBD = Pin<Box<dyn Future<Output = Result<Vec<u8>>> + Send>>;
 pub type CallbackCB = dyn Fn(Vec<u8>, String) -> CBD + Sync + Send + 'static;
-
-lazy_static! {
-	pub static ref HANDLER_CB_MAP: Mutex<HashMap<String, Box<CallbackCB>>> =
-		Mutex::new(HashMap::new());
-}
 
 #[doc(hidden)]
 pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
@@ -61,19 +54,6 @@ pub async fn map_cb_handler(action: &str, _arg: Vec<u8>, _from_actor: String) ->
 		_ => vec![],
 	};
 	Ok(res)
-}
-
-#[doc(hidden)]
-pub fn add_cb_handler<C>(action_name: &str, handler_cb: C) -> Result<()>
-where
-	C: Fn(Vec<u8>, String) -> CBD + Send + Sync + 'static,
-{
-	HANDLER_CB_MAP
-		.lock()
-		.unwrap()
-		.insert(action_name.to_string(), Box::new(handler_cb));
-
-	Ok(())
 }
 
 #[doc(hidden)]
