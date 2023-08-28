@@ -464,6 +464,7 @@ impl Instance {
 				self.0.init_handle.call(store, 1, resp.len() as _, 0)?
 			}
 			Operation::ReturnErr { error } => {
+				warn!("Operation return error: {error}");
 				self.0
 					.init_handle
 					.call(store, 2, serialized_size(error)? as _, 0)?

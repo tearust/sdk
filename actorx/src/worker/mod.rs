@@ -32,6 +32,8 @@ use crate::{
 	worker::{error::Result, wasm::Host},
 };
 
+use self::wasm::SharedState;
+
 pub struct Worker {
 	read: Mutex<OwnedReadHalf>,
 	write: Mutex<OwnedWriteHalf>,
@@ -86,7 +88,8 @@ impl Worker {
 						Entry::Vacant(entry) => {
 							let (tx, rx) = unbounded_channel();
 							let tx = entry.insert(tx);
-							let channel = self.clone().channel(cid, rx);
+							let state = self.host.get_instance().await;
+							let channel = self.clone().channel(cid, state.clone(), rx);
 							let slf = self.clone();
 							tokio::spawn(async move {
 								if let Err(e) = channel.await {
@@ -103,6 +106,7 @@ impl Worker {
 									}
 								}
 								slf.channels.lock().await.remove(&cid);
+								state.write().await.reset_idle();
 							});
 							tx
 						}
@@ -143,12 +147,12 @@ impl Worker {
 		}
 	}
 
-	pub async fn channel(
+	pub(crate) async fn channel(
 		self: Arc<Self>,
 		cid: u64,
+		state: SharedState,
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
-		let state = self.host.get_instance().await;
 		let mut first = true;
 
 		while let Some((operation, mut gas)) = input.recv().await {
@@ -169,17 +173,13 @@ impl Worker {
 					}
 				}
 			} else {
-				instance.invoke(operation, Some(&mut gas))?
+				instance.invoke(operation, Some(&mut gas)).map_err(|e| {
+					println!("Worker channel (cid {cid}) invoke fails due to {e:?}");
+					e
+				})?
 			};
 
 			let is_completed = !matches!(resp, Operation::Call { .. });
-			if is_completed {
-				let slf = self.clone();
-				tokio::spawn(async move {
-					let mut channels = slf.channels.lock().await;
-					channels.remove(&cid);
-				});
-			}
 			let mut write = self.write.lock().await;
 			resp.write(&mut *write, cid, gas).await?;
 			write.flush().await?;
@@ -188,7 +188,6 @@ impl Worker {
 			}
 		}
 
-		state.write().await.reset_idle();
 		Ok(())
 	}
 }
