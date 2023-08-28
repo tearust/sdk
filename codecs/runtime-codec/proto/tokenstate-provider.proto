@@ -163,6 +163,16 @@ message ApiRefundRequest {
   bytes amt = 3;
   bytes tokenCtx = 4;
 }
+message BalanceToCreditRequest{
+  bytes ctx = 1;
+  bytes acct = 2;
+  bytes amt = 3;
+}
+message CreditToBalanceRequest{
+  bytes ctx = 1;
+  bytes acct = 2;
+  bytes amt = 3;
+}
 message ConsumeFromDepositRequest{
   bytes ctx = 1;
   bytes acct = 2;
@@ -543,6 +553,13 @@ message QueryAllowanceRequest {
 }
 message QueryAllowanceResponse{
   bytes allowance = 1;
+}
+message QueryCreditRequest {
+  bytes tokenId = 1;
+  bytes address = 2;
+}
+message QueryCreditResponse{
+  bytes credit = 1;
 }
 message DeductAllowanceRequest{
   bytes address = 2;

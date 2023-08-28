@@ -17,6 +17,7 @@ pub enum Type {
 	TappstoreOwner,
 	CurrentHeight,
 	TopupLogs,
+	BasicString,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
@@ -24,6 +25,7 @@ pub enum Filter {
 	Single(Indentity),
 	Multiple(Vec<Indentity>),
 	ByStatus(Status),
+	ByString(String),
 	Uncountable,
 }
 
@@ -114,6 +116,13 @@ impl Arg {
 		}
 	}
 
+	pub fn basic_string(s: String) -> Self {
+		Arg {
+			ty: Type::BasicString,
+			filter: Filter::ByString(s),
+		}
+	}
+
 	pub fn current_height() -> Self {
 		Arg {
 			ty: Type::CurrentHeight,
@@ -140,6 +149,7 @@ impl Filter {
 			Filter::Multiple(s) => s.iter().fold(0, |acc, x| acc + x.size()),
 			Filter::ByStatus(_) => 1,
 			Filter::Uncountable => 0,
+			Filter::ByString(s) => s.as_bytes().len(),
 		}
 	}
 }

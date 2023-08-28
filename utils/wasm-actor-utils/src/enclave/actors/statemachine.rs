@@ -418,6 +418,20 @@ pub async fn query_allowance(token_id: &TokenId, address: &Account) -> Result<Ba
 	Ok(allowance)
 }
 
+pub async fn query_credit(token_id: &TokenId, address: &Account) -> Result<Balance> {
+	let req = QueryCreditRequest {
+		token_id: serialize(token_id)?,
+		address: serialize(address)?,
+	};
+	let buf = encode_protobuf(req)?;
+	let res_buf = ActorId::Static(codec::NAME)
+		.call(codec::QueryCreditRequest(buf))
+		.await?;
+	let res = QueryCreditResponse::decode(res_buf.0.as_slice())?;
+	let credit: Balance = deserialize(res.credit)?;
+	Ok(credit)
+}
+
 /// This is the in-transaction version of get_bonding_total_supply. It's
 /// used inside a transaction with ctx live.
 /// Because there might be some uncommitted additions and subtractions, the get function won't
@@ -532,6 +546,23 @@ pub async fn verify_enough_account_balance(
 	if balance < *required_amt {
 		Ok(false)
 	// return Err("not_enough_balance_postmessage".into());
+	} else {
+		Ok(true)
+	}
+}
+
+pub async fn verify_enough_account_balance_and_credit(
+	acct: &Account,
+	ctx: Vec<u8>,
+	required_amt: &Balance,
+) -> Result<bool> {
+	let (balance, _) = read_tea_balance(ctx, *acct, ReadConflictMode::BothConflict).await?;
+
+	let credit = query_credit(&tappstore_id().await?, &acct).await?;
+	let total = balance.saturating_add(credit);
+
+	if total < *required_amt {
+		Ok(false)
 	} else {
 		Ok(true)
 	}

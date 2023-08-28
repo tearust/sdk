@@ -33,6 +33,7 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 		"logout" => api::user::txn_logout(arg, from_actor)?,
 		"query_balance" => api::user::query_balance(arg, from_actor).await?,
 		"query_deposit" => api::user::query_deposit(arg, from_actor).await?,
+		"query_credit" => api::user::query_credit(arg, from_actor).await?,
 		"query_asset" => api::user::query_asset(arg, from_actor).await?,
 		"query_allowance" => api::user::query_allowance(arg, from_actor).await?,
 		"query_tapp_metadata" => api::user::query_tapp_metadata(arg, from_actor).await?,
@@ -42,6 +43,7 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 			api::user::query_multi_tapp_allowance(arg, from_actor).await?
 		}
 		"query_txn_cache_list" => txn_cache::query_txn_cache_list(arg, from_actor).await?,
+		"query_credit_system_info" => api::user::query_credit_system_info(arg, from_actor).await?,
 
 		_ => vec![],
 	};
@@ -89,6 +91,7 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"logout",
 		"query_balance",
 		"query_deposit",
+		"query_credit",
 		"query_asset",
 		"query_allowance",
 		"query_tapp_metadata",
@@ -96,5 +99,6 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"query_system_version",
 		"query_multi_tapp_allowance_from_local_state",
 		"query_txn_cache_list",
+		"query_credit_system_info",
 	]
 }
