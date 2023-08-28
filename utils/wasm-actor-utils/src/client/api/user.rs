@@ -160,6 +160,14 @@ pub struct HttpQueryDepositRequest {
 }
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct HttpQueryCreditRequest {
+	pub tapp_id_b64: String,
+	pub address: String,
+	pub uuid: String,
+	pub auth_b64: String,
+}
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct QueryAssetRequest {
 	pub tapp_id_b64: String,
 	pub address: String,
@@ -280,6 +288,34 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
+}
+
+pub async fn query_credit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
+	let req: HttpQueryCreditRequest = serde_json::from_slice(&payload)?;
+	check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
+
+	info!("begin to query credit balance...");
+
+	let uuid = req.uuid;
+	if state::is_system_actor(&from_actor) {
+		let (ts, balance) =
+			state::fetch_credit(TokenId::from_hex(&req.tapp_id_b64)?, req.address.parse()?).await?;
+		info!(
+			"query query_credit in local state => {:?} | {:?}",
+			ts, balance
+		);
+
+		let x = serde_json::json!({
+			"balance": balance.to_string(),
+			"ts": ts.to_string(),
+			"uuid": uuid
+		});
+
+		help::cache_json_with_uuid(&uuid, x).await?;
+		return help::result_ok();
+	}
+
+	help::result_error("Not permission to query credit".into())
 }
 
 pub async fn query_asset(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
@@ -609,5 +645,35 @@ pub async fn query_multi_tapp_allowance(payload: Vec<u8>, from_actor: String) ->
 	});
 	help::cache_json_with_uuid(&uuid, x).await?;
 
+	help::result_ok()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryCreditSystemInfoRequest {
+	pub uuid: String,
+}
+pub async fn query_credit_system_info(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
+	let req: QueryCreditSystemInfoRequest = serde_json::from_slice(&payload)?;
+	info!("query_credit_system_info...");
+
+	let uuid = req.uuid;
+
+	let res = request::send_tappstore_query(
+		&from_actor,
+		tea_system_actors::tappstore::QueryCreditSystemInfoRequest,
+	)
+	.await?;
+	let x = if let Some(item) = res.0 {
+		json!({
+			"info": item,
+			"current": res.1,
+		})
+	} else {
+		json!({
+			"data": "".to_string(),
+		})
+	};
+	help::cache_json_with_uuid(&uuid, x).await?;
 	help::result_ok()
 }

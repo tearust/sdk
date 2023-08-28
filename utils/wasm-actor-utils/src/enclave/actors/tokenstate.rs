@@ -284,6 +284,21 @@ pub async fn api_cross_move(
 	Ok((res.from_ctx, res.to_ctx))
 }
 
+pub async fn mov_credit(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+	if amt.is_zero() {
+		info!("Mov 0 unit, ignored.");
+		return Ok(ctx);
+	}
+
+	let res: MoveCreditResponse = ActorId::Static(NAME)
+		.call(MoveCreditRequest { from, to, amt, ctx })
+		.await
+		.map_err(|e| {
+			Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.into())
+		})?;
+	Ok(res.0)
+}
+
 /// A wrapped method for deposit, which includes the allowance operation.
 pub async fn api_deposit(
 	acct: Account,
@@ -337,5 +352,51 @@ pub async fn api_refund(
 			operate_error.to_string()
 		);
 		Err(operate_error)
+	}
+}
+
+pub async fn balance_to_credit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+	let buf = encode_protobuf(tokenstate::BalanceToCreditRequest {
+		acct: serialize(&acct)?,
+		amt: serialize(&amt)?,
+		ctx,
+	})?;
+	let res_buf = ActorId::Static(NAME)
+		.call(BalanceToCreditRequest(buf))
+		.await?;
+	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let operate_error: Error = deserialize(&res.operate_error)?;
+	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+		info!("actor_statemachine balance_to_credit successed");
+		Ok(res.ctx)
+	} else {
+		error!(
+			"actor_statemachine balance_to_credit error {}",
+			operate_error.to_string()
+		);
+		Err(operate_error.into())
+	}
+}
+
+pub async fn credit_to_balance(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+	let buf = encode_protobuf(tokenstate::CreditToBalanceRequest {
+		acct: serialize(&acct)?,
+		amt: serialize(&amt)?,
+		ctx,
+	})?;
+	let res_buf = ActorId::Static(NAME)
+		.call(CreditToBalanceRequest(buf))
+		.await?;
+	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
+	let operate_error: Error = deserialize(&res.operate_error)?;
+	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+		info!("actor_statemachine credit_to_balance successed");
+		Ok(res.ctx)
+	} else {
+		error!(
+			"actor_statemachine credit_to_balance error {}",
+			operate_error.to_string()
+		);
+		Err(operate_error.into())
 	}
 }

@@ -134,6 +134,10 @@ where
 
 	fn allowance_context_mut(&mut self) -> &mut C;
 
+	fn credit_context(&self) -> &C;
+
+	fn credit_context_mut(&mut self) -> &mut C;
+
 	fn allowance_token_id(&self) -> Option<TokenId>;
 
 	fn encode_bytes(&self) -> Result<Vec<u8>>;
@@ -179,6 +183,7 @@ pub struct TokenContext {
 	deposit: ConcurrentBalances,
 	bonding: ConcurrentBalances,
 	allowance: ConcurrentBalances,
+	credit: ConcurrentBalances,
 	/// allowed ops. Note: Because the stored procedure actor may
 	/// change the context. We do NOT trust the context when the
 	/// state accept the context to commit. we HAVE TO verify again
@@ -328,6 +333,14 @@ impl Context<ConcurrentBalances> for TokenContext {
 
 	fn deposit_context_mut(&mut self) -> &mut ConcurrentBalances {
 		&mut self.deposit
+	}
+
+	fn credit_context(&self) -> &ConcurrentBalances {
+		&self.credit
+	}
+
+	fn credit_context_mut(&mut self) -> &mut ConcurrentBalances {
+		&mut self.credit
 	}
 
 	fn allowance_context(&self) -> &ConcurrentBalances {

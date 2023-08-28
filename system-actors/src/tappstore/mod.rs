@@ -9,6 +9,7 @@ use tea_runtime_codec::actor_txns::{
 use tea_runtime_codec::solc::txns::{MintCmlRecordTrans, UnlockRecordTrans};
 use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic, CmlVariable},
+	fluencer::CreditSystemInfo,
 	machine::{MiningIntrinsic, MiningVariable},
 	ra::{EnclaveType, NodeStatus, PcrType, TeaNodeProfile},
 	seat::SeatMaintainer,
@@ -247,6 +248,13 @@ pub struct QuerySystemVersionsRequest;
 /// Base response to return system version.
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QuerySystemVersionsResponse(pub SystemVersions);
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct QueryCreditSystemInfoRequest;
+
+/// Base response to return system version.
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct QueryCreditSystemInfoResponse(pub Option<CreditSystemInfo>, pub String);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]

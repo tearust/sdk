@@ -35,7 +35,6 @@ pub enum TappstoreTxn {
 		from: Account,
 		to: Account,
 		amount: Balance,
-		auth_b64: String,
 	},
 	Topup {
 		item: TopupEventItem,
@@ -44,7 +43,6 @@ pub enum TappstoreTxn {
 		token_id: TokenId,
 		acct: Account,
 		amount: Balance,
-		auth_b64: String,
 	},
 	PayToApp {
 		token_id: TokenId,
@@ -245,6 +243,7 @@ pub enum TappstoreTxn {
 		target: Account,
 		twitter_id: String,
 		token_id: String,
+		reward_credit: bool,
 	},
 	FluencerAddCandidate {
 		r#type: String,
@@ -252,6 +251,7 @@ pub enum TappstoreTxn {
 		key: String,
 		user: Account,
 		token_id: String,
+		reward_credit: bool,
 	},
 	ScheduledArrangeRaStatus {
 		timestamp: TimestampShort,
@@ -332,6 +332,13 @@ pub enum TappstoreTxn {
 	RemoveErrorLogForTApp {
 		token_id: TokenId,
 		actor_type: String,
+	},
+	AdminStartCreditEvent {
+		amt: Balance,
+		end_time: TimestampShort,
+	},
+	CheckToEndCreditSystem {
+		timestamp: TimestampShort,
 	},
 }
 
