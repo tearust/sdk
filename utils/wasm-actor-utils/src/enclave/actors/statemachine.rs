@@ -155,7 +155,7 @@ impl CommitContextList {
 			}
 		}
 
-		info!(
+		debug!(
 			"actual_neutual_balance: {:?}, neutual_hidden_acct_balance: (credit: {}, debit: {})",
 			&actual_neutral_balance,
 			self.neutralize_hidden_acct_credit,
