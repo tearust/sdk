@@ -340,6 +340,9 @@ pub enum TappstoreTxn {
 	CheckToEndCreditSystem {
 		timestamp: TimestampShort,
 	},
+	AdminAddGlobalCredit {
+		amt: Balance,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
