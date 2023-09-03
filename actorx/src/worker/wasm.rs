@@ -99,7 +99,6 @@ impl Host {
 
 		let (first_module, first_store, module_bytes): (Module, Store, Arc<[u8]>) =
 			if Path::new(&self.compiled_path).exists() {
-				println!("try load module from cache file {}", self.compiled_path);
 				let bytes = self.read_module_cache().await?;
 				let s = create_store();
 				let m = Module::deserialize_checked(&s, &bytes)?;
@@ -129,10 +128,6 @@ impl Host {
 						Ok(state) => {
 							let mut states = states.write().await;
 							states.states.push(Arc::new(RwLock::new(state)));
-							println!(
-								"create instance state success, current instance count: {}",
-								states.states.len()
-							);
 						}
 						Err(e) => {
 							println!("ignored a create instance state result because error: {e:?}");

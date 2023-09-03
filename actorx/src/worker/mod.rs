@@ -65,7 +65,6 @@ impl Worker {
 		socket.flush().await?;
 
 		let host = host?;
-		println!("Worker init done in {:?}", now.elapsed());
 		let (read, write) = socket.into_split();
 		Ok(Arc::new(Self {
 			host,
