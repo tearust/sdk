@@ -120,7 +120,7 @@ async fn try_send_transaction_remotely(
 }
 
 pub async fn calculate_txn_hash(txn_serial: &TxnSerial) -> Result<Hash> {
-	let bytes = txn_serial.hasy_bytes()?;
+	let bytes = txn_serial.hash_bytes()?;
 	Ok(sha256(bytes).await?.as_slice().try_into()?)
 }
 
@@ -128,7 +128,7 @@ async fn gen_command_messages(
 	txn_serial: &TxnSerial,
 	pre_args: Vec<Arg>,
 ) -> Result<(tokenstate::StateCommand, Hash, String)> {
-	let txn_bytes = txn_serial.hasy_bytes()?;
+	let txn_bytes = txn_serial.hash_bytes()?;
 	let txn_hash: Hash = sha256(txn_bytes).await?.as_slice().try_into()?;
 	let uuid = generate_uuid().await?;
 
@@ -166,7 +166,7 @@ pub async fn send_transaction_locally_ex(
 	ts: Option<Ts>,
 ) -> Result<Option<Tsid>> {
 	let txn_bytes = serialize(txn_serial)?;
-	let hash_bytes = txn_serial.hasy_bytes()?;
+	let hash_bytes = txn_serial.hash_bytes()?;
 	let txn_hash: Hash = sha256(hash_bytes).await?.as_slice().try_into()?;
 	info!(
 		"try send transaction 0x{} locally {} followup",
