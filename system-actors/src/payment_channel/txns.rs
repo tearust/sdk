@@ -7,7 +7,6 @@ pub enum PaymentChannelTxn {
 	OpenChannel {
 		item: ChannelItem,
 		payer_acc_sig: Vec<u8>,
-		payee_acc_sig: Vec<u8>,
 	},
 	PayerEarlyTerminate {
 		channel_id: ChannelId,
