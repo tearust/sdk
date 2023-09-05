@@ -56,6 +56,6 @@ pub enum ContextError {
 	DoubleDebit,
 	#[error("CX_220_subtraction_overflow")]
 	SubtractionOverflow,
-	#[error("CX_221_subtraction_overflow")]
+	#[error("CX_221_add_overflow")]
 	AddOverflow,
 }

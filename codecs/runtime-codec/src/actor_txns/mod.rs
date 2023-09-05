@@ -71,7 +71,7 @@ impl TxnSerial {
 		self.gas_limit
 	}
 
-	pub fn hasy_bytes(&self) -> Result<Vec<u8>> {
+	pub fn hash_bytes(&self) -> Result<Vec<u8>> {
 		let new_entity = TxnSerial {
 			actor_name: self.actor_name.clone(),
 			bytes: self.bytes.clone(),

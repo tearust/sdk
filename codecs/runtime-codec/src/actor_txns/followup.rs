@@ -13,11 +13,8 @@ pub struct Followup {
 }
 
 impl Followup {
-	pub fn test_now<'a, T>(txn: &T, sender: ReplicaId, ts: Ts) -> Self
-	where
-		T: Txn<'a> + Clone,
-	{
-		let buf: Vec<u8> = serialize(txn).expect("failed to serialize");
+	pub fn test_now(txn: &TxnSerial, sender: ReplicaId, ts: Ts) -> Self {
+		let buf: Vec<u8> = txn.hash_bytes().expect("failed to serialize");
 		let hash_key: crate::actor_txns::Hash =
 			txn_hash(buf.as_slice()).expect("wrong length hash");
 		Followup {
@@ -37,7 +34,7 @@ impl Followup {
 			.into_serial(0, 0, 10000)
 			.expect("convert txn serial failed");
 		let hash_key =
-			txn_hash(&serialize(&serial).expect("serialize failed")).expect("wrong length hash");
+			txn_hash(&serial.hash_bytes().expect("serialize failed")).expect("wrong length hash");
 		Followup {
 			ts,
 			hash: hash_key,
