@@ -22,7 +22,6 @@ use tokio::{
 		mpsc::{unbounded_channel, UnboundedReceiver as Receiver, UnboundedSender as Sender},
 		Mutex,
 	},
-	time::Instant,
 };
 
 #[cfg(feature = "verbose_log")]
@@ -43,7 +42,6 @@ pub struct Worker {
 
 impl Worker {
 	pub async fn init(mut socket: UnixStream) -> Result<Arc<Self>> {
-		let now = Instant::now();
 		let is_path = socket.read_u8().await?;
 		let instance_count = socket.read_u8().await?;
 		let host = if is_path == 0 {
