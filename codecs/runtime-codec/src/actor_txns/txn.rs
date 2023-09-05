@@ -35,7 +35,7 @@ impl FullTxn {
 
 	pub fn txn_hash(&self) -> Result<Hash> {
 		let txn_serial: TxnSerial = tea_codec::deserialize(&self.txn_bytes)?;
-		txn_hash(txn_serial.hasy_bytes()?.as_slice()).err_into()
+		txn_hash(txn_serial.hash_bytes()?.as_slice()).err_into()
 	}
 
 	pub fn args_hash(&self) -> Result<Option<Hash>> {
