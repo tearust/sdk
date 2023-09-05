@@ -3,7 +3,9 @@ use tea_actorx::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::{defs::FreezeTimeSettings, serde::TypeId};
 use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, TxnSerial};
-use tea_runtime_codec::tapp::{Account, AuthKey, Balance, TimestampShort, TokenId, Ts};
+use tea_runtime_codec::tapp::{
+	Account, AuthKey, Balance, ChannelId, ChannelItem, TimestampShort, TokenId, Ts,
+};
 
 pub mod error;
 
@@ -181,6 +183,84 @@ pub struct CrossMoveRequest {
 pub struct CrossMoveResponse {
 	pub from_ctx: Vec<u8>,
 	pub to_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct OpenChannelRequest {
+	pub item: ChannelItem,
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct OpenChannelResponse {
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct UpdatePaymentRequest {
+	pub channel_id: ChannelId,
+	pub remaining: Balance,
+	pub close: bool,
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct UpdatePaymentResponse {
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+pub struct PayerRefillRequest {
+	pub channel_id: ChannelId,
+	pub amount: Balance,
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct PayerRefillResponse {
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+pub struct ChannelEarlyTerminatRequest {
+	pub channel_id: ChannelId,
+	pub ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ChannelEarlyTerminatResponse {
+	pub ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+pub struct ChannelTerminateRequest {
+	pub channel_id: ChannelId,
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ChannelTerminateResponse {
+	pub ctx: Vec<u8>,
+	pub tappstore_ctx: Vec<u8>,
 }
 
 #[doc(hidden)]

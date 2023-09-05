@@ -1,13 +1,15 @@
 use self::concurrent::ConcurrentBalances;
+use self::payment_channel::PaymentChannelContextImpl;
 use crate::actor_txns::auth::AllowedOp;
 use crate::actor_txns::error::{Result, TxnError};
 use crate::actor_txns::{auth::TokenAuthOp, tsid::Tsid};
-use crate::tapp::{Account, AuthKey, Balance, TokenId};
+use crate::tapp::{Account, AuthKey, Balance, ChannelId, ChannelItem, TokenId};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet, VecDeque};
 use tea_sdk::deserialize;
 
 pub mod concurrent;
+pub mod payment_channel;
 
 #[doc(hidden)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -73,9 +75,33 @@ pub trait AssetContext {
 }
 
 #[doc(hidden)]
-pub trait Context<C>: CheckConflict
+pub trait PaymentChannelContext {
+	fn create_channel(&mut self, item: ChannelItem);
+
+	fn add_update_payment(&mut self, channel_id: ChannelId, remaining: Balance, close: bool);
+
+	fn add_payer_early_terminate(&mut self, channel_id: ChannelId);
+
+	fn add_payer_terminate(&mut self, channel_id: ChannelId);
+
+	fn add_payer_refill(&mut self, channel_id: ChannelId, refill_amount: Balance);
+
+	fn get_new_channels(&self) -> &HashMap<ChannelId, ChannelItem>;
+
+	fn get_update_payments(&self) -> &HashMap<ChannelId, (Balance, bool)>;
+
+	fn get_payer_early_terminate(&self) -> &HashSet<ChannelId>;
+
+	fn get_payer_terminate(&self) -> &HashSet<ChannelId>;
+
+	fn get_payer_refills(&self) -> &HashMap<ChannelId, Balance>;
+}
+
+#[doc(hidden)]
+pub trait Context<C, P>: CheckConflict
 where
 	C: AssetContext,
+	P: PaymentChannelContext,
 {
 	/// What tokenid is this context related. Every context can only associate
 	/// with one token id.
@@ -138,6 +164,10 @@ where
 
 	fn credit_context_mut(&mut self) -> &mut C;
 
+	fn payment_channel_context(&self) -> &P;
+
+	fn payment_channel_context_mut(&mut self) -> &mut P;
+
 	fn allowance_token_id(&self) -> Option<TokenId>;
 
 	fn encode_bytes(&self) -> Result<Vec<u8>>;
@@ -197,6 +227,8 @@ pub struct TokenContext {
 	auth_ops: Vec<TokenAuthOp>,
 
 	allowance_tid: Option<TokenId>,
+
+	payment_channels: PaymentChannelContextImpl,
 }
 
 impl CheckConflict for TokenContext {
@@ -212,7 +244,7 @@ impl CheckConflict for TokenContext {
 	}
 }
 
-impl Context<ConcurrentBalances> for TokenContext {
+impl Context<ConcurrentBalances, PaymentChannelContextImpl> for TokenContext {
 	fn encode_bytes(&self) -> Result<Vec<u8>> {
 		Ok(tea_sdk::serialize(self)?)
 	}
@@ -349,6 +381,14 @@ impl Context<ConcurrentBalances> for TokenContext {
 
 	fn allowance_context_mut(&mut self) -> &mut ConcurrentBalances {
 		&mut self.allowance
+	}
+
+	fn payment_channel_context(&self) -> &PaymentChannelContextImpl {
+		&self.payment_channels
+	}
+
+	fn payment_channel_context_mut(&mut self) -> &mut PaymentChannelContextImpl {
+		&mut self.payment_channels
 	}
 }
 

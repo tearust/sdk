@@ -14,6 +14,7 @@ pub mod layer1;
 pub mod libp2p;
 pub mod nitro;
 pub mod orbitdb;
+pub mod payment_channel;
 pub mod persist;
 pub mod ra;
 pub mod replica;

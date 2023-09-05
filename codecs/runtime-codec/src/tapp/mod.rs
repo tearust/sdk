@@ -52,6 +52,20 @@ pub const GOD_MODE_AUTH_KEY: AuthKey = u128::MAX;
 pub const RECEIPTING_AUTH_KEY: AuthKey = 1;
 pub const PUBLIC_RESERVED_ACCOUNT: Account = H160([1_u8; 20]);
 
+/// Channel id is actually a public key of the channel
+pub type ChannelId = Vec<u8>;
+pub type ChannelAddress = H160;
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct ChannelItem {
+	pub channel_id: ChannelId,
+	pub payer_address: ChannelAddress,
+	pub payee_address: ChannelAddress,
+	/// Use for payer early termination with unit of second
+	pub grace_period: Option<u64>,
+	pub fund_remaining: Balance,
+	pub expire_time: Option<Ts>,
+}
+
 /// tokenId is actually the TappId.
 /// When a Tapp is created, it is issued a TApp Id from Layer one.
 /// Then the user can topup (transfer from layer one
@@ -101,5 +115,16 @@ impl TokenId {
 			.parse()
 			.map_err(|_| crate::tapp::error::Errors::ParseAddressError)?;
 		Ok(inner.into())
+	}
+}
+
+impl ChannelItem {
+	pub fn is_expired(&self, now: Ts) -> bool {
+		self.expire_time.map_or(false, |t| t < now)
+	}
+
+	pub fn grace_period(&self) -> u128 {
+		// if grace period is not set, use default 1 hour
+		self.grace_period.unwrap_or(60 * 60) as u128 * 1_000_000_000u128
 	}
 }
