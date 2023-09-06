@@ -221,6 +221,7 @@ pub struct UpdatePaymentResponse {
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct PayerRefillRequest {
 	pub channel_id: ChannelId,
 	pub amount: Balance,
@@ -237,6 +238,7 @@ pub struct PayerRefillResponse {
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct ChannelEarlyTerminatRequest {
 	pub channel_id: ChannelId,
 	pub ctx: Vec<u8>,
@@ -250,6 +252,7 @@ pub struct ChannelEarlyTerminatResponse {
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct ChannelTerminateRequest {
 	pub channel_id: ChannelId,
 	pub ctx: Vec<u8>,
@@ -261,6 +264,21 @@ pub struct ChannelTerminateRequest {
 pub struct ChannelTerminateResponse {
 	pub ctx: Vec<u8>,
 	pub tappstore_ctx: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1000000)]
+pub struct QueryPaymentChannelRequest {
+	pub channel_id: ChannelId,
+	pub token_id: TokenId,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct QueryPaymentChannelResponse {
+	pub item: ChannelItem,
+	pub latest_update_at: Ts,
+	pub channel_account: Account,
 }
 
 #[doc(hidden)]

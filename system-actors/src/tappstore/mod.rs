@@ -312,3 +312,11 @@ pub struct HandleTappRemoveErrorLogRequest {
 	pub token_id: TokenId,
 	pub actor_type: String,
 }
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+#[response(())]
+pub struct CheckUserTappstoreAuthRequest {
+	pub auth_b64: String,
+	pub user: Account,
+}
