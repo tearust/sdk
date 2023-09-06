@@ -24,7 +24,7 @@ pub enum PaymentChannelTxn {
 	},
 	UpdatePayment {
 		channel_id: ChannelId,
-		payment_update_sig: Vec<u8>,
+		payment_update_sig: String,
 		new_fund_remaining: Balance,
 		close_channel: bool,
 		auth_b64: String,
@@ -32,7 +32,7 @@ pub enum PaymentChannelTxn {
 }
 
 impl PaymentChannelTxn {
-	pub fn sign_content(&self) -> Result<Vec<u8>> {
+	pub fn sign_content(&self) -> Result<String> {
 		match self {
 			PaymentChannelTxn::UpdatePayment {
 				channel_id,
@@ -40,9 +40,9 @@ impl PaymentChannelTxn {
 				close_channel,
 				..
 			} => {
-				let mut rtn = format!("{channel_id:?}").into_bytes();
-				rtn.extend(new_fund_remaining.to_string().into_bytes());
-				rtn.extend(close_channel.to_string().into_bytes());
+				let mut rtn = format!("{channel_id:?}");
+				rtn += &format!("-{new_fund_remaining}");
+				rtn += &format!("-{close_channel}");
 				Ok(rtn)
 			}
 			_ => Err(NotSupportedSignContent.into()),
