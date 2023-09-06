@@ -2,7 +2,6 @@ use crate::actor_txns::{tsid::Hash, txn_hash, IntoSerial, ToHash, Txn, TxnSerial
 use crate::tapp::{ReplicaId, Ts};
 use serde::{Deserialize, Serialize};
 use std::vec::Vec;
-use tea_sdk::serialize;
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]

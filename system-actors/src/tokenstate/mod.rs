@@ -278,7 +278,6 @@ pub struct QueryPaymentChannelRequest {
 pub struct QueryPaymentChannelResponse {
 	pub item: ChannelItem,
 	pub latest_update_at: Ts,
-	pub channel_account: Account,
 }
 
 #[doc(hidden)]

@@ -53,13 +53,12 @@ pub const RECEIPTING_AUTH_KEY: AuthKey = 1;
 pub const PUBLIC_RESERVED_ACCOUNT: Account = H160([1_u8; 20]);
 
 /// Channel id is actually a public key of the channel
-pub type ChannelId = Vec<u8>;
-pub type ChannelAddress = H160;
+pub type ChannelId = Account;
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ChannelItem {
 	pub channel_id: ChannelId,
-	pub payer_address: ChannelAddress,
-	pub payee_address: ChannelAddress,
+	pub payer_address: Account,
+	pub payee_address: Account,
 	/// Use for payer early termination with unit of second
 	pub grace_period: Option<u64>,
 	pub fund_remaining: Balance,

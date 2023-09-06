@@ -3016,6 +3016,7 @@ dependencies = [
  "tea-actorx",
  "tea-codec",
  "tea-runtime-codec",
+ "thiserror",
 ]
 
 [[package]]
