@@ -1,5 +1,5 @@
 use crate::actor_txns::{Followup, ToHash};
-use crate::tapp::{ReplicaId, Ts};
+use crate::tapp::{ChannelId, PaymentInfo, ReplicaId, Ts};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt;
@@ -201,6 +201,8 @@ pub struct TsidReadable {
 	pub hash: String,
 	pub seed: String,
 }
+
+pub type ChannelList = Vec<(ChannelId, PaymentInfo)>;
 
 impl From<Tsid> for TsidReadable {
 	fn from(tsid: Tsid) -> Self {

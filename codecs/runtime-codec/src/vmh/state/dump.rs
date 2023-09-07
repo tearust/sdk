@@ -1,5 +1,5 @@
-use crate::actor_txns::tsid::Tsid;
-use crate::tapp::{Account, Balance, TokenId};
+use crate::actor_txns::tsid::{ChannelList, Tsid};
+use crate::tapp::{Account, Balance, PaymentInfo, TokenId};
 use serde::{Deserialize, Serialize};
 
 use crate::vmh::error::{Result, TableAccess};
@@ -77,6 +77,7 @@ pub struct DumpTappStateRequest {
 	pub token_id: Option<String>,
 	pub show_tea_balances: bool,
 	pub show_token_balances: bool,
+	pub show_payment_channels: bool,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -89,6 +90,7 @@ pub struct DumpTappStateIntermediate {
 	pub tea_allowance: Vec<(TokenId, Vec<(Account, Balance)>)>,
 	pub token_balances: Vec<(TokenId, Vec<(Account, Balance)>)>,
 	pub token_reserved_balances: Vec<(TokenId, Vec<(Account, Balance)>)>,
+	pub payment_channels: Vec<(TokenId, ChannelList)>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -101,6 +103,7 @@ pub struct DumpTappStateResponse {
 	pub tea_allowance: Vec<(String, Vec<(String, Balance)>)>,
 	pub token_balances: Vec<(String, Vec<(String, Balance)>)>,
 	pub token_reserved_balances: Vec<(String, Vec<(String, Balance)>)>,
+	pub payment_channels: Vec<(String, Vec<(String, PaymentInfo)>)>,
 }
 
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -212,6 +215,21 @@ impl From<DumpTappStateIntermediate> for DumpTappStateResponse {
 			tea_allowance: to_visiable_balances(&val.tea_allowance),
 			token_balances: to_visiable_balances(&val.token_balances),
 			token_reserved_balances: to_visiable_balances(&val.token_reserved_balances),
+			payment_channels: val
+				.payment_channels
+				.into_iter()
+				.map(|(token_id, channel_list)| {
+					(
+						token_id.to_hex(),
+						channel_list
+							.into_iter()
+							.map(|(channel_id, payment_info)| {
+								(format!("{channel_id:?}"), payment_info)
+							})
+							.collect(),
+					)
+				})
+				.collect(),
 		}
 	}
 }
