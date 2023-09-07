@@ -181,3 +181,9 @@ pub fn tapp_dev_portal_token_id() -> Result<TokenId> {
 		"0x1000000000000000000000000000000000000006",
 	)?)
 }
+
+pub fn tapp_payment_channel_token_id() -> Result<TokenId> {
+	Ok(TokenId::from_hex(
+		"0xb8aAaAaAaa230340b78FA252ce4D47Dd23E8a904",
+	)?)
+}

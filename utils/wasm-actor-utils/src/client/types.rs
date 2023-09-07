@@ -47,7 +47,7 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 
 		"open_payment_channel" => api::channel::open_payment_channel(arg, from_actor).await?,
 		"payer_early_terminate" => api::channel::early_terminate(arg, from_actor).await?,
-		"payer_terminate" => api::channel::terminate(arg, from_actor).await?,
+		"terminate" => api::channel::terminate(arg, from_actor).await?,
 		"payer_refill_fund" => api::channel::refill_fund(arg, from_actor).await?,
 		"query_channel_list_with_account" => {
 			api::channel::query_channel_list_with_account(arg, from_actor).await?
@@ -110,7 +110,7 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"query_credit_system_info",
 		"open_payment_channel",
 		"payer_early_terminate",
-		"payer_terminate",
+		"terminate",
 		"payer_refill_fund",
 		"query_channel_list_with_account",
 	]
