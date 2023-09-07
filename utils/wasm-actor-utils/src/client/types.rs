@@ -45,6 +45,14 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 		"query_txn_cache_list" => txn_cache::query_txn_cache_list(arg, from_actor).await?,
 		"query_credit_system_info" => api::user::query_credit_system_info(arg, from_actor).await?,
 
+		"open_payment_channel" => api::channel::open_payment_channel(arg, from_actor).await?,
+		"payer_early_terminate" => api::channel::early_terminate(arg, from_actor).await?,
+		"payer_terminate" => api::channel::terminate(arg, from_actor).await?,
+		"payer_refill_fund" => api::channel::refill_fund(arg, from_actor).await?,
+		"query_channel_list_with_account" => {
+			api::channel::query_channel_list_with_account(arg, from_actor).await?
+		}
+
 		_ => vec![],
 	};
 	Ok(res)
@@ -100,5 +108,10 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"query_multi_tapp_allowance_from_local_state",
 		"query_txn_cache_list",
 		"query_credit_system_info",
+		"open_payment_channel",
+		"payer_early_terminate",
+		"payer_terminate",
+		"payer_refill_fund",
+		"query_channel_list_with_account",
 	]
 }

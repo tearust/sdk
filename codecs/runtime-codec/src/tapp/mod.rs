@@ -54,6 +54,16 @@ pub const PUBLIC_RESERVED_ACCOUNT: Account = H160([1_u8; 20]);
 
 /// Channel id is actually a public key of the channel
 pub type ChannelId = Account;
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub enum ChannelItemStatus {
+	#[default]
+	Normal,
+	Closed,
+	EarlyTerminate,
+	Terminate,
+}
+
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ChannelItem {
 	pub channel_id: ChannelId,
@@ -63,6 +73,7 @@ pub struct ChannelItem {
 	pub grace_period: Option<u64>,
 	pub fund_remaining: Balance,
 	pub expire_time: Option<Ts>,
+	pub status: ChannelItemStatus,
 }
 
 /// tokenId is actually the TappId.

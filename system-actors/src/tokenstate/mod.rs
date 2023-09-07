@@ -283,6 +283,20 @@ pub struct QueryPaymentChannelResponse {
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(1000000)]
+pub struct QueryPaymentChannelListWithAccountRequest {
+	pub token_id: TokenId,
+	pub acct: Account,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct QueryPaymentChannelListWithAccountResponse {
+	pub payer_list: Vec<ChannelItem>,
+	pub payee_list: Vec<ChannelItem>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1000000)]
 pub struct ApiCrossMoveRequest {
 	pub from: Account,
 	pub to: Account,
