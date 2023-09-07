@@ -35,14 +35,9 @@ impl PaymentChannelTxn {
 	pub fn sign_content(&self) -> Result<String> {
 		match self {
 			PaymentChannelTxn::UpdatePayment {
-				channel_id,
-				new_fund_remaining,
-				close_channel,
-				..
+				new_fund_remaining, ..
 			} => {
-				let mut rtn = format!("{channel_id:?}");
-				rtn += &format!("-{new_fund_remaining}");
-				rtn += &format!("-{close_channel}");
+				let rtn = new_fund_remaining.to_string();
 				Ok(rtn)
 			}
 			_ => Err(NotSupportedSignContent.into()),

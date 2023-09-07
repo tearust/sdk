@@ -64,14 +64,16 @@ pub struct PayerRefillRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PayerUpdatePaymentRequest {
+pub struct PayeeUpdatePaymentRequest {
 	pub uuid: String,
 	pub tapp_id_b64: String,
 	pub address: String,
 	pub auth_b64: String,
 
 	pub channel_id: String,
-	pub channel_sig: String,
+	pub sig: String,
+	pub close_channel: bool,
+	pub new_fund_remaining: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -219,6 +221,34 @@ pub async fn query_channel_list_with_account(
 	info!("query query_channel_list_with_account => {:?}", x);
 
 	help::cache_json_with_uuid(&uuid, x).await?;
+
+	help::result_ok()
+}
+
+pub async fn payee_update_payment(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
+	let req: PayeeUpdatePaymentRequest = serde_json::from_slice(&payload)?;
+	check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
+
+	info!("payee_update_payment ...");
+
+	let txn = PaymentChannelTxn::UpdatePayment {
+		channel_id: req.channel_id.parse()?,
+		auth_b64: req.auth_b64.clone(),
+		payment_update_sig: req.sig.to_string(),
+		new_fund_remaining: Balance::from_str_radix(&req.new_fund_remaining, 10)?,
+		close_channel: req.close_channel,
+	};
+
+	request::send_custom_txn(
+		&from_actor,
+		"payee_update_payment",
+		&req.uuid,
+		tea_codec::serialize(&req)?,
+		tea_codec::serialize(&txn)?,
+		vec![],
+		TARGET_ACTOR,
+	)
+	.await?;
 
 	help::result_ok()
 }
