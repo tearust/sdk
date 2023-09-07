@@ -55,13 +55,13 @@ pub const PUBLIC_RESERVED_ACCOUNT: Account = H160([1_u8; 20]);
 /// Channel id is actually a public key of the channel
 pub type ChannelId = Account;
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub enum ChannelItemStatus {
 	#[default]
 	Normal,
-	Closed,
-	EarlyTerminate,
-	Terminate,
+	/// When payer early terminate, the channel status will be set to EarlyTerminate.
+	/// **Note** the parameter is the update time when set to EarlyTerminate.
+	EarlyTerminate(Ts),
 }
 
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
