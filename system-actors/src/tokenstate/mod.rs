@@ -4,7 +4,7 @@ use tea_codec::pricing::Priced;
 use tea_codec::{defs::FreezeTimeSettings, serde::TypeId};
 use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, TxnSerial};
 use tea_runtime_codec::tapp::{
-	Account, AuthKey, Balance, ChannelId, ChannelItem, TimestampShort, TokenId, Ts,
+	Account, AuthKey, Balance, ChannelId, ChannelItem, PaymentInfo, TimestampShort, TokenId, Ts,
 };
 
 pub mod error;
@@ -290,8 +290,8 @@ pub struct QueryPaymentChannelListWithAccountRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryPaymentChannelListWithAccountResponse {
-	pub payer_list: Vec<ChannelItem>,
-	pub payee_list: Vec<ChannelItem>,
+	pub payer_list: Vec<PaymentInfo>,
+	pub payee_list: Vec<PaymentInfo>,
 }
 
 #[doc(hidden)]

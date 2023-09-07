@@ -76,6 +76,21 @@ pub struct ChannelItem {
 	pub status: ChannelItemStatus,
 }
 
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+pub struct PaymentInfo {
+	pub item: ChannelItem,
+	pub latest_update_at: Ts,
+}
+
+impl PaymentInfo {
+	pub fn new(item: ChannelItem, ts: Ts) -> Self {
+		Self {
+			item,
+			latest_update_at: ts,
+		}
+	}
+}
+
 /// tokenId is actually the TappId.
 /// When a Tapp is created, it is issued a TApp Id from Layer one.
 /// Then the user can topup (transfer from layer one

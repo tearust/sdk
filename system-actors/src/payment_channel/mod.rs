@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tea_codec::serde::TypeId;
-use tea_runtime_codec::tapp::{Account, ChannelItem};
+use tea_runtime_codec::tapp::{Account, PaymentInfo};
 
 pub mod error;
 pub mod txns;
@@ -13,6 +13,6 @@ pub struct QueryChannelInfoRequest(pub Account);
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryChannelInfoResponse {
-	pub payer_list: Vec<ChannelItem>,
-	pub payee_list: Vec<ChannelItem>,
+	pub payer_list: Vec<PaymentInfo>,
+	pub payee_list: Vec<PaymentInfo>,
 }
