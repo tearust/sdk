@@ -283,6 +283,18 @@ pub struct QueryPaymentChannelResponse {
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(1000000)]
+pub struct ListPaymentChannelsRequest {
+	pub token_id: TokenId,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListPaymentChannelsResponse {
+	pub channels: Vec<ChannelId>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1000000)]
 pub struct QueryPaymentChannelListWithAccountRequest {
 	pub token_id: TokenId,
 	pub acct: Account,
