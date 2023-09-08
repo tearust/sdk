@@ -233,7 +233,6 @@ pub async fn payee_update_payment(payload: Vec<u8>, from_actor: String) -> Resul
 
 	let txn = PaymentChannelTxn::UpdatePayment {
 		channel_id: req.channel_id.parse()?,
-		auth_b64: req.auth_b64.clone(),
 		payment_update_sig: req.sig.to_string(),
 		new_fund_remaining: Balance::from_str_radix(&req.new_fund_remaining, 10)?,
 		close_channel: req.close_channel,
