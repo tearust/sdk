@@ -84,6 +84,8 @@ pub trait PaymentChannelContext {
 
 	fn add_payer_terminate(&mut self, channel_id: ChannelId);
 
+	fn add_payee_terminate(&mut self, channel_id: ChannelId);
+
 	fn add_payer_refill(&mut self, channel_id: ChannelId, refill_amount: Balance);
 
 	fn get_new_channels(&self) -> &HashMap<ChannelId, ChannelItem>;
@@ -93,6 +95,7 @@ pub trait PaymentChannelContext {
 	fn get_payer_early_terminate(&self) -> &HashSet<ChannelId>;
 
 	fn get_payer_terminate(&self) -> &HashSet<ChannelId>;
+	fn get_payee_terminate(&self) -> &HashSet<ChannelId>;
 
 	fn get_payer_refills(&self) -> &HashMap<ChannelId, Balance>;
 }

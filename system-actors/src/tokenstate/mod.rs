@@ -257,6 +257,7 @@ pub struct ChannelTerminateRequest {
 	pub channel_id: ChannelId,
 	pub ctx: Vec<u8>,
 	pub tappstore_ctx: Vec<u8>,
+	pub from_payer: bool,
 }
 
 #[doc(hidden)]

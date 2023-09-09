@@ -9,6 +9,7 @@ pub struct PaymentChannelContextImpl {
 	update_payments: HashMap<ChannelId, (Balance, bool)>,
 	early_terminate: HashSet<ChannelId>,
 	terminate: HashSet<ChannelId>,
+	payee_terminate: HashSet<ChannelId>,
 	payer_refills: HashMap<ChannelId, Balance>,
 }
 
@@ -29,6 +30,10 @@ impl PaymentChannelContext for PaymentChannelContextImpl {
 		self.terminate.insert(channel_id);
 	}
 
+	fn add_payee_terminate(&mut self, channel_id: ChannelId) {
+		self.payee_terminate.insert(channel_id);
+	}
+
 	fn add_payer_refill(&mut self, channel_id: ChannelId, refill_amount: Balance) {
 		self.payer_refills.insert(channel_id, refill_amount);
 	}
@@ -47,6 +52,10 @@ impl PaymentChannelContext for PaymentChannelContextImpl {
 
 	fn get_payer_terminate(&self) -> &HashSet<ChannelId> {
 		&self.terminate
+	}
+
+	fn get_payee_terminate(&self) -> &HashSet<ChannelId> {
+		&self.payee_terminate
 	}
 
 	fn get_payer_refills(&self) -> &HashMap<ChannelId, Balance> {

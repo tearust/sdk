@@ -1,15 +1,18 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use crate::client::{check_auth, help, request, Result};
+use crate::enclave::actors::env::tapp_payment_channel_token_id;
+use crate::enclave::actors::statemachine;
 use prost::Message;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
+use tea_actorx::ActorId;
 use tea_runtime_codec::tapp::{Account, Balance, ChannelItem, ChannelItemStatus};
 use tea_system_actors::payment_channel::{
 	txns::PaymentChannelTxn, QueryChannelInfoRequest, QueryChannelInfoResponse, NAME,
 };
-
-use crate::client::{check_auth, help, request, Result};
+use tea_system_actors::tokenstate;
 
 const TARGET_ACTOR: &[u8] = NAME;
 
@@ -154,9 +157,10 @@ pub async fn terminate(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> 
 
 	info!("terminate ...");
 
-	let txn = PaymentChannelTxn::PayerTerminate {
+	let txn = PaymentChannelTxn::Terminate {
 		channel_id: req.channel_id.parse()?,
 		auth_b64: req.auth_b64.clone(),
+		from_user: req.address.parse()?,
 	};
 
 	request::send_custom_txn(
@@ -201,24 +205,34 @@ pub async fn refill_fund(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
 
 pub async fn query_channel_list_with_account(
 	payload: Vec<u8>,
-	from_actor: String,
+	_from_actor: String,
 ) -> Result<Vec<u8>> {
 	let req: QueryChannelListWithAccountRequest = serde_json::from_slice(&payload)?;
 	check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
 
-	info!("query_channel_list_with_account ...");
-
-	let query_data: QueryChannelInfoRequest = QueryChannelInfoRequest(req.address.parse()?);
-
+	info!("query_channel_list_with_account from local_state ...");
 	let uuid = req.uuid;
-	let res: QueryChannelInfoResponse =
-		request::send_custom_query(&from_actor, query_data, TARGET_ACTOR).await?;
+
+	// let query_data: QueryChannelInfoRequest = QueryChannelInfoRequest(req.address.parse()?);
+	// let res: QueryChannelInfoResponse =
+	// 	request::send_custom_query(&from_actor, query_data, TARGET_ACTOR).await?;
+
+	let token_id = tapp_payment_channel_token_id()?;
+	let acct = req.address.parse()?;
+	let res = ActorId::Static(tokenstate::NAME)
+		.call(tokenstate::QueryPaymentChannelListWithAccountRequest { acct, token_id })
+		.await?;
+	let latest_tsid = statemachine::query_state_tsid().await?;
 
 	let x = serde_json::json!({
 		"payer_list": res.payer_list,
 		"payee_list": res.payee_list,
+		"ts": latest_tsid.ts.to_string(),
 	});
-	info!("query query_channel_list_with_account => {:?}", x);
+	info!(
+		"query query_channel_list_with_account from local_state => {:?}",
+		x
+	);
 
 	help::cache_json_with_uuid(&uuid, x).await?;
 

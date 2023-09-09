@@ -1,7 +1,7 @@
 use super::error::{NotSupportedSignContent, Result};
 use serde::{Deserialize, Serialize};
 use strum::Display;
-use tea_runtime_codec::tapp::{Balance, ChannelId, ChannelItem, TimestampShort};
+use tea_runtime_codec::tapp::{Account, Balance, ChannelId, ChannelItem, TimestampShort};
 
 #[derive(Debug, Serialize, Deserialize, Display)]
 pub enum PaymentChannelTxn {
@@ -13,9 +13,10 @@ pub enum PaymentChannelTxn {
 		channel_id: ChannelId,
 		auth_b64: String,
 	},
-	PayerTerminate {
+	Terminate {
 		channel_id: ChannelId,
 		auth_b64: String,
+		from_user: Account,
 	},
 	PayerRefill {
 		channel_id: ChannelId,
