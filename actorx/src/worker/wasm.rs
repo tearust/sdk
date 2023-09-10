@@ -238,11 +238,14 @@ impl Host {
 	#[timeout_retry(3100)]
 	pub(crate) async fn get_instance(&self) -> SharedState {
 		loop {
-			if let Some(i) = self.states.read().await.idle_instance().await {
+			let states = self.states.read().await;
+			if let Some(i) = states.idle_instance().await {
 				let s = i.clone();
 				s.write().await.idle = false;
 				return s;
 			}
+			drop(states);
+
 			tokio::time::sleep(Duration::from_millis(1)).await;
 		}
 	}

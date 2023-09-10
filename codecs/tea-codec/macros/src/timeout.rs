@@ -26,6 +26,10 @@ pub fn emit_timeout_retry(
 					}
 					Ok(r) => break r,
 				}
+
+				if i > 20 {
+						#warner("quit retrying loop because of too many retries");
+				}
 			}
 		}
 	}
