@@ -235,7 +235,6 @@ impl Host {
 		Ok(instance)
 	}
 
-	#[timeout_retry(3100)]
 	pub(crate) async fn get_instance(&self) -> SharedState {
 		loop {
 			let states = self.states.read().await;

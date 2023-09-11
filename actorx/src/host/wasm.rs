@@ -41,7 +41,6 @@ const MAX_COUNT: usize = 128;
 const CACHE_COUNT: usize = 100;
 
 impl WasmActor {
-	#[timeout_retry(11000)]
 	pub async fn new(wasm_path: &str, instance_count: u8) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
 		source.push(0);
@@ -92,7 +91,6 @@ impl WasmActor {
 		})
 	}
 
-	#[timeout_retry(11000)]
 	async fn worker<const INC: bool>(&self) -> Result<Worker> {
 		let mut state = self.state.lock().await;
 
