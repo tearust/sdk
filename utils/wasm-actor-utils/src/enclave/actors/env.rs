@@ -55,7 +55,7 @@ pub async fn get_current_wasm_actor_token_id() -> Result<Option<String>> {
 	let res = ActorId::Static(NAME)
 		.call(GetWasmActorTokenIdRequest)
 		.await?;
-	info!("Current caller wasm token_id => {:?}", res.0);
+	debug!("Current caller wasm token_id => {:?}", res.0);
 	Ok(res.0)
 }
 
