@@ -81,6 +81,7 @@ pub struct FetchHistoryRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct FetchHistoryResponse {
 	pub history_items: Vec<TxnItem>,
+	pub removed_tsids: Vec<Tsid>,
 }
 
 #[doc(hidden)]

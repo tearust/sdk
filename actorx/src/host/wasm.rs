@@ -6,7 +6,6 @@ use crate::core::{
 	worker_codec::Operation,
 };
 use tea_codec::serde::{get_type_id, TypeId};
-use tea_sdk::timeout_retry;
 use tokio::{
 	sync::{Mutex, MutexGuard},
 	task::JoinHandle,

@@ -328,6 +328,7 @@ message SyncStateResponse {
   RoundTableData roundTable = 6;
   bool success = 7;
   uint64 stateMagicNumber = 8;
+  bytes removedTsids = 9;
 }
 message CheckpointData {
   bytes data = 1;

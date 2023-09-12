@@ -15,6 +15,8 @@ message PersistRequest {
 		AppendStatements AppendStatements = 11;
 		GetStatements GetStatements = 12;
 		WriteFile WriteFile = 13;
+		WriteTxnHashes WriteTxnHashes = 14;
+		FindTxnHashesRequest FindTxnHashesRequest = 15;
 	}
 }
 
@@ -28,6 +30,7 @@ message PersistResponse {
 		FindResponse FindResponse = 7;
 		GetLastResponse GetLastResponse = 8;
 		GetStatementsResponse GetStatementsResponse = 9;
+		FindTxnHashesResponse FindTxnHashesResponse = 10;
 	}
 }
 
@@ -74,6 +77,19 @@ message AppendStatements {
 message WriteFile {
 	string fileName = 1;
 	bytes data = 2;
+}
+
+message WriteTxnHashes {
+	int64 timestamp = 1;
+	bytes data = 2;
+}
+
+message FindTxnHashesRequest {
+	int64 timestamp = 1;
+}
+
+message FindTxnHashesResponse {
+	bytes txnHashes = 1;
 }
 
 message GetStatements {

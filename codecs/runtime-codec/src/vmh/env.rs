@@ -1,5 +1,6 @@
 use crate::solc::ContractAddresses;
 use crate::tapp::seat::SeatId;
+use crate::tapp::TimestampShort;
 use crate::vmh::error::Errors;
 use crate::vmh::io::RegistryKey;
 use crate::vmh::{error::Result, utils::split_once};
@@ -27,6 +28,7 @@ pub struct GenesisConfig {
 	pub chain_id: u64,
 	pub mining_startup_nodes: Vec<MiningStartupItem>,
 	pub enclave_pcrs: HashMap<String, String>,
+	pub start_timestamp: TimestampShort,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]

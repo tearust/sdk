@@ -1,3 +1,4 @@
+use crate::tapp::TimestampShort;
 use crate::tapp::{statement::TypedStatement, Account, Ts};
 
 use crate::vmh::error::{PersistCheck, Result};
@@ -83,6 +84,10 @@ pub trait Persist {
 	fn append_statements(&self, statements: Vec<(Vec<TypedStatement>, Ts, String)>) -> Result<()>;
 
 	fn write_file(&self, file_name: &str, data: &[u8]) -> Result<()>;
+
+	fn write_txn_hashes(&self, timestamp: TimestampShort, data: &[u8]) -> Result<()>;
+
+	fn find_txn_hashes(&self, timestamp: TimestampShort) -> Result<Vec<u8>>;
 
 	fn get_statements(
 		&self,

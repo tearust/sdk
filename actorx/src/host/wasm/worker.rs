@@ -17,7 +17,7 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
-use tea_sdk::{Timeout, timeout_retry};
+use tea_sdk::Timeout;
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
