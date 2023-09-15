@@ -85,7 +85,12 @@ pub trait Persist {
 
 	fn write_file(&self, file_name: &str, data: &[u8]) -> Result<()>;
 
-	fn write_txn_hashes(&mut self, timestamp: TimestampShort, data: &[u8]) -> Result<()>;
+	fn write_txn_hashes(
+		&mut self,
+		timestamp: TimestampShort,
+		genesis: bool,
+		data: &[u8],
+	) -> Result<()>;
 
 	fn find_txn_hashes(&self, timestamp: TimestampShort) -> Result<Vec<u8>>;
 
@@ -104,6 +109,8 @@ pub trait Persist {
 	fn read_txn_hash_file(&self, num: TxnHashFileNumber) -> Result<Vec<u8>>;
 
 	fn write_txn_hash_file(&mut self, num: TxnHashFileNumber, data: &[u8]) -> Result<()>;
+
+	fn get_pre_file_cid(&self, timestamp: TimestampShort) -> Result<Option<String>>;
 
 	fn get_statements(
 		&self,

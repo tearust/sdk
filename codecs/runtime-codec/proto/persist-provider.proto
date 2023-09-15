@@ -21,6 +21,7 @@ message PersistRequest {
 		ReadTxnHashFileRequest ReadTxnHashFileRequest = 17;
 		WriteTxnHashFileRequest WriteTxnHashFileRequest = 18;
 		FindEmptyTxnHashFilesRequest FindEmptyTxnHashFilesRequest = 19;
+		GetPreFileCidRequest GetPreFileCidRequest = 20;
 	}
 }
 
@@ -38,6 +39,7 @@ message PersistResponse {
 		FindMissTxnHashFilesResponse FindMissTxnHashFilesResponse = 11;
 		ReadTxnHashFileResponse ReadTxnHashFileResponse = 12;
 		FindEmptyTxnHashFilesResponse FindEmptyTxnHashFilesResponse = 13;
+		GetPreFileCidResponse GetPreFileCidResponse = 14;
 	}
 }
 
@@ -89,6 +91,7 @@ message WriteFile {
 message WriteTxnHashes {
 	int64 timestamp = 1;
 	bytes data = 2;
+	bool genesis = 3;
 }
 
 message FindTxnHashesRequest {
@@ -115,6 +118,14 @@ message FindEmptyTxnHashFilesRequest {
 
 message FindEmptyTxnHashFilesResponse {
 	repeated FileRange fileNames = 1;
+}
+
+message GetPreFileCidRequest {
+	int64 timestamp = 1;
+}
+
+message GetPreFileCidResponse {
+	optional bytes cid = 1;
 }
 
 message FileRange {
