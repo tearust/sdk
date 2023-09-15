@@ -39,6 +39,8 @@ pub const MOCK_TOKEN_ID_TAPPSTORE: TokenId = TokenId(H160::zero());
 ///  that may send multiple times
 pub type TimestampShort = i64;
 
+pub type TxnHashFileNumber = i64;
+
 /// AuthKey is silimar to session key. When end user login he
 /// need to sign a AuthOps data strcuture, in this AuthOps
 /// he agree this session (IDed by this AuthKey) can do what

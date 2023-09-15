@@ -34,8 +34,6 @@ pub mod sign;
 
 #[cfg(feature = "worker")]
 pub mod worker;
-#[cfg(feature = "worker")]
-use tea_codec::timeout_retry_worker as timeout_retry;
 
 #[cfg(feature = "sdk")]
 mod sdk;

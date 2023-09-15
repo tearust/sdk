@@ -1,5 +1,5 @@
-use crate::tapp::TimestampShort;
 use crate::tapp::{statement::TypedStatement, Account, Ts};
+use crate::tapp::{TimestampShort, TxnHashFileNumber};
 
 use crate::vmh::error::{PersistCheck, Result};
 
@@ -85,9 +85,25 @@ pub trait Persist {
 
 	fn write_file(&self, file_name: &str, data: &[u8]) -> Result<()>;
 
-	fn write_txn_hashes(&self, timestamp: TimestampShort, data: &[u8]) -> Result<()>;
+	fn write_txn_hashes(&mut self, timestamp: TimestampShort, data: &[u8]) -> Result<()>;
 
 	fn find_txn_hashes(&self, timestamp: TimestampShort) -> Result<Vec<u8>>;
+
+	fn find_miss_txn_hash_files(
+		&self,
+		start_time: TimestampShort,
+		end_time: TimestampShort,
+	) -> Result<Vec<(TxnHashFileNumber, TxnHashFileNumber)>>;
+
+	fn find_empty_txn_hash_files(
+		&self,
+		start_time: TimestampShort,
+		end_time: TimestampShort,
+	) -> Result<Vec<(TxnHashFileNumber, TxnHashFileNumber)>>;
+
+	fn read_txn_hash_file(&self, num: TxnHashFileNumber) -> Result<Vec<u8>>;
+
+	fn write_txn_hash_file(&mut self, num: TxnHashFileNumber, data: &[u8]) -> Result<()>;
 
 	fn get_statements(
 		&self,

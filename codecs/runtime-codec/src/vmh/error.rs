@@ -65,4 +65,7 @@ pub enum Errors {
 
 	#[error("Unknown upgrade type {0}")]
 	UnknownUpgradeType(String),
+
+	#[error("Txn hash file not exists {0}")]
+	TxnHashFileNotExists(i64),
 }

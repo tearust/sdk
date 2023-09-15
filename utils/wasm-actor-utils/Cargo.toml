@@ -39,4 +39,4 @@ mocktopus = { workspace = true, optional = true }
 
 [features]
 native = ["tea-actorx/host"]
-__test = ["tea-runtime-codec/__test"]
+__test = ["tea-runtime-codec/__test", "mocktopus"]

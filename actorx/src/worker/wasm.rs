@@ -17,7 +17,6 @@ use crate::{
 		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
 	},
 	sign::verify,
-	timeout_retry,
 	worker::{error::Result, wasm::memory::MemoryLimit},
 };
 use bincode::serialized_size;

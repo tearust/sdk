@@ -17,6 +17,10 @@ message PersistRequest {
 		WriteFile WriteFile = 13;
 		WriteTxnHashes WriteTxnHashes = 14;
 		FindTxnHashesRequest FindTxnHashesRequest = 15;
+		FindMissTxnHashFilesRequest FindMissTxnHashFilesRequest = 16;
+		ReadTxnHashFileRequest ReadTxnHashFileRequest = 17;
+		WriteTxnHashFileRequest WriteTxnHashFileRequest = 18;
+		FindEmptyTxnHashFilesRequest FindEmptyTxnHashFilesRequest = 19;
 	}
 }
 
@@ -31,6 +35,9 @@ message PersistResponse {
 		GetLastResponse GetLastResponse = 8;
 		GetStatementsResponse GetStatementsResponse = 9;
 		FindTxnHashesResponse FindTxnHashesResponse = 10;
+		FindMissTxnHashFilesResponse FindMissTxnHashFilesResponse = 11;
+		ReadTxnHashFileResponse ReadTxnHashFileResponse = 12;
+		FindEmptyTxnHashFilesResponse FindEmptyTxnHashFilesResponse = 13;
 	}
 }
 
@@ -90,6 +97,42 @@ message FindTxnHashesRequest {
 
 message FindTxnHashesResponse {
 	bytes txnHashes = 1;
+}
+
+message FindMissTxnHashFilesRequest {
+	int64 startTime = 1;
+	int64 endTime = 2;
+}
+
+message FindMissTxnHashFilesResponse {
+	repeated FileRange fileNames = 1;
+}
+
+message FindEmptyTxnHashFilesRequest {
+	int64 startTime = 1;
+	int64 endTime = 2;
+}
+
+message FindEmptyTxnHashFilesResponse {
+	repeated FileRange fileNames = 1;
+}
+
+message FileRange {
+	int64 start = 1;
+	int64 end = 2;
+}
+
+message ReadTxnHashFileRequest {
+	int64 fileNumber = 1;
+}
+
+message ReadTxnHashFileResponse {
+	bytes txnHashes = 1;
+}
+
+message WriteTxnHashFileRequest {
+	int64 fileNumber = 1;
+	bytes data = 2;
 }
 
 message GetStatements {
