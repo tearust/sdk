@@ -100,17 +100,17 @@ pub trait Persist {
 		end_time: TimestampShort,
 	) -> Result<Vec<(TxnHashFileNumber, TxnHashFileNumber)>>;
 
-	fn find_empty_txn_hash_files(
-		&self,
-		start_time: TimestampShort,
-		end_time: TimestampShort,
-	) -> Result<Vec<(TxnHashFileNumber, TxnHashFileNumber)>>;
-
 	fn read_txn_hash_file(&self, num: TxnHashFileNumber) -> Result<Vec<u8>>;
 
 	fn write_txn_hash_file(&mut self, num: TxnHashFileNumber, data: &[u8]) -> Result<()>;
 
 	fn get_pre_file_cid(&self, timestamp: TimestampShort) -> Result<Option<String>>;
+
+	fn exist_txn_genesis_file(&self) -> Result<bool>;
+
+	fn read_txn_genesis_file(&self) -> Result<Vec<u8>>;
+
+	fn write_txn_genesis_file(&mut self, data: &[u8]) -> Result<()>;
 
 	fn get_statements(
 		&self,

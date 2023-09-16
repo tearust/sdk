@@ -20,8 +20,10 @@ message PersistRequest {
 		FindMissTxnHashFilesRequest FindMissTxnHashFilesRequest = 16;
 		ReadTxnHashFileRequest ReadTxnHashFileRequest = 17;
 		WriteTxnHashFileRequest WriteTxnHashFileRequest = 18;
-		FindEmptyTxnHashFilesRequest FindEmptyTxnHashFilesRequest = 19;
 		GetPreFileCidRequest GetPreFileCidRequest = 20;
+		ExistTxnGenesisRequest ExistTxnGenesisRequest = 21;
+		ReadTxnGenesisRequest ReadTxnGenesisRequest = 22;
+		WriteTxnGenesisRequest WriteTxnGenesisRequest = 23;
 	}
 }
 
@@ -38,8 +40,9 @@ message PersistResponse {
 		FindTxnHashesResponse FindTxnHashesResponse = 10;
 		FindMissTxnHashFilesResponse FindMissTxnHashFilesResponse = 11;
 		ReadTxnHashFileResponse ReadTxnHashFileResponse = 12;
-		FindEmptyTxnHashFilesResponse FindEmptyTxnHashFilesResponse = 13;
 		GetPreFileCidResponse GetPreFileCidResponse = 14;
+		ExistTxnGenesisResponse ExistTxnGenesisResponse = 15;
+		ReadTxnGenesisResponse ReadTxnGenesisResponse = 16;
 	}
 }
 
@@ -111,21 +114,30 @@ message FindMissTxnHashFilesResponse {
 	repeated FileRange fileNames = 1;
 }
 
-message FindEmptyTxnHashFilesRequest {
-	int64 startTime = 1;
-	int64 endTime = 2;
-}
-
-message FindEmptyTxnHashFilesResponse {
-	repeated FileRange fileNames = 1;
-}
-
 message GetPreFileCidRequest {
 	int64 timestamp = 1;
 }
 
 message GetPreFileCidResponse {
 	optional bytes cid = 1;
+}
+
+message ExistTxnGenesisRequest {
+}
+
+message ExistTxnGenesisResponse {
+	bool exist = 1;
+}
+
+message ReadTxnGenesisRequest {
+}
+
+message ReadTxnGenesisResponse {
+	bytes data = 1;
+}
+
+message WriteTxnGenesisRequest {
+	bytes data = 1;
 }
 
 message FileRange {
