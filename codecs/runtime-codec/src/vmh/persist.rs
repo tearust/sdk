@@ -90,6 +90,7 @@ pub trait Persist {
 		timestamp: TimestampShort,
 		genesis: bool,
 		data: &[u8],
+		only_touch: bool,
 	) -> Result<()>;
 
 	fn find_txn_hashes(&self, timestamp: TimestampShort) -> Result<Vec<u8>>;
@@ -104,13 +105,20 @@ pub trait Persist {
 
 	fn write_txn_hash_file(&mut self, num: TxnHashFileNumber, data: &[u8]) -> Result<()>;
 
-	fn get_pre_file_cid(&self, timestamp: TimestampShort) -> Result<Option<String>>;
+	fn get_pre_file_cid(
+		&self,
+		timestamp: TimestampShort,
+		last_persist_ts: TimestampShort,
+		version: u16,
+	) -> Result<Option<String>>;
 
 	fn exist_txn_genesis_file(&self) -> Result<bool>;
 
 	fn read_txn_genesis_file(&self) -> Result<Vec<u8>>;
 
 	fn write_txn_genesis_file(&mut self, data: &[u8]) -> Result<()>;
+
+	fn can_txn_hashes_sync(&self) -> Result<bool>;
 
 	fn get_statements(
 		&self,

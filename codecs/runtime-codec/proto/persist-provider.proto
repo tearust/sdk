@@ -24,6 +24,7 @@ message PersistRequest {
 		ExistTxnGenesisRequest ExistTxnGenesisRequest = 21;
 		ReadTxnGenesisRequest ReadTxnGenesisRequest = 22;
 		WriteTxnGenesisRequest WriteTxnGenesisRequest = 23;
+		CanTxnHashesSyncRequest CanTxnHashesSyncRequest = 24;
 	}
 }
 
@@ -43,6 +44,7 @@ message PersistResponse {
 		GetPreFileCidResponse GetPreFileCidResponse = 14;
 		ExistTxnGenesisResponse ExistTxnGenesisResponse = 15;
 		ReadTxnGenesisResponse ReadTxnGenesisResponse = 16;
+		CanTxnHashesSyncResponse CanTxnHashesSyncResponse = 17;
 	}
 }
 
@@ -95,6 +97,7 @@ message WriteTxnHashes {
 	int64 timestamp = 1;
 	bytes data = 2;
 	bool genesis = 3;
+	bool onlyTouch = 4;
 }
 
 message FindTxnHashesRequest {
@@ -116,6 +119,8 @@ message FindMissTxnHashFilesResponse {
 
 message GetPreFileCidRequest {
 	int64 timestamp = 1;
+	uint32 version = 2;
+	int64 lastPersistTs = 3;
 }
 
 message GetPreFileCidResponse {
@@ -138,6 +143,13 @@ message ReadTxnGenesisResponse {
 
 message WriteTxnGenesisRequest {
 	bytes data = 1;
+}
+
+message CanTxnHashesSyncRequest {
+}
+
+message CanTxnHashesSyncResponse {
+	bool canSync = 1;
 }
 
 message FileRange {
