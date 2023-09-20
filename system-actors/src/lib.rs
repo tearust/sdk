@@ -23,4 +23,5 @@ pub mod state_receiver;
 pub mod tappstore;
 pub mod tappstore_client;
 pub mod tokenstate;
+pub mod tokenstate_client;
 pub mod tokenstate_service;
