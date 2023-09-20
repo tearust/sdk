@@ -195,14 +195,6 @@ pub struct CommonSqlQueryResponse(pub Vec<u8>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct SyncLocalStateRequest(pub Vec<u8>);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct SyncLocalStateResponse(pub Option<Vec<u8>>, pub Option<Vec<u8>>);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetStatementsRequest(pub Vec<u8>);
 
 #[doc(hidden)]

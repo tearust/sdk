@@ -469,7 +469,9 @@ pub struct PaymentFromDepositResponse(pub Vec<u8>);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct ExportStateRequest;
+pub struct ExportStateRequest {
+	pub cal_details: bool,
+}
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
@@ -632,20 +634,19 @@ pub struct ReturnStateCacheListResponse(pub Option<Vec<u8>>);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
+#[response(())]
+pub struct TrimStateCacheRequest {
+	pub tsid: Tsid,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(0)]
 pub struct CommitForStateCacheRequest(pub Vec<u8>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CommitForStateCacheResponse(pub Vec<u8>);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(0)]
-pub struct RecoverTappStatesRequest(pub Vec<u8>);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct RecoverTappStatesResponse(pub Vec<u8>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]

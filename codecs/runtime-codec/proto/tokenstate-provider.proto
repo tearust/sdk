@@ -256,6 +256,7 @@ message ExportStateResponse {
 
 message ImportStateRequest {
   bytes data = 1;
+  bool trim = 2;
 }
 message ImportStateResponse {
   bytes tsid = 1;

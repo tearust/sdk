@@ -1,4 +1,4 @@
-use super::{AssetContext, CheckConflict, Merge, ReadConflictMode};
+use super::{AssetContext, CheckConflict, IsBalanceRelated, Merge, ReadConflictMode};
 use crate::actor_txns::error::{ContextError, Result};
 use crate::tapp::{Account, Balance};
 use serde::{Deserialize, Serialize};
@@ -18,6 +18,12 @@ pub struct ConcurrentBalances {
 impl CheckConflict for ConcurrentBalances {
 	fn check_conflict(&self, other: &Self) -> crate::actor_txns::error::Result<()> {
 		self.check_partial_conflict(other)
+	}
+}
+
+impl IsBalanceRelated for ConcurrentBalances {
+	fn is_balance_related(&self) -> bool {
+		!self.token_add.is_empty() || !self.token_subtract.is_empty()
 	}
 }
 

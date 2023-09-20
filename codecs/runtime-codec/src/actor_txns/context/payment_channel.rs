@@ -1,4 +1,4 @@
-use super::PaymentChannelContext;
+use super::{IsBalanceRelated, PaymentChannelContext};
 use crate::tapp::{Balance, ChannelId, ChannelItem};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
@@ -11,6 +11,17 @@ pub struct PaymentChannelContextImpl {
 	terminate: HashSet<ChannelId>,
 	payee_terminate: HashSet<ChannelId>,
 	payer_refills: HashMap<ChannelId, Balance>,
+}
+
+impl IsBalanceRelated for PaymentChannelContextImpl {
+	fn is_balance_related(&self) -> bool {
+		!self.new_channels.is_empty()
+			|| !self.update_payments.is_empty()
+			|| !self.payer_refills.is_empty()
+			|| !self.early_terminate.is_empty()
+			|| !self.terminate.is_empty()
+			|| !self.payee_terminate.is_empty()
+	}
 }
 
 impl PaymentChannelContext for PaymentChannelContextImpl {

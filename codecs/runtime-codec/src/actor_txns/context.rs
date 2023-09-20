@@ -176,6 +176,14 @@ where
 	fn encode_bytes(&self) -> Result<Vec<u8>>;
 }
 
+pub trait IsBalanceRelated {
+	fn is_balance_related(&self) -> bool;
+}
+
+pub trait TrimContext {
+	fn trim_context(&mut self);
+}
+
 /// TokenContext implement the context trait
 /// it store all changes a txn made before actually commit to state
 /// When there is a read inside a txn logic, it will check its context
@@ -232,6 +240,44 @@ pub struct TokenContext {
 	allowance_tid: Option<TokenId>,
 
 	payment_channels: PaymentChannelContextImpl,
+}
+
+impl TrimContext for TokenContext {
+	fn trim_context(&mut self) {
+		self.reads_storage = Default::default();
+		self.storage_changes = Default::default();
+		self.auth_ops = Default::default();
+
+		if !self.tea.is_balance_related() {
+			self.tea = Default::default();
+		}
+		if !self.deposit.is_balance_related() {
+			self.deposit = Default::default();
+		}
+		if !self.bonding.is_balance_related() {
+			self.bonding = Default::default();
+		}
+		if !self.allowance.is_balance_related() {
+			self.allowance = Default::default();
+		}
+		if !self.credit.is_balance_related() {
+			self.credit = Default::default();
+		}
+		if !self.payment_channels.is_balance_related() {
+			self.payment_channels = Default::default();
+		}
+	}
+}
+
+impl IsBalanceRelated for TokenContext {
+	fn is_balance_related(&self) -> bool {
+		self.tea.is_balance_related()
+			|| self.deposit.is_balance_related()
+			|| self.bonding.is_balance_related()
+			|| self.allowance.is_balance_related()
+			|| self.credit.is_balance_related()
+			|| self.payment_channels.is_balance_related()
+	}
 }
 
 impl CheckConflict for TokenContext {
