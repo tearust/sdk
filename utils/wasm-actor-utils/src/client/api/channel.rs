@@ -71,8 +71,7 @@ pub struct PayeeUpdatePaymentRequest {
 	pub uuid: String,
 	pub tapp_id_b64: String,
 	pub address: String,
-	pub auth_b64: String,
-
+	// pub auth_b64: String,
 	pub channel_id: String,
 	pub sig: String,
 	pub close_channel: bool,
@@ -241,7 +240,7 @@ pub async fn query_channel_list_with_account(
 
 pub async fn payee_update_payment(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
 	let req: PayeeUpdatePaymentRequest = serde_json::from_slice(&payload)?;
-	check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
+	// check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
 
 	info!("payee_update_payment ...");
 
