@@ -7,7 +7,6 @@ use prost::Message;
 use std::collections::HashSet;
 use tea_actorx::ActorId;
 use tea_codec::{
-	deserialize,
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize,
 };
@@ -61,6 +60,7 @@ pub async fn send_message(
 	source_action: Option<String>,
 	content: Vec<u8>,
 	has_callback: bool,
+	timeout_ms: Option<u64>,
 ) -> Result<Vec<u8>> {
 	let current_peers: HashSet<String> = connected_peers().await?.into_iter().collect();
 	if !current_peers.contains(&target_conn_id) {
@@ -68,8 +68,8 @@ pub async fn send_message(
 	}
 
 	let res = ActorId::Static(tea_system_actors::libp2p::NAME)
-		.call(tea_system_actors::libp2p::SendMessageRequest(
-			encode_protobuf(libp2p::GeneralRequest {
+		.call(tea_system_actors::libp2p::SendMessageRequest {
+			msg: encode_protobuf(libp2p::GeneralRequest {
 				source_conn_id: Default::default(),
 				target_conn_id,
 				seq_number: Default::default(),
@@ -82,8 +82,9 @@ pub async fn send_message(
 					content,
 				}),
 			})?,
-			has_callback,
-		))
+			with_reply: has_callback,
+			timeout_ms,
+		})
 		.await?;
 
 	if has_callback {
@@ -145,6 +146,7 @@ pub async fn intelli_actor_query_ex<C>(
 	target: &'static [u8],
 	arg: C,
 	mode: IntelliSendMode,
+	timeout_ms: Option<u64>,
 ) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
@@ -152,13 +154,20 @@ where
 {
 	match mode {
 		IntelliSendMode::RemoteOnly => {
-			send_remote_query_ex(target, arg, &None, Some(INTELLI_CANDIDATES_COUNT)).await
+			send_remote_query_ex(
+				target,
+				arg,
+				&None,
+				Some(INTELLI_CANDIDATES_COUNT),
+				timeout_ms,
+			)
+			.await
 		}
 		IntelliSendMode::LocalOnly => {
 			let rtn = ActorId::Static(target).call(arg).await?;
 			Ok(rtn)
 		}
-		IntelliSendMode::BothOk => compatible_query_ex(target, arg).await,
+		IntelliSendMode::BothOk => compatible_query_ex(target, arg, timeout_ms).await,
 	}
 }
 
@@ -168,6 +177,7 @@ async fn send_remote_query_ex<C>(
 	arg: C,
 	e: &Option<Error>,
 	candidate_count: Option<usize>,
+	timeout_ms: Option<u64>,
 ) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
@@ -178,12 +188,17 @@ where
 		e,
 		generate_query_message(target, &content).await?,
 		candidate_count,
+		timeout_ms,
 	)
 	.await
 }
 
 #[doc(hidden)]
-async fn compatible_query_ex<C>(target: &'static [u8], arg: C) -> Result<C::Response>
+async fn compatible_query_ex<C>(
+	target: &'static [u8],
+	arg: C,
+	timeout_ms: Option<u64>,
+) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
 	C::Response: for<'a> FromBytes<'a> + Send,
@@ -197,7 +212,7 @@ where
 					 because intercom call to {} failed: {:?}",
 				actor_id, e
 			);
-			send_remote_query_ex(target, arg, &Some(e.into()), None).await
+			send_remote_query_ex(target, arg, &Some(e.into()), None, timeout_ms).await
 		}
 	}
 }
@@ -207,6 +222,7 @@ pub(crate) async fn try_send_remotely<C>(
 	e: &Option<Error>,
 	state_receiver_msg: tokenstate::StateReceiverMessage,
 	candidate_count: Option<usize>,
+	timeout_ms: Option<u64>,
 ) -> Result<C>
 where
 	C: Send + for<'a> FromBytes<'a>,
@@ -224,13 +240,14 @@ where
 		INTELLI_CANDIDATES_COUNT
 	};
 	let validators = random_select_validators_locally(count).await?;
-	send_all_state_receiver::<C>(validators, state_receiver_msg).await
+	send_all_state_receiver::<C>(validators, state_receiver_msg, timeout_ms).await
 }
 
 #[doc(hidden)]
 pub async fn send_all_state_receiver<C>(
 	validators: Vec<(Vec<u8>, String)>,
 	state_receiver_msg: tokenstate::StateReceiverMessage,
+	timeout_ms: Option<u64>,
 ) -> Result<C>
 where
 	C: Send + for<'a> FromBytes<'a>,
@@ -267,18 +284,18 @@ where
 			})?,
 			with_reply: true,
 			targets: validator_conn_ids,
+			timeout_ms,
 		})
 		.await?;
 
-	to_response(res.0.ok_or(Errors::Libp2pCallbackIsNone.into())).await
+	to_response(res.0).await
 }
 
 #[doc(hidden)]
-async fn to_response<C>(res: Result<Vec<u8>>) -> Result<C>
+async fn to_response<C>(result: VmhResult<Vec<u8>>) -> Result<C>
 where
 	C: for<'a> FromBytes<'a>,
 {
-	let result: VmhResult<Vec<u8>> = deserialize(res?)?;
 	C::from_bytes(&result?).err_into()
 }
 
@@ -288,6 +305,7 @@ pub async fn send_message_with_callback(
 	target_action: &str,
 	content: &[u8],
 	target_conn_id: &str,
+	timeout_ms: Option<u64>,
 ) -> Result<Vec<u8>> {
 	send_message(
 		target_conn_id.to_string(),
@@ -298,6 +316,7 @@ pub async fn send_message_with_callback(
 		None,
 		content.to_vec(),
 		true,
+		timeout_ms,
 	)
 	.await
 }
@@ -306,6 +325,7 @@ pub async fn send_message_with_callback(
 pub async fn send_to_state_receiver(
 	target_conn_id: String,
 	msg: tokenstate::StateReceiverMessage,
+	timeout_ms: Option<u64>,
 ) -> Result<Vec<u8>> {
 	send_message(
 		target_conn_id,
@@ -316,6 +336,7 @@ pub async fn send_to_state_receiver(
 		None,
 		encode_protobuf(msg)?,
 		true,
+		timeout_ms,
 	)
 	.await
 }

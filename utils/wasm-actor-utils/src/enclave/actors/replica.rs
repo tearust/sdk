@@ -55,18 +55,19 @@ pub async fn intelli_send_txn(
 	pre_args: Vec<Arg>,
 	mode: IntelliSendMode,
 	gas_limit: u64,
+	timeout_ms: Option<u64>,
 ) -> Result<Option<Tsid>> {
 	let txn_serial = new_txn_serial(target_actor, txn_bytes.to_vec(), 0b01, gas_limit).await?;
 
 	if mode == IntelliSendMode::RemoteOnly {
-		return try_send_transaction_remotely(&txn_serial, pre_args, &None).await;
+		return try_send_transaction_remotely(&txn_serial, pre_args, &None, timeout_ms).await;
 	}
 
 	if !apply_validator().await? {
 		if mode == IntelliSendMode::LocalOnly {
 			return Err(ProviderOperationRejected::NotATypeCml.into());
 		}
-		return try_send_transaction_remotely(&txn_serial, pre_args, &None).await;
+		return try_send_transaction_remotely(&txn_serial, pre_args, &None, timeout_ms).await;
 	}
 
 	match send_transaction_locally(&txn_serial, pre_args.clone(), true).await {
@@ -75,7 +76,7 @@ pub async fn intelli_send_txn(
 			if mode == IntelliSendMode::LocalOnly {
 				return Err(e);
 			}
-			try_send_transaction_remotely(&txn_serial, pre_args, &Some(e)).await
+			try_send_transaction_remotely(&txn_serial, pre_args, &Some(e), timeout_ms).await
 		}
 	}
 }
@@ -84,6 +85,7 @@ async fn try_send_transaction_remotely(
 	txn_serial: &TxnSerial,
 	pre_args: Vec<Arg>,
 	e: &Option<Error>,
+	timeout_ms: Option<u64>,
 ) -> Result<Option<Tsid>> {
 	let (cmd, hash, uuid) = gen_command_messages(txn_serial, pre_args).await?;
 	info!(
@@ -115,6 +117,7 @@ async fn try_send_transaction_remotely(
 			from_token,
 		},
 		None,
+		timeout_ms,
 	)
 	.await
 }

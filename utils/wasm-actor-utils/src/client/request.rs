@@ -24,21 +24,32 @@ pub async fn send_custom_query<C>(
 	_from_actor: &str,
 	arg: C,
 	target: &'static [u8],
+	timeout_ms: Option<u64>,
 ) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
 	C::Response: for<'a> FromBytes<'a> + Send,
 {
-	Ok(intelli_actor_query_ex(target, arg, IntelliSendMode::RemoteOnly).await?)
+	Ok(intelli_actor_query_ex(target, arg, IntelliSendMode::RemoteOnly, timeout_ms).await?)
 }
 
 /// Send query to tappstore actor.
-pub async fn send_tappstore_query<C>(from_actor: &str, arg: C) -> Result<C::Response>
+pub async fn send_tappstore_query<C>(
+	from_actor: &str,
+	arg: C,
+	timeout_ms: Option<u64>,
+) -> Result<C::Response>
 where
 	C: Request + ToBytes + Clone,
 	C::Response: for<'a> FromBytes<'a> + Send,
 {
-	send_custom_query(from_actor, arg, tea_system_actors::tappstore::NAME).await
+	send_custom_query(
+		from_actor,
+		arg,
+		tea_system_actors::tappstore::NAME,
+		timeout_ms,
+	)
+	.await
 }
 
 pub async fn send_custom_txn_and_cache(
@@ -117,6 +128,7 @@ async fn _send_txn(
 		pre_args,
 		IntelliSendMode::RemoteOnly,
 		gas_limit,
+		None,
 	)
 	.await?;
 

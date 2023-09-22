@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use tea_actorx::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
+use tea_runtime_codec::vmh::error::VmhResult;
 use tea_runtime_codec::vmh::io::HostType;
 
 pub mod error;
@@ -92,7 +93,11 @@ pub struct UnsubscribeGossipTopicRequest(pub Vec<u8>);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct SendMessageRequest(pub Vec<u8>, pub bool);
+pub struct SendMessageRequest {
+	pub msg: Vec<u8>,
+	pub with_reply: bool,
+	pub timeout_ms: Option<u64>,
+}
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
@@ -105,11 +110,12 @@ pub struct SendMessageExRequest {
 	pub msg: Vec<u8>,
 	pub with_reply: bool,
 	pub targets: Vec<String>,
+	pub timeout_ms: Option<u64>,
 }
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct SendMessageExResponse(pub Option<Vec<u8>>);
+pub struct SendMessageExResponse(pub VmhResult<Vec<u8>>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]

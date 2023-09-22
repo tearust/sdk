@@ -51,6 +51,7 @@ pub async fn node_profiles_by_conn_ids(
 			conn_ids,
 		})?),
 		mode,
+		None,
 	)
 	.await?;
 	Ok(res.0)
@@ -114,6 +115,7 @@ pub async fn query_tea_balance_async(
 			auth_key: auth_key.to_vec(),
 		})?),
 		mode,
+		None,
 	)
 	.await?;
 	let res = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
@@ -141,6 +143,7 @@ pub async fn query_active_cml_ids(
 			exclude_tea_id: exclude_tea_id.unwrap_or_default(),
 		})?),
 		mode,
+		None,
 	)
 	.await?;
 	Ok(res.0)
@@ -153,6 +156,7 @@ pub async fn query_mining_cml_ids(mode: IntelliSendMode) -> Result<Vec<CmlId>> {
 		tea_system_actors::tappstore::NAME,
 		QueryMiningCmlIdsRequest,
 		mode,
+		None,
 	)
 	.await?;
 	Ok(res.0)
@@ -185,6 +189,7 @@ pub async fn get_statements_async(
 			}),
 		})?),
 		mode,
+		None,
 	)
 	.await?;
 	Ok((res.0, res.1))
@@ -196,6 +201,7 @@ pub async fn query_cml_ra_status(tea_id: &[u8], mode: IntelliSendMode) -> Result
 		tea_system_actors::tappstore::NAME,
 		QueryCmlRaStatusRequest(tea_id.to_vec()),
 		mode,
+		None,
 	)
 	.await?;
 	Ok(res.0)
@@ -213,6 +219,7 @@ pub async fn query_active_nodes(
 			exclude_tea_id: exclude_tea_id.unwrap_or_default(),
 		})?),
 		mode,
+		None,
 	)
 	.await?;
 	Ok(res.0)
@@ -228,6 +235,7 @@ pub async fn process_pre_args(pre_args: Vec<Arg>) -> Result<Option<ArgSlots>> {
 		tea_system_actors::tappstore::NAME,
 		ProcessPreArgsRequest(pre_args),
 		IntelliSendMode::LocalOnly,
+		None,
 	)
 	.await?;
 	Ok(Some(res.0))
@@ -239,6 +247,7 @@ pub async fn query_system_versions(mode: IntelliSendMode) -> Result<SystemVersio
 		tea_system_actors::tappstore::NAME,
 		QuerySystemVersionsRequest,
 		mode,
+		None,
 	)
 	.await?;
 	Ok(res.0)

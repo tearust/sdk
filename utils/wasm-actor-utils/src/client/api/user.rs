@@ -85,6 +85,7 @@ pub async fn query_session_key(payload: Vec<u8>, from_actor: String) -> Result<V
 			account: req.address.parse()?,
 			token_id: TokenId::from_hex(&req.tapp_id_b64)?,
 		},
+		None,
 	)
 	.await?;
 	let aes_key = &r.aes_key;
@@ -223,6 +224,7 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 	let res = request::send_tappstore_query(
 		&from_actor,
 		QueryTeaBalanceRequest(encode_protobuf(query_data)?),
+		None,
 	)
 	.await?;
 	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
@@ -276,6 +278,7 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 	let res = request::send_tappstore_query(
 		&from_actor,
 		QueryTeaDepositRequest(encode_protobuf(query_data)?),
+		None,
 	)
 	.await?;
 	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
@@ -340,6 +343,7 @@ pub async fn query_asset(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
 	let res = request::send_tappstore_query(
 		&from_actor,
 		FetchAccountAssetRequest(encode_protobuf(query_data)?),
+		None,
 	)
 	.await?;
 	let r = tappstore::AccountAssetResponse::decode(res.0.as_slice())?;
@@ -395,6 +399,7 @@ pub async fn query_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec
 	let res = request::send_tappstore_query(
 		&from_actor,
 		FetchAllowanceRequest(encode_protobuf(query_data)?),
+		None,
 	)
 	.await?;
 	let r = tappstore::TokenAllowanceResponse::decode(res.0.as_slice())?;
@@ -438,6 +443,7 @@ pub async fn query_tapp_metadata(payload: Vec<u8>, from_actor: String) -> Result
 	let res = request::send_tappstore_query(
 		&from_actor,
 		CommonSqlQueryRequest(encode_protobuf(query_data)?),
+		None,
 	)
 	.await?;
 	let r = tappstore::CommonSqlQueryResponse::decode(res.0.as_slice())?;
@@ -509,6 +515,7 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 	let res = request::send_tappstore_query(
 		&from_actor.clone(),
 		FindExecutedTxnRequest(encode_protobuf(query_data)?),
+		None,
 	)
 	.await?;
 	let r = replica::FindExecutedTxnResponse::decode(res.0.as_slice())?;
@@ -591,6 +598,7 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 	let res = request::send_tappstore_query(
 		&from_actor,
 		tea_system_actors::tappstore::QuerySystemVersionsRequest,
+		None,
 	)
 	.await?;
 	let r = res.0;
@@ -662,6 +670,7 @@ pub async fn query_credit_system_info(payload: Vec<u8>, from_actor: String) -> R
 	let res = request::send_tappstore_query(
 		&from_actor,
 		tea_system_actors::tappstore::QueryCreditSystemInfoRequest,
+		None,
 	)
 	.await?;
 	let x = if let Some(item) = res.0 {
