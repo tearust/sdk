@@ -29,3 +29,26 @@ pub async fn ether_verify(account: Account, data: String, signature_hex: String)
 		.await?;
 	Ok(res.0)
 }
+
+pub async fn aes_encrypt(key: Vec<u8>, data: Vec<u8>) -> Result<Vec<u8>> {
+	let res = ActorId::Static(NAME)
+		.call(AesEncryptRequest(encode_protobuf(
+			crypto::AesEncryptRequest { key, data },
+		)?))
+		.await?;
+	let res_data = crypto::AesEncryptResponse::decode(res.0.as_slice())?;
+	Ok(res_data.encrypted_data)
+}
+
+pub async fn aes_decrypt(key: Vec<u8>, encrypted_data: Vec<u8>) -> Result<Vec<u8>> {
+	let res = ActorId::Static(NAME)
+		.call(AesDecryptRequest(encode_protobuf(
+			crypto::AesDecryptRequest {
+				key,
+				encrypted_data,
+			},
+		)?))
+		.await?;
+	let res_data = crypto::AesDecryptResponse::decode(res.0.as_slice())?;
+	Ok(res_data.data)
+}

@@ -3,6 +3,8 @@ use tea_actorx::ActorId;
 use tea_sdk::ResultExt;
 use tea_system_actors::nitro::*;
 
+use super::crypto::{aes_decrypt, aes_encrypt};
+
 /// Return current node's tea_id
 pub async fn get_my_tea_id() -> Result<Vec<u8>> {
 	let res_vec = ActorId::Static(NAME).call(GetTeaIdRequest).await?;
@@ -97,4 +99,17 @@ pub async fn nitro_decrypt(tag: &str, encrypted_data: Vec<u8>) -> Result<Vec<u8>
 		})
 		.await
 		.err_into()
+}
+
+pub async fn nitro_temp_encrypt(data: Vec<u8>) -> Result<(Vec<u8>, String)> {
+	let data_key_res = ActorId::Static(NAME).call(GenerateDataKeyRequest).await?;
+	let ciphertext = data_key_res.ciphertext;
+	Ok((aes_encrypt(data_key_res.secret, data).await?, ciphertext))
+}
+
+pub async fn nitro_temp_decrypt(ciphertext: String, encrypted_data: Vec<u8>) -> Result<Vec<u8>> {
+	let key = ActorId::Static(NAME)
+		.call(DecryptDataKeyRequest { ciphertext })
+		.await?;
+	aes_decrypt(key, encrypted_data).await
 }

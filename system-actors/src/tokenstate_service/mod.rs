@@ -52,5 +52,11 @@ pub struct SyncLocalStateRequest(pub Ts);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct SyncLocalStateResponse {
 	pub ctxs: Option<Vec<u8>>,
-	pub state: Option<Vec<u8>>,
+	pub state: Option<EncryptedCheckpointState>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EncryptedCheckpointState {
+	pub data: Vec<u8>,
+	pub ciphertext: String,
 }
