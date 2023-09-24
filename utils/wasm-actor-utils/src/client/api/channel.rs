@@ -207,7 +207,7 @@ pub async fn query_channel_list_with_account(
 	_from_actor: String,
 ) -> Result<Vec<u8>> {
 	let req: QueryChannelListWithAccountRequest = serde_json::from_slice(&payload)?;
-	check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
+	// check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
 
 	info!("query_channel_list_with_account from local_state ...");
 	let uuid = req.uuid;

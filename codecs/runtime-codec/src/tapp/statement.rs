@@ -27,6 +27,7 @@ pub enum StateType {
 	Tea,
 	TeaReserved,
 	Bonding,
+	Allowance,
 	BondingReserved,
 	Credit,
 }
@@ -92,6 +93,7 @@ impl Display for StateType {
 			StateType::Bonding => write!(f, "Bonding"),
 			StateType::BondingReserved => write!(f, "BondingReserved"),
 			StateType::Credit => write!(f, "Credit"),
+			StateType::Allowance => write!(f, "Allowance"),
 		}
 	}
 }
@@ -106,6 +108,7 @@ impl FromStr for StateType {
 			"Bonding" => Ok(StateType::Bonding),
 			"BondingReserved" => Ok(StateType::BondingReserved),
 			"Credit" => Ok(StateType::Credit),
+			"Allowance" => Ok(StateType::Allowance),
 			_ => Err(StatementTypeParse(s.to_string()).into()),
 		}
 	}

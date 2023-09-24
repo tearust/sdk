@@ -1,4 +1,4 @@
-use crate::client::error::Result;
+use crate::client::error::{Errors, Result};
 use crate::client::help;
 use crate::client::request;
 use crate::client::txn_cache;
@@ -6,6 +6,7 @@ use crate::client::types::txn_callback;
 
 use crate::client::api::state;
 use crate::enclave::actors::enclave::get_my_tea_id;
+use crate::enclave::actors::env::tappstore_id;
 use crate::enclave::actors::util as actor_util;
 use prost::Message;
 use serde::Deserialize;
@@ -15,7 +16,7 @@ use std::str::FromStr;
 use tea_codec::OptionExt;
 use tea_codec::{deserialize, serialize};
 use tea_runtime_codec::actor_txns::Tsid;
-use tea_runtime_codec::tapp::{Balance, TokenId};
+use tea_runtime_codec::tapp::{Balance, TokenId, DOLLARS};
 use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
@@ -124,6 +125,15 @@ pub async fn check_auth(tapp_id_hex: &str, address: &str, auth_b64: &str) -> Res
 	}
 
 	None.ok_or_err("not_login")
+}
+
+pub async fn check_user_balance(address: &str) -> Result<()> {
+	let tid = tappstore_id().await?;
+	let (_, balance) = state::fetch_tea_balance(tid, address.parse()?).await?;
+	if balance < DOLLARS / 1000 {
+		return Err(Errors::NotEnoughBalanceForTxn.into());
+	}
+	Ok(())
 }
 
 pub async fn extend_auth(tapp_id_hex: &str, address: &str, auth_b64: &str) -> Result<()> {

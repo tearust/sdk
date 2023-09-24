@@ -21,4 +21,7 @@ pub enum Errors {
 
 	#[error("u128 length should be {0}")]
 	U128Length(usize),
+
+	#[error("You need at least 0.001 TEA to submit txn.")]
+	NotEnoughBalanceForTxn,
 }
