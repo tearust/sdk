@@ -93,7 +93,7 @@ pub trait Persist {
 		only_touch: bool,
 	) -> Result<()>;
 
-	fn find_txn_hashes(&self, timestamp: TimestampShort) -> Result<Vec<u8>>;
+	fn find_txn_hashes(&self, timestamp: TimestampShort) -> Result<(Vec<u8>, bool)>;
 
 	fn find_miss_txn_hash_files(
 		&self,

@@ -106,6 +106,7 @@ message FindTxnHashesRequest {
 
 message FindTxnHashesResponse {
 	bytes txnHashes = 1;
+	bool exist = 2;
 }
 
 message FindMissTxnHashFilesRequest {
