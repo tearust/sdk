@@ -30,8 +30,13 @@ define_scope! {
 		EncodeError => Encode, @Display, @Debug;
 		DecodeError => Encode, @Display, @Debug;
 		Errors => VmhGeneral, @Display, @Debug;
+		InvalidASystemInvocation => InvalidASystemInvocation, @Display, @Debug;
 	}
 }
+
+#[derive(Error, Debug)]
+#[error("{0} is not allowed to call A node system invocation")]
+pub struct InvalidASystemInvocation(pub String);
 
 #[derive(Error, Debug)]
 pub enum TableAccess {
