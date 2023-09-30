@@ -87,6 +87,12 @@ message FindExecutedTxnResponse {
   string errorMsg = 2;
   bool success = 3;
 }
+message FindExecutedTxnFromAllRequest {
+  bytes txnHash = 1;
+  bytes ts = 2;
+  bytes acct = 3;
+}
+
 message ExecutedTxn {
   bytes txnHash = 1;
   bytes tsid = 2;

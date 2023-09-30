@@ -16,7 +16,7 @@ use std::str::FromStr;
 use tea_codec::OptionExt;
 use tea_codec::{deserialize, serialize};
 use tea_runtime_codec::actor_txns::Tsid;
-use tea_runtime_codec::tapp::{Balance, TokenId, DOLLARS};
+use tea_runtime_codec::tapp::{Account, Balance, TokenId, DOLLARS};
 use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
@@ -26,9 +26,11 @@ use tea_system_actors::tappstore::CheckUserSessionRequest;
 use tea_system_actors::tappstore::CommonSqlQueryRequest;
 use tea_system_actors::tappstore::FetchAccountAssetRequest;
 use tea_system_actors::tappstore::FetchAllowanceRequest;
+use tea_system_actors::tappstore::FindExecutedTxnFromAllRequest;
 use tea_system_actors::tappstore::FindExecutedTxnRequest;
 use tea_system_actors::tappstore::QueryTeaBalanceRequest;
 use tea_system_actors::tappstore::QueryTeaDepositRequest;
+use tea_system_actors::tokenstate_service::TxnExistenceStatus;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -584,6 +586,55 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 		});
 		help::cache_json_with_uuid(&uuid, x).await?;
 	}
+
+	help::result_ok()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryHashFromAllRequest {
+	pub tapp_id_b64: String,
+	pub address: String,
+	pub auth_b64: String,
+	pub uuid: String,
+	pub hash: String,
+	pub ts: String,
+}
+#[allow(unused_must_use)]
+pub async fn query_txn_hash_result_from_all(
+	payload: Vec<u8>,
+	from_actor: String,
+) -> Result<Vec<u8>> {
+	let req: QueryHashFromAllRequest = serde_json::from_slice(&payload)?;
+	check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
+	info!("begin to query hash result from all...");
+
+	let uuid = req.uuid;
+	let txn_hash = hex::decode(req.hash.clone())?;
+
+	let ts = tea_codec::serialize(&u128::from_str(&req.ts)?)?;
+	let acct: Account = req.address.parse()?;
+	let acct = tea_codec::serialize(&acct)?;
+	let query_data = replica::FindExecutedTxnFromAllRequest { txn_hash, ts, acct };
+
+	let res = request::send_tappstore_query(
+		&from_actor.clone(),
+		FindExecutedTxnFromAllRequest(encode_protobuf(query_data)?),
+		None,
+	)
+	.await?;
+
+	let status: TxnExistenceStatus = tea_codec::deserialize(&res.0)?;
+
+	let x = json!({
+		"status": true,
+		"str": match status {
+			TxnExistenceStatus::Exist => "exist".to_string(),
+			TxnExistenceStatus::NotExist => "not_exist".to_string(),
+			TxnExistenceStatus::FileNotReady => "file_not_ready".to_string(),
+		}
+	});
+	help::cache_json_with_uuid(&uuid, x).await?;
 
 	help::result_ok()
 }

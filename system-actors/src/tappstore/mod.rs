@@ -171,6 +171,14 @@ pub struct FindExecutedTxnResponse(pub Vec<u8>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct FindExecutedTxnFromAllRequest(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct FindExecutedTxnFromAllResponse(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct CheckUserSessionRequest {
 	pub token_id: TokenId,
 	pub account: Account,

@@ -116,7 +116,6 @@ pub async fn add_to_txn_cache(
 	cache_list.push(cache_item.clone());
 
 	if cache_list.len() > 500 {
-		//TODO
 		cache_list.pop();
 	}
 	set_cache_instance(cache_list).await?;

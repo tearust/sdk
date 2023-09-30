@@ -134,7 +134,7 @@ impl EnvSettings {
 
 impl GenesisConfig {
 	pub fn hash(&self) -> Result<Hash> {
-		let bytes = serialize(self)?;
+		let bytes = serialize(&self.contract_addresses)?;
 		let hash_g_array = Sha256::digest(bytes.as_slice());
 		let hash_key: Hash = hash_g_array.as_slice().try_into()?;
 		Ok(hash_key)

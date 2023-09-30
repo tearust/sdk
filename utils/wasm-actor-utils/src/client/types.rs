@@ -30,6 +30,9 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 		"query_session_key" => api::user::query_session_key(arg, from_actor).await?,
 		"query_result" => api::user::query_result(arg, from_actor).await?,
 		"queryHashResult" => api::user::query_txn_hash_result(arg, from_actor).await?,
+		"queryHashResultFromAll" => {
+			api::user::query_txn_hash_result_from_all(arg, from_actor).await?
+		}
 		"logout" => api::user::txn_logout(arg, from_actor)?,
 		"query_balance" => api::user::query_balance(arg, from_actor).await?,
 		"query_deposit" => api::user::query_deposit(arg, from_actor).await?,
@@ -97,6 +100,7 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"query_session_key",
 		"query_result",
 		"queryHashResult",
+		"queryHashResultFromAll",
 		"logout",
 		"query_balance",
 		"query_deposit",
