@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use tea_actorx::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
+use tea_runtime_codec::tapp::Hash;
 use tea_runtime_codec::vmh::error::VmhResult;
 use tea_runtime_codec::vmh::io::HostType;
 
@@ -156,6 +157,7 @@ pub struct HandshakeRequest {
 pub struct RecordEncryptKeyRequest {
 	pub conn_id: String,
 	pub ciphertext: String,
+	pub genesis_hash: Hash,
 }
 
 #[doc(hidden)]

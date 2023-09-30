@@ -5,6 +5,7 @@ use tea_actorx::{ActorId, CallingStack};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::solc::{BlockNumber, ContractAddresses};
+use tea_runtime_codec::tapp::Hash;
 use tea_runtime_codec::vmh::io::VersionInfo;
 
 pub mod error;
@@ -221,3 +222,12 @@ pub struct RuntimeInitializedRequest;
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RuntimeInitializedResponse(pub bool);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GenesisHashRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GenesisHashResponse(pub Hash);
