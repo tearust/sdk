@@ -30,7 +30,7 @@ pub struct GenesisConfig {
 	pub tappstore_id: String,
 	pub chain_id: u64,
 	pub mining_startup_nodes: Vec<MiningStartupItem>,
-	pub enclave_pcrs: HashMap<String, String>,
+	pub enclave_pcrs: Vec<(String, String)>,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
@@ -141,34 +141,44 @@ impl GenesisConfig {
 	}
 }
 
-// #[cfg(test)]
-// mod tests {
-// 	use super::GenesisConfig;
+#[cfg(test)]
+mod tests {
+	use super::*;
 
-// 	#[test]
-// 	fn deserialize_genesis_config_works() -> anyhow::Result<()> {
-// 		let config_buf = include_bytes!("../../../resources/genesis.json");
-// 		let config: GenesisConfig = serde_json::from_slice(config_buf)?;
+	#[test]
+	fn genesis_config_hash_works() -> Result<()> {
+		let genesis_config = GenesisConfig {
+			network: "test network".to_string(),
+			tappstore_id: "tappstore id".to_string(),
+			chain_id: 1234,
+			contract_addresses: ContractAddresses {
+				lock: "lock".to_string(),
+				storage: "storage".to_string(),
+				maintainer: "maintainer".to_string(),
+				token_vesting: "token_vesting".to_string(),
+				erc721: "erc721".to_string(),
+			},
+			mining_startup_nodes: vec![
+				MiningStartupItem {
+					machine_id: "machine_id_1".to_string(),
+					seat_id: 1,
+					conn_id: "conn_id_1".to_string(),
+				},
+				MiningStartupItem {
+					machine_id: "machine_id_2".to_string(),
+					seat_id: 2,
+					conn_id: "conn_id_2".to_string(),
+				},
+			],
+			enclave_pcrs: vec![
+				("pcr_1".to_string(), "pcr_1_value".to_string()),
+				("pcr_2".to_string(), "pcr_2_value".to_string()),
+			],
+		};
 
-// 		assert_eq!(
-// 			config.tappstore_id,
-// 			"0x610178dA211FEF7D417bC0e6FeD39F05609AD788"
-// 		);
-// 		assert_eq!(
-// 			config.contract_addresses.lock,
-// 			"0x0165878A594ca255338adfa4d48449f69242Eb8F"
-// 		);
-
-// 		assert_eq!(config.mining_startup_nodes.len(), 5);
-// 		assert_eq!(
-// 			config.mining_startup_nodes[0].conn_id,
-// 			"12D3KooWKUd6bwsqNKzFgeruvk7pNSMUoBcrUKKU9Djqd1A3H9q8"
-// 		);
-
-// 		assert_eq!(config.enclave_pcrs["PCR0"], "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-// 		assert_eq!(config.enclave_pcrs["PCR1"], "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-// 		assert_eq!(config.enclave_pcrs["PCR2"], "000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-
-// 		Ok(())
-// 	}
-// }
+		let hash1 = genesis_config.hash()?;
+		let hash2 = genesis_config.hash()?;
+		assert_eq!(hash1, hash2);
+		Ok(())
+	}
+}
