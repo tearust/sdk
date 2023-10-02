@@ -2,6 +2,7 @@
 pub mod env;
 pub mod error;
 pub mod io;
+pub mod ipfs;
 pub mod message;
 #[cfg(feature = "nitro")]
 pub mod nitro;
