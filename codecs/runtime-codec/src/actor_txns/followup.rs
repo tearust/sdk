@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::vec::Vec;
 
 #[doc(hidden)]
-#[derive(Debug, Clone, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Followup {
 	pub ts: Ts,
 	pub hash: crate::actor_txns::Hash,
