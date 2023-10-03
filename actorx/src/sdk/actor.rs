@@ -23,6 +23,12 @@ pub trait Actor: 'static {
 	fn id(&self) -> Option<ActorId> {
 		None
 	}
+
+	async fn size(&self) -> Result<u64>;
+
+	async fn instance_count(&self) -> Result<u8> {
+		Ok(1)
+	}
 }
 
 pub trait HandlerActor: HandleBytes {
@@ -55,6 +61,10 @@ where
 	fn id(&self) -> Option<ActorId> {
 		HandlerActor::id(self)
 	}
+
+	async fn size(&self) -> Result<u64> {
+		Ok(0)
+	}
 }
 
 pub(crate) trait ActorTAIT: Actor {
@@ -69,6 +79,12 @@ pub(crate) trait ActorTAIT: Actor {
 	where
 		Self: 'a;
 	fn metadata(&self) -> Self::Metadata<'_>;
+
+	type SizeScope: Scope;
+	type Size<'a>: Future<Output = Result<u64, Error<Self::SizeScope>>> + 'a
+	where
+		Self: 'a;
+	fn size(&self) -> Self::Size<'_>;
 }
 
 impl<T> ActorTAIT for T
@@ -92,6 +108,15 @@ where
 	fn metadata(&self) -> Self::Metadata<'_> {
 		Actor::metadata(self)
 	}
+
+	type SizeScope = impl Scope;
+	type Size<'a> = impl Future<Output = Result<u64, Error<Self::SizeScope>>> + 'a
+	where
+		Self: 'a;
+	#[inline(always)]
+	fn size(&self) -> Self::Size<'_> {
+		Actor::size(self)
+	}
 }
 
 pub trait ActorSend: Actor + Send + Sync {
@@ -108,6 +133,12 @@ pub trait ActorSend: Actor + Send + Sync {
 	where
 		Self: 'a;
 	fn metadata(&self) -> Self::Metadata<'_>;
+
+	type SizeScope: Scope;
+	type Size<'a>: Future<Output = Result<u64, Error<Self::SizeScope>>> + Send + 'a
+	where
+		Self: 'a;
+	fn size(&self) -> Self::Size<'_>;
 }
 
 impl<T> ActorSend for T
@@ -115,6 +146,7 @@ where
 	T: ActorTAIT + Send + Sync,
 	for<'a> T::Invoke<'a>: Send,
 	for<'a> T::Metadata<'a>: Send,
+	for<'a> T::Size<'a>: Send,
 {
 	type Scope = impl Scope;
 	type Invoke<'a> = impl Future<Output = Result<Vec<u8>,Error<Self::Scope>>> + Send + 'a
@@ -134,6 +166,16 @@ where
 	fn metadata(&self) -> Self::Metadata<'_> {
 		ActorTAIT::metadata(self)
 	}
+
+	type SizeScope = impl Scope;
+	type Size<'a> = impl Future<Output = Result<u64, Error<Self::SizeScope>>>
+		+ Send
+		+ 'a
+	where
+		Self: 'a;
+	fn size(&self) -> Self::Size<'_> {
+		ActorTAIT::size(self)
+	}
 }
 
 pub trait ActorSendDyn: Send + Sync + 'static {
@@ -143,6 +185,8 @@ pub trait ActorSendDyn: Send + Sync + 'static {
 	) -> Pin<Box<dyn Future<Output = Result<Vec<u8>>> + Send + 'a>>;
 
 	fn metadata(&self) -> Pin<Box<dyn Future<Output = Result<Arc<Metadata>>> + Send + '_>>;
+
+	fn size(&self) -> Pin<Box<dyn Future<Output = Result<u64>> + Send + '_>>;
 
 	fn id(&self) -> Option<ActorId>;
 }
@@ -161,6 +205,10 @@ where
 
 	fn metadata(&self) -> Pin<Box<dyn Future<Output = Result<Arc<Metadata>>> + Send + '_>> {
 		Box::pin(async move { ActorSend::metadata(self).await.err_into() })
+	}
+
+	fn size(&self) -> Pin<Box<dyn Future<Output = Result<u64>> + Send + '_>> {
+		Box::pin(async move { ActorSend::size(self).await.err_into() })
 	}
 
 	fn id(&self) -> Option<ActorId> {
@@ -182,5 +230,9 @@ impl Actor for DynActorSend {
 
 	fn id(&self) -> Option<ActorId> {
 		self.as_ref().id()
+	}
+
+	async fn size(&self) -> Result<u64> {
+		self.as_ref().size().await
 	}
 }

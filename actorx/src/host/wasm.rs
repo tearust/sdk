@@ -6,6 +6,7 @@ use crate::core::{
 	worker_codec::Operation,
 };
 use tea_codec::serde::{get_type_id, TypeId};
+use tea_sdk::OptionExt;
 use tokio::{
 	sync::{Mutex, MutexGuard},
 	task::JoinHandle,
@@ -34,6 +35,7 @@ struct State {
 	current: Result<Worker, JoinHandle<Result<Worker>>>,
 	cached: Option<Result<Worker, JoinHandle<Result<Worker>>>>,
 	count: usize,
+	instance_count: u8,
 }
 
 const MAX_COUNT: usize = 128;
@@ -47,7 +49,7 @@ impl WasmActor {
 		source.extend_from_slice(&(wasm_path.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_path.as_bytes());
 		info!("begin of load {wasm_path}");
-		Self::new_source(source).await
+		Self::new_source(source, instance_count).await
 	}
 
 	pub async fn from_binary(wasm_binary: &[u8], instance_count: u8) -> Result<Self> {
@@ -56,10 +58,10 @@ impl WasmActor {
 		source.push(instance_count);
 		source.extend_from_slice(&(wasm_binary.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_binary);
-		Self::new_source(source).await
+		Self::new_source(source, instance_count).await
 	}
 
-	async fn new_source(source: Vec<u8>) -> Result<Self> {
+	async fn new_source(source: Vec<u8>, instance_count: u8) -> Result<Self> {
 		#[cfg(feature = "nitro")]
 		let hash = {
 			use std::{
@@ -82,6 +84,7 @@ impl WasmActor {
 				current: Ok(worker),
 				cached: None,
 				count: 0,
+				instance_count,
 			}),
 			source,
 			id,
@@ -203,6 +206,21 @@ impl Actor for WasmActor {
 
 	fn id(&self) -> Option<ActorId> {
 		Some(self.id.clone())
+	}
+
+	async fn size(&self) -> Result<u64> {
+		let worker = self.worker::<false>().await?;
+		let pid = worker.pid().ok_or_err("worker pid")?;
+		let prc = procfs::process::Process::new(pid as i32)?;
+		let process_size = prc.stat()?.rss_bytes();
+
+		// MAX_COUNT / CACHE_COUNT is the cache coefficient
+		let total_size = process_size * MAX_COUNT as u64 / CACHE_COUNT as u64;
+		Ok(total_size)
+	}
+
+	async fn instance_count(&self) -> Result<u8> {
+		Ok(self.state.lock().await.instance_count)
 	}
 }
 

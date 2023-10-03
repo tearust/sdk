@@ -300,6 +300,10 @@ impl Worker {
 	pub fn metadata(&self) -> &Arc<Metadata> {
 		&self.proc.metadata
 	}
+
+	pub fn pid(&self) -> Option<u32>  {
+		self.proc._proc.id()
+	}
 }
 
 pub struct Channel {

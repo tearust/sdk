@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use tea_actorx::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 
@@ -275,5 +276,18 @@ pub struct TaskMemorySizeRequest {
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TaskMemorySizeResponse {
+	pub size: u64,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(0)]
+pub struct ActorMemorySizeRequest {
+	pub actor_id: ActorId,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ActorMemorySizeResponse {
 	pub size: u64,
 }

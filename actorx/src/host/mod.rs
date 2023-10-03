@@ -109,6 +109,11 @@ impl ActorAgent {
 		self.actor.metadata().await.err_into()
 	}
 
+	#[inline(always)]
+	async fn size(&self) -> Result<u64> {
+		self.actor.size().await.err_into()
+	}
+
 	async fn activate(&self) -> Result<()> {
 		let is_active = self.is_active.read().await;
 		match *is_active {
@@ -258,6 +263,13 @@ impl ActorId {
 		let host = host()?;
 		let actors = host.actors.read().await;
 		actors.get(self).ok_or(ActorNotExist)?.metadata().await
+	}
+
+	#[inline(always)]
+	pub async fn size(&self) -> Result<u64> {
+		let host = host()?;
+		let actors = host.actors.read().await;
+		actors.get(self).ok_or(ActorNotExist)?.size().await
 	}
 
 	#[inline(always)]
