@@ -19,7 +19,7 @@ pub async fn get_mem_cache(key: &str) -> Result<Vec<u8>> {
 pub async fn save_session_key(session_key: String, tapp_id_hex: &str, address: &str) -> Result<()> {
 	let key = format!("session_key_{tapp_id_hex}_{address}");
 
-	kvp::set(&key, &session_key, 1800).await?;
+	kvp::set(&key, &session_key, 3600 * 24).await?;
 
 	Ok(())
 }
