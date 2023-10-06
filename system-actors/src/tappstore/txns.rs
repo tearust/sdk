@@ -343,6 +343,16 @@ pub enum TappstoreTxn {
 	AdminAddGlobalCredit {
 		amt: Balance,
 	},
+	AdminTransferBalance {
+		from: Account,
+		to: Account,
+		auth_b64: String,
+		amt: Balance,
+	},
+	AddReferenceAccountForReward {
+		acct: Account,
+		reward_acct: Account,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

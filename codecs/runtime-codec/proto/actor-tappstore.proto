@@ -81,6 +81,7 @@ message CommonSqlQueryRequest {
     QueryDevTappsRequest QueryDevTappsRequest = 14;
     QueryDevTappItemByNameRequest QueryDevTappItemByNameRequest = 15;
     QueryDevTappErrorLog QueryDevTappErrorLog = 16;
+    QueryReferenceRewardAccountRequest QueryReferenceRewardAccountRequest = 17;
   }
 }
 
@@ -127,6 +128,9 @@ message QueryDevTappItemByNameRequest {
 }
 message QueryDevTappErrorLog {
   string token_id = 1;
+}
+message QueryReferenceRewardAccountRequest {
+  string acct = 1;
 }
 
 message CommonSqlQueryResponse {

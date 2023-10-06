@@ -9,7 +9,7 @@ pub mod error;
 pub const NAME: &[u8] = b"tea:billing";
 
 /// The duration for gas payment.
-pub const SETTLEMENT_INTERVAL: Duration = Duration::from_secs(120);
+pub const SETTLEMENT_INTERVAL: Duration = Duration::from_secs(600);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
