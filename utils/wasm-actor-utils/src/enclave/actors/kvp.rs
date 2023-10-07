@@ -12,17 +12,32 @@ pub struct ShabbyLock {
 
 impl ShabbyLock {
 	pub async fn lock(uid: &str) -> Self {
-		// TODO: no need to lock for now
-		Self {
-			key: uid.to_string(),
+		let key = format!("ShabbyLock_{}", uid);
+		trace!("enter lock {}", &key);
+		loop {
+			let t: Result<Option<u8>> = get(&key).await;
+			match t {
+				Ok(res) => match res {
+					Some(_) => {
+						trace!("ShabbyLock is waiting for lock...in loop...");
+						continue;
+					}
+					None => {
+						let _ = set(&key, &1u8, 6000).await;
+						trace!("Received lock");
+						break;
+					}
+				},
+				Err(_) => continue,
+			}
 		}
+		ShabbyLock { key }
 	}
-}
 
-impl Drop for ShabbyLock {
-	fn drop(&mut self) {
-		trace!("drop ShabbyLock");
-		drop(del(&self.key));
+	pub async fn drop(&self) -> Result<()> {
+		trace!("drop ShabbyLock {}", &self.key);
+		del(&self.key).await?;
+		Ok(())
 	}
 }
 
