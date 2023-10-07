@@ -11,6 +11,14 @@ pub fn dump_sys_usages() -> String {
 	result
 }
 
+pub fn get_memory_usage() -> ProcResult<(u64, u64)> {
+	let mut sys = sysinfo::System::new_all();
+	sys.refresh_all();
+	let total = sys.total_memory();
+	let free = sys.free_memory();
+	Ok((total, free))
+}
+
 fn general_info() -> String {
 	let mut sys = sysinfo::System::new_all();
 	sys.refresh_all();

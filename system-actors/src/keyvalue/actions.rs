@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use tea_actorx::ActorId;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
+use tea_runtime_codec::tapp::TokenId;
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
@@ -290,4 +291,17 @@ pub struct ActorMemorySizeRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ActorMemorySizeResponse {
 	pub size: u64,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(0)]
+pub struct GlobalMemoryUsageRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GlobalMemoryUsageResponse {
+	pub total: u64,
+	pub free: u64,
+	pub token_memories: Vec<(TokenId, u64)>,
 }
