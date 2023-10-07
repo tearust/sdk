@@ -290,7 +290,7 @@ pub struct ListPaymentChannelsRequest {
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ListPaymentChannelsResponse {
-	pub channels: Vec<ChannelId>,
+	pub channels: Vec<PaymentInfo>,
 }
 
 #[doc(hidden)]
