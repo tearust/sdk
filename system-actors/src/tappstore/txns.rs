@@ -141,11 +141,6 @@ pub enum TappstoreTxn {
 		profile: TeaNodeProfile,
 		owner: Account,
 	},
-	RaRequest {
-		profile: TeaNodeProfile,
-		request_at: TimestampShort,
-		is_seat: bool,
-	},
 	RaResponse {
 		tea_id: Vec<u8>,
 		profile: Option<TeaNodeProfile>,
