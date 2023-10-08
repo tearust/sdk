@@ -37,7 +37,7 @@ pub async fn get_session_key(tapp_id_hex: &str, address: &str) -> Result<String>
 pub async fn save_aes_key(aes_key: Vec<u8>, tapp_id_b64: &str) -> Result<()> {
 	let key = format!("aes_key_{tapp_id_b64}");
 
-	kvp::set_forever(&key, &aes_key).await?;
+	kvp::set(&key, &aes_key, 3600 * 24).await?;
 
 	Ok(())
 }
