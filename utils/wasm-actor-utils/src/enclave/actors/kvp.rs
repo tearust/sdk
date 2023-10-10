@@ -6,41 +6,6 @@ use tea_system_actors::keyvalue::actions::*;
 
 const KVP_ACTOR: ActorId = ActorId::Static(tea_system_actors::keyvalue::NAME);
 
-pub struct ShabbyLock {
-	key: String,
-}
-
-impl ShabbyLock {
-	pub async fn lock(uid: &str) -> Self {
-		let key = format!("ShabbyLock_{}", uid);
-		trace!("enter lock {}", &key);
-		loop {
-			let t: Result<Option<u8>> = get(&key).await;
-			match t {
-				Ok(res) => match res {
-					Some(_) => {
-						trace!("ShabbyLock is waiting for lock...in loop...");
-						continue;
-					}
-					None => {
-						let _ = set(&key, &1u8, 6000).await;
-						trace!("Received lock");
-						break;
-					}
-				},
-				Err(_) => continue,
-			}
-		}
-		ShabbyLock { key }
-	}
-
-	pub async fn drop(&self) -> Result<()> {
-		trace!("drop ShabbyLock {}", &self.key);
-		del(&self.key).await?;
-		Ok(())
-	}
-}
-
 /// Set cache value of key-value actor and set status to not expired
 pub async fn set_forever<T: Serialize + DeserializeOwned>(key: &str, value: &T) -> Result<T> {
 	let req = SetRequest {
