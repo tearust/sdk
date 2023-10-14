@@ -28,6 +28,8 @@ pub struct TeaNodeProfile {
 	pub tea_id: Vec<u8>,
 	pub ephemeral_public_key: Option<Vec<u8>>,
 	pub conn_id: Option<String>,
+	pub client_version: String,
+	pub enclave_version: String,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]

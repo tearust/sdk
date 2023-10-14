@@ -268,11 +268,13 @@ pub enum TappstoreTxn {
 		modules: HashMap<String, String>,
 		pcrs: HashMap<PcrType, String>,
 		auth_b64: String,
+		expire_at: TimestampShort,
 	},
 	UpgradeClientVersion {
 		url: String,
 		version: String,
 		auth_b64: String,
+		expire_at: TimestampShort,
 	},
 	RegisterMultisigInfo {
 		txn_hash: Hash,

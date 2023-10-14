@@ -320,3 +320,15 @@ pub struct CheckUserTappstoreAuthRequest {
 	pub auth_b64: String,
 	pub user: Account,
 }
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct IsNodeRaValidRequest {
+	pub conn_id: String,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct IsNodeRaValidResponse {
+	pub valid: bool,
+}
