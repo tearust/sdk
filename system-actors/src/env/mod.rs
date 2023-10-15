@@ -121,6 +121,13 @@ pub struct GetTappstoreTokenIdRequest;
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetTappstoreTokenIdResponse(pub String);
 
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GetUsdtAddressRequest;
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetUsdtAddressResponse(pub String);
+
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]

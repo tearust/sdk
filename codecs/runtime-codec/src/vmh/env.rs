@@ -28,6 +28,7 @@ pub struct GenesisConfig {
 	pub network: String,
 	pub contract_addresses: ContractAddresses,
 	pub tappstore_id: String,
+	pub usdt_address: String,
 	pub chain_id: u64,
 	pub mining_startup_nodes: Vec<MiningStartupItem>,
 	pub enclave_pcrs: Vec<(String, String)>,
@@ -134,7 +135,7 @@ impl EnvSettings {
 
 impl GenesisConfig {
 	pub fn hash(&self) -> Result<Hash> {
-		let bytes = serialize(&self.contract_addresses)?;
+		let bytes = serialize(&self)?;
 		let hash_g_array = Sha256::digest(bytes.as_slice());
 		let hash_key: Hash = hash_g_array.as_slice().try_into()?;
 		Ok(hash_key)
@@ -150,6 +151,7 @@ mod tests {
 		let genesis_config = GenesisConfig {
 			network: "test network".to_string(),
 			tappstore_id: "tappstore id".to_string(),
+			usdt_address: "usdt address".to_string(),
 			chain_id: 1234,
 			contract_addresses: ContractAddresses {
 				lock: "lock".to_string(),
