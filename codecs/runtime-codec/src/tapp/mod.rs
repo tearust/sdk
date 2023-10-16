@@ -69,6 +69,14 @@ pub enum ChannelItemStatus {
 #[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct ChannelItem {
 	pub channel_id: ChannelId,
+	pub tapp_key: String,
+	pub session_key: String,
+
+	// to be used in futuer.
+	pub tbu_1: Option<String>,
+	pub tbu_2: Option<String>,
+	pub tbu_3: Option<String>,
+
 	pub payer_address: Account,
 	pub payee_address: Account,
 	/// Use for payer early termination with unit of second

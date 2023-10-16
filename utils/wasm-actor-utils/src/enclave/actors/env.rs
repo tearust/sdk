@@ -75,6 +75,11 @@ pub async fn tappstore_id() -> Result<TokenId> {
 	Ok(TokenId::from_hex(tappstore_id.0)?)
 }
 
+pub async fn usdt_id() -> Result<TokenId> {
+	let usdt_id = ActorId::Static(NAME).call(GetUsdtAddressRequest).await?;
+	Ok(TokenId::from_hex(usdt_id.0)?)
+}
+
 #[cfg(feature = "__test")]
 #[mockable]
 pub async fn tappstore_id() -> Result<TokenId> {

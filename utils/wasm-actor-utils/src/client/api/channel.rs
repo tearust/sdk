@@ -25,6 +25,8 @@ pub struct PayerOpenChannelRequest {
 	pub auth_b64: String,
 
 	pub channel_id: String,
+	pub tapp_key: String,
+	pub room_key: String,
 	pub payee_address: String,
 	pub grace_period: Option<u64>,
 	pub fund_remaining: String,
@@ -95,6 +97,11 @@ pub async fn open_payment_channel(payload: Vec<u8>, from_actor: String) -> Resul
 
 	let cl = ChannelItem {
 		channel_id: req.channel_id.parse()?,
+		tapp_key: req.tapp_key.clone(),
+		session_key: req.room_key.clone(),
+		tbu_1: None,
+		tbu_2: None,
+		tbu_3: None,
 		payer_address: req.address.parse()?,
 		payee_address: req.payee_address.parse()?,
 		fund_remaining: Balance::from_str_radix(&req.fund_remaining, 10)?,

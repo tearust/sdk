@@ -14,6 +14,7 @@ pub const UNIT_TEA: Balance = DOLLARS;
 pub const DAY_BLOCK: TimestampShort = 150 * 12; // 7200 as 1 day
 pub const DISABLE_OP_BLOCK: TimestampShort = 15 * 12; // Cannot do anything, only for cronjob eveny day.
 pub const MIN_DEPOSIT_FOR_SEAT: Balance = u256!(300_000_000_000_000_000_000);
+pub const USDT_30_MIN_FEE_FOR_SEAT: Balance = u256!(140_000_000_000_000_000);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -70,6 +71,7 @@ pub struct SeatMarketInfo {
 	pub status: SeatMarketStatus,
 
 	pub deposit: Balance,
+	pub usdt_deposit: Balance,
 }
 
 impl FromStr for SeatMarketStatus {
@@ -168,6 +170,10 @@ impl SeatInfo {
 				Some(ref m) => m.deposit.to_string(),
 				_ => 0.to_string(),
 			},
+			usdt_deposit: match seat.market {
+				Some(ref m) => m.usdt_deposit.to_string(),
+				_ => 0.to_string(),
+			},
 		};
 
 		serde_json::json!(j)
@@ -241,6 +247,7 @@ struct SeatInfoJson {
 
 	pub real_price: String,
 	pub market_deposit: String,
+	pub usdt_deposit: String,
 }
 
 impl Default for MaintainStatus {

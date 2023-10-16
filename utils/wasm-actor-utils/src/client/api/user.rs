@@ -171,6 +171,7 @@ pub struct HttpQueryDepositRequest {
 	pub uuid: String,
 	pub auth_b64: String,
 	pub target: Option<String>,
+	pub target_tapp_id_b64: Option<String>,
 }
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -262,10 +263,18 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 	let auth_key = base64::decode(&req.auth_b64)?;
 	let uuid = req.uuid;
 
+	let query_account = match &req.target {
+		Some(acct) => acct.to_string(),
+		None => req.address.to_string(),
+	};
+	let query_token_id = match &req.target_tapp_id_b64 {
+		Some(tid) => TokenId::from_hex(tid)?,
+		None => TokenId::from_hex(&req.tapp_id_b64)?,
+	};
+
 	if state::is_system_actor(&from_actor) {
 		let (ts, balance) =
-			state::fetch_tea_deposit(TokenId::from_hex(&req.tapp_id_b64)?, req.address.parse()?)
-				.await?;
+			state::fetch_tea_deposit(query_token_id, query_account.parse()?).await?;
 		info!(
 			"query tea_deposit in local state => {:?} | {:?}",
 			ts, balance
