@@ -159,6 +159,10 @@ pub enum TappstoreTxn {
 		amount: Balance,
 		timestamp: TimestampShort,
 	},
+	UniversalBasicIncome {
+		amount: Balance,
+		timestamp: TimestampShort,
+	},
 	FavTapp {
 		user: String,
 		token_id: TokenId,
