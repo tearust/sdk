@@ -187,6 +187,11 @@ pub enum TappstoreTxn {
 		seat_id: SeatId,
 		user: Account,
 	},
+	RefillUsdtDeposit {
+		seat_id: SeatId,
+		user: Account,
+		amount: Balance,
+	},
 	InternalCronjobAction {
 		target: String,
 		timestamp: TimestampShort,
