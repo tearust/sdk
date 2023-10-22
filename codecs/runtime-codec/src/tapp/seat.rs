@@ -219,6 +219,18 @@ impl SeatMarketInfo {
 		}
 		true
 	}
+	pub fn is_active(&self) -> bool {
+		if self.status == SeatMarketStatus::Active {
+			return true;
+		}
+		if self.status == SeatMarketStatus::Pending
+			&& self.estimate_price.is_some()
+			&& self.get_current_price().is_zero()
+		{
+			return true;
+		}
+		false
+	}
 }
 
 #[derive(Debug, Serialize, Deserialize)]
