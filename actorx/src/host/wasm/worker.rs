@@ -188,6 +188,7 @@ impl WorkerProcess {
 
 			if let Ok(true) | Err(_) = tokio::fs::try_exists(&result).await {
 				_ = tokio::fs::remove_file(WORKER_PATH[(i + 1) % 3]).await;
+			} else {
 				break;
 			}
 		}

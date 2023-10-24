@@ -74,7 +74,9 @@ pub struct VersionInfo {
 
 impl VersionInfo {
 	pub fn need_upgrade(&self) -> bool {
-		!self.new_version.is_empty() && self.new_version != self.current_version
+		!self.new_version.is_empty()
+			&& self.new_version != self.current_version
+			&& !self.url.is_empty()
 	}
 }
 

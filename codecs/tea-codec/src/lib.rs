@@ -50,7 +50,7 @@ pub type Result<T, E = errorx::Error<errorx::Global>> = std::result::Result<T, E
 #[inline(always)]
 fn bincode_options() -> impl bincode::Options {
 	bincode::DefaultOptions::new()
-		.with_limit(1048576 * 50)
+		.with_limit(1048576 * 150)
 		.with_fixint_encoding()
 }
 
