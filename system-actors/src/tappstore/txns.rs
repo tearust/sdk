@@ -192,6 +192,16 @@ pub enum TappstoreTxn {
 		user: Account,
 		amount: Balance,
 	},
+	AdminAddSeat {
+		seat_id: SeatId,
+		maintainer: Account,
+		tea_id: Vec<u8>,
+		auth_b64: String,
+	},
+	AdminDeleteSeat {
+		seat_id: SeatId,
+		auth_b64: String,
+	},
 	InternalCronjobAction {
 		target: String,
 		timestamp: TimestampShort,
