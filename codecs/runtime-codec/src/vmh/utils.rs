@@ -70,21 +70,6 @@ pub fn format_system_time(time: SystemTime) -> String {
 	format!("{}", datetime.format("%d/%m/%Y %T"))
 }
 
-pub fn should_freeze(time: &FreezeTimeSettings) -> bool {
-	if time.schedule_at == 0 || time.schedule_at < time.freeze_before as i64 {
-		return false;
-	}
-
-	match datetime_from_timestamp(time.schedule_at) {
-		Some(schedule_at) => {
-			let now = Utc::now();
-			now > schedule_at - chrono::Duration::seconds(time.freeze_before as i64)
-				&& now < schedule_at + chrono::Duration::seconds(time.freeze_after as i64)
-		}
-		None => false,
-	}
-}
-
 #[cfg(test)]
 mod tests {
 	use chrono::{DateTime, Utc};

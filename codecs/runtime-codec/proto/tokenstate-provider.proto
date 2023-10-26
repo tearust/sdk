@@ -331,6 +331,7 @@ message SyncStateResponse {
   uint64 stateMagicNumber = 8;
   bytes removedTsids = 9;
   string ciphertext = 10;
+  bool persistTxnHash = 11;
 }
 message CheckpointData {
   bytes encryptedData = 1;
