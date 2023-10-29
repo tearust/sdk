@@ -334,12 +334,12 @@ pub async fn get_candidate_validators_locally(
 			all_validators.sort_by(|(a, _), (b, _)| a.cmp(b));
 			all_validators
 		} else {
-			sort_by_tsid(tsid, count, all_validators)
+			validators_sort_by_tsid(tsid, count, all_validators)
 		}
 	}))
 }
 
-fn sort_by_tsid(
+pub fn validators_sort_by_tsid(
 	tsid: Tsid,
 	count: usize,
 	validators: Vec<(Vec<u8>, String)>,

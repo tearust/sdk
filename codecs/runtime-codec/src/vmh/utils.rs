@@ -5,7 +5,7 @@ use std::{
 	convert::TryInto,
 	time::{Duration, SystemTime},
 };
-use tea_sdk::{defs::FreezeTimeSettings, OptionExt};
+use tea_sdk::OptionExt;
 
 pub use chrono::{offset::Utc, DateTime, NaiveTime};
 
