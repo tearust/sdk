@@ -678,6 +678,7 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 		"client_url": r.client.url,
 		"enclave_version": r.enclave.version,
 		"enclave_url": r.enclave.url,
+		"epoch": "alpha 0.1".to_string(),
 	});
 	help::set_query_cache(&cache_key, x.clone()).await?;
 	help::cache_json_with_uuid(&uuid, x).await?;
