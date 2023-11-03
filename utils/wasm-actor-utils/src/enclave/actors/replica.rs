@@ -329,14 +329,7 @@ pub async fn get_candidate_validators_locally(
 	count: usize,
 ) -> Result<Option<Vec<(Vec<u8>, String)>>> {
 	let all_validators = get_validator_members_locally().await?;
-	Ok(all_validators.map(|mut all_validators| {
-		if all_validators.len() < count {
-			all_validators.sort_by(|(a, _), (b, _)| a.cmp(b));
-			all_validators
-		} else {
-			validators_sort_by_tsid(tsid, count, all_validators)
-		}
-	}))
+	Ok(all_validators.map(|all_validators| validators_sort_by_tsid(tsid, count, all_validators)))
 }
 
 pub fn validators_sort_by_tsid(

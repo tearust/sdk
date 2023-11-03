@@ -1,6 +1,8 @@
 use ethereum_types::{H160, U256};
 use serde::{Deserialize, Serialize};
 
+use crate::actor_txns::Tsid;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AsyncTxn {
 	pub seq_number: u64,
@@ -15,11 +17,13 @@ pub enum TxnType {
 		records: Vec<u8>,
 		signatures: Vec<u8>,
 		nonce: U256,
+		tsid: Tsid,
 	},
 	SendMintCml {
 		records: Vec<u8>,
 		signatures: Vec<u8>,
 		nonce: U256,
+		tsid: Tsid,
 	},
 }
 
