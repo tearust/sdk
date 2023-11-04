@@ -238,3 +238,12 @@ pub struct GenesisHashRequest;
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GenesisHashResponse(pub Hash);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GetInstanceCountRequest(pub ActorId);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetInstanceCountResponse(pub u8);

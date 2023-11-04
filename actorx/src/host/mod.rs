@@ -114,6 +114,11 @@ impl ActorAgent {
 		self.actor.size().await.err_into()
 	}
 
+	#[inline(always)]
+	async fn instance_count(&self) -> Result<u8> {
+		self.actor.instance_count().await.err_into()
+	}
+
 	async fn activate(&self) -> Result<()> {
 		let is_active = self.is_active.read().await;
 		match *is_active {
@@ -270,6 +275,17 @@ impl ActorId {
 		let host = host()?;
 		let actors = host.actors.read().await;
 		actors.get(self).ok_or(ActorNotExist)?.size().await
+	}
+
+	#[inline(always)]
+	pub async fn instance_count(&self) -> Result<u8> {
+		let host = host()?;
+		let actors = host.actors.read().await;
+		actors
+			.get(self)
+			.ok_or(ActorNotExist)?
+			.instance_count()
+			.await
 	}
 
 	#[inline(always)]
