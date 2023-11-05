@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::tappstore::txns::TopupEventItem;
 use serde::{Deserialize, Serialize};
 use tea_actorx::ActorId;
@@ -10,7 +12,7 @@ use tea_runtime_codec::solc::{
 };
 use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic},
-	Account,
+	Account, Hash,
 };
 
 pub mod error;
@@ -136,3 +138,25 @@ pub struct TopupSinceResponse(pub Vec<TopupEventItem>);
 #[price(100)]
 #[response(())]
 pub struct Layer1Event(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct UnregisterSuccessMultisigRequest(pub Hash);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct ListSuccessMultisigRequest;
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListSuccessMultisigResponse(pub HashSet<Hash>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct ListProcessingMultisigRequest;
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListProcessingMultisigResponse(pub HashSet<Hash>);

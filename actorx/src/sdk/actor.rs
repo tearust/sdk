@@ -65,6 +65,10 @@ where
 	async fn size(&self) -> Result<u64> {
 		Ok(0)
 	}
+
+	async fn instance_count(&self) -> Result<u8> {
+		Ok(1)
+	}
 }
 
 pub(crate) trait ActorTAIT: Actor {
@@ -85,6 +89,12 @@ pub(crate) trait ActorTAIT: Actor {
 	where
 		Self: 'a;
 	fn size(&self) -> Self::Size<'_>;
+
+	type InstanceCountScope: Scope;
+	type InstanceCount<'a>: Future<Output = Result<u8, Error<Self::InstanceCountScope>>> + 'a
+	where
+		Self: 'a;
+	fn instance_count(&self) -> Self::InstanceCount<'_>;
 }
 
 impl<T> ActorTAIT for T
@@ -117,6 +127,15 @@ where
 	fn size(&self) -> Self::Size<'_> {
 		Actor::size(self)
 	}
+
+	type InstanceCountScope = impl Scope;
+	type InstanceCount<'a> = impl Future<Output = Result<u8, Error<Self::InstanceCountScope>>> + 'a
+	where
+		Self: 'a;
+	#[inline(always)]
+	fn instance_count(&self) -> Self::InstanceCount<'_> {
+		Actor::instance_count(self)
+	}
 }
 
 pub trait ActorSend: Actor + Send + Sync {
@@ -139,6 +158,12 @@ pub trait ActorSend: Actor + Send + Sync {
 	where
 		Self: 'a;
 	fn size(&self) -> Self::Size<'_>;
+
+	type InstanceCountScope: Scope;
+	type InstanceCount<'a>: Future<Output = Result<u8, Error<Self::InstanceCountScope>>> + Send + 'a
+	where
+		Self: 'a;
+	fn instance_count(&self) -> Self::InstanceCount<'_>;
 }
 
 impl<T> ActorSend for T
@@ -147,6 +172,7 @@ where
 	for<'a> T::Invoke<'a>: Send,
 	for<'a> T::Metadata<'a>: Send,
 	for<'a> T::Size<'a>: Send,
+	for<'a> T::InstanceCount<'a>: Send,
 {
 	type Scope = impl Scope;
 	type Invoke<'a> = impl Future<Output = Result<Vec<u8>,Error<Self::Scope>>> + Send + 'a
@@ -176,6 +202,16 @@ where
 	fn size(&self) -> Self::Size<'_> {
 		ActorTAIT::size(self)
 	}
+
+	type InstanceCountScope = impl Scope;
+	type InstanceCount<'a> = impl Future<Output = Result<u8, Error<Self::InstanceCountScope>>>
+		+ Send
+		+ 'a
+	where
+		Self: 'a;
+	fn instance_count(&self) -> Self::InstanceCount<'_> {
+		ActorTAIT::instance_count(self)
+	}
 }
 
 pub trait ActorSendDyn: Send + Sync + 'static {
@@ -187,6 +223,8 @@ pub trait ActorSendDyn: Send + Sync + 'static {
 	fn metadata(&self) -> Pin<Box<dyn Future<Output = Result<Arc<Metadata>>> + Send + '_>>;
 
 	fn size(&self) -> Pin<Box<dyn Future<Output = Result<u64>> + Send + '_>>;
+
+	fn instance_count(&self) -> Pin<Box<dyn Future<Output = Result<u8>> + Send + '_>>;
 
 	fn id(&self) -> Option<ActorId>;
 }
@@ -209,6 +247,10 @@ where
 
 	fn size(&self) -> Pin<Box<dyn Future<Output = Result<u64>> + Send + '_>> {
 		Box::pin(async move { ActorSend::size(self).await.err_into() })
+	}
+
+	fn instance_count(&self) -> Pin<Box<dyn Future<Output = Result<u8>> + Send + '_>> {
+		Box::pin(async move { ActorSend::instance_count(self).await.err_into() })
 	}
 
 	fn id(&self) -> Option<ActorId> {
@@ -234,5 +276,9 @@ impl Actor for DynActorSend {
 
 	async fn size(&self) -> Result<u64> {
 		self.as_ref().size().await
+	}
+
+	async fn instance_count(&self) -> Result<u8> {
+		self.as_ref().instance_count().await
 	}
 }

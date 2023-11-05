@@ -37,6 +37,9 @@ bytes = { workspace = true }
 
 mocktopus = { workspace = true, optional = true }
 
+[dev-dependencies]
+rand = { workspace = true }
+
 [features]
 native = ["tea-actorx/host"]
 __test = ["tea-runtime-codec/__test", "mocktopus"]

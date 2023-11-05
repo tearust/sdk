@@ -6,7 +6,6 @@ use tea_runtime_codec::actor_txns::{
 	pre_args::{Arg, ArgSlots},
 	tsid::Tsid,
 };
-use tea_runtime_codec::solc::txns::{MintCmlRecordTrans, UnlockRecordTrans};
 use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic, CmlVariable},
 	fluencer::CreditSystemInfo,
@@ -16,7 +15,7 @@ use tea_runtime_codec::tapp::{
 	statement::TypedStatement,
 	sys::FreezeRequest,
 	version::SystemVersions,
-	Account, AuthKey, Hash, TimestampShort, TokenId,
+	Account, AuthKey, Hash, TokenId,
 };
 
 pub mod error;
@@ -258,22 +257,6 @@ pub struct QueryCreditSystemInfoResponse(pub Option<CreditSystemInfo>, pub Strin
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryExpiredWithdrawsRequest(pub TimestampShort);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryExpiredWithdrawsResponse(pub Vec<(Hash, Vec<UnlockRecordTrans>, String)>);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryExpiredMintCmlsRequest(pub TimestampShort);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct QueryExpiredMintCmlsResponse(pub Vec<(Hash, Vec<MintCmlRecordTrans>, String)>);
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ProcessPreArgsRequest(pub Vec<Arg>);
 
 #[doc(hidden)]
@@ -319,6 +302,13 @@ pub struct HandleTappRemoveErrorLogRequest {
 pub struct CheckUserTappstoreAuthRequest {
 	pub auth_b64: String,
 	pub user: Account,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+#[response(())]
+pub struct UnregisterMultisigInfoRequst {
+	pub txn_hash: Hash,
 }
 
 #[doc(hidden)]

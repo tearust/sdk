@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 use strum::Display;
 use tea_codec::ResultExt;
 use tea_codec::{deserialize, serialize};
-use tea_runtime_codec::actor_txns::{IntoSerial, Transferable, Txn, TxnSerial};
+use tea_runtime_codec::actor_txns::{IntoSerial, Transferable, Tsid, Txn, TxnSerial};
 use tea_runtime_codec::tapp::{
 	entity::EntitySettings,
 	machine::{IssuerId, TappStartupItem},
@@ -296,10 +296,13 @@ pub enum TappstoreTxn {
 		expire_at: TimestampShort,
 	},
 	RegisterMultisigInfo {
-		txn_hash: Hash,
+		send_at: Tsid,
 		multisig_type: String,
 		payload: Vec<u8>,
-		collector: Vec<u8>,
+		validators: Vec<Vec<u8>>,
+	},
+	UpdateMutisigInfo {
+		txn_hash: Hash,
 	},
 	UnregisterMultisigInfo {
 		txn_hash: Hash,

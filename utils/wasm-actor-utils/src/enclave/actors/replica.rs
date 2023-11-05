@@ -329,14 +329,7 @@ pub async fn get_candidate_validators_locally(
 	count: usize,
 ) -> Result<Option<Vec<(Vec<u8>, String)>>> {
 	let all_validators = get_validator_members_locally().await?;
-	Ok(all_validators.map(|mut all_validators| {
-		if all_validators.len() < count {
-			all_validators.sort_by(|(a, _), (b, _)| a.cmp(b));
-			all_validators
-		} else {
-			validators_sort_by_tsid(tsid, count, all_validators)
-		}
-	}))
+	Ok(all_validators.map(|all_validators| validators_sort_by_tsid(tsid, count, all_validators)))
 }
 
 pub fn validators_sort_by_tsid(
@@ -344,16 +337,17 @@ pub fn validators_sort_by_tsid(
 	count: usize,
 	validators: Vec<(Vec<u8>, String)>,
 ) -> Vec<(Vec<u8>, String)> {
-	let mut indicators: Vec<(Vec<u8>, Vec<u8>, String)> = validators
+	let mut indicators: Vec<(u32, Vec<u8>, String)> = validators
 		.into_iter()
 		.map(|(k, v)| {
 			let indicator = tsid
 				.get_seed()
 				.into_iter()
 				.enumerate()
-				.map(|(i, v)| v | k.get(i).unwrap_or(&0))
+				.map(|(i, v)| v ^ k.get(i).unwrap_or(&0))
 				.collect::<Vec<u8>>();
-			(indicator, k, v)
+			let acc = indicator.into_iter().fold(0u32, |acc, v| acc + v as u32);
+			(acc, k, v)
 		})
 		.collect();
 
@@ -363,4 +357,73 @@ pub fn validators_sort_by_tsid(
 		.map(|(_, k, v)| (k, v))
 		.take(count)
 		.collect()
+}
+
+#[cfg(test)]
+mod test {
+	use rand::{rngs::OsRng, RngCore};
+
+	use super::*;
+
+	#[test]
+	fn validators_sort_by_tsid_works() {
+		let validators = vec![
+			(
+				hex::decode("df38cb4f12479041c8e8d238109ef2a150b017f382206e24fee932e637c2db7b")
+					.unwrap(),
+				"12D3KooWKUd6bwsqNKzFgeruvk7pNSMUoBcrUKKU9Djqd1A3H9q8".to_string(),
+			),
+			(
+				hex::decode("c7e016fad0796bb68594e49a6ef1942cf7e73497e69edb32d19ba2fab3696596")
+					.unwrap(),
+				"12D3KooWKExtVZ4AY1L3ZkMjihkf7tYPBQQ1Z3kTbUjwBGPrrQa3".to_string(),
+			),
+			(
+				hex::decode("2754d7e9c73ced5b302e12464594110850980027f8f83c469e8145eef59220b6")
+					.unwrap(),
+				"12D3KooWBBw6uEp9tmMZorkJ2151Nq64EE3D7PTmHFZva6KUdp68".to_string(),
+			),
+			(
+				hex::decode("c9380fde1ba795fc656ab08ab4ef4482cf554790fd3abcd4642418ae8fb5fd52")
+					.unwrap(),
+				"12D3KooWA8PKZg2Ywh1dWhQ1qoQyK2ZAFazTrDXZNecfuHykTMUk".to_string(),
+			),
+			(
+				hex::decode("bd1c0ec25a96172791fe16c28323ceb0c515f17bcd11da4fb183ffd7e6fbb769")
+					.unwrap(),
+				"12D3KooWT3gQVdYkDEscGPBHvoWAgiYzdZXeJVdJ2CxXbH8JN5aN".to_string(),
+			),
+		];
+
+		let result = validators_sort_by_tsid(Default::default(), 1, validators.clone());
+		let first = result.get(0).cloned().unwrap();
+		assert_eq!(first.1, validators.get(2).unwrap().1);
+
+		let mut count_0 = 0;
+		let mut count_1 = 0;
+		let mut count_2 = 0;
+		let mut count_3 = 0;
+		let mut count_4 = 0;
+		for _ in 0..100 {
+			let mut seed = [0u8; 32];
+			OsRng.fill_bytes(&mut seed);
+			let tsid = Tsid::from_followup(seed, None, &Default::default());
+
+			let result = validators_sort_by_tsid(tsid, 1, validators.clone());
+			let first = result.get(0).cloned().unwrap();
+			if first.0.eq(&validators.get(0).unwrap().0) {
+				count_0 += 1;
+			} else if first.0.eq(&validators.get(1).unwrap().0) {
+				count_1 += 1;
+			} else if first.0.eq(&validators.get(2).unwrap().0) {
+				count_2 += 1;
+			} else if first.0.eq(&validators.get(3).unwrap().0) {
+				count_3 += 1;
+			} else if first.0.eq(&validators.get(4).unwrap().0) {
+				count_4 += 1;
+			}
+		}
+
+		println!("{count_0},{count_1},{count_2},{count_3},{count_4}");
+	}
 }
