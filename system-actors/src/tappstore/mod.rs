@@ -322,3 +322,11 @@ pub struct IsNodeRaValidRequest {
 pub struct IsNodeRaValidResponse {
 	pub valid: bool,
 }
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListActorVersionsRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListActorVersionsResponse(pub HashMap<String, String>);
