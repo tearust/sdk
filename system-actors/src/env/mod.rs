@@ -247,3 +247,12 @@ pub struct GetInstanceCountRequest(pub ActorId);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct GetInstanceCountResponse(pub u8);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GetActorVersionsRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetActorVersionsResponse(pub HashMap<String, String>);

@@ -71,6 +71,7 @@ pub enum HostCommand {
 	Export,
 	Import(Vec<u8>),
 	LoadActor(String, Vec<u8>),
+	EnclaveVersion,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -85,6 +86,7 @@ pub enum AppCommand {
 	Export,
 	Import(Vec<u8>),
 	LoadActor(String, Vec<u8>),
+	Version,
 }
 
 impl std::fmt::Display for AppCommand {
@@ -95,6 +97,7 @@ impl std::fmt::Display for AppCommand {
 			AppCommand::Export => write!(f, "Export"),
 			AppCommand::Import(..) => write!(f, "Import"),
 			AppCommand::LoadActor(..) => write!(f, "LoadActor"),
+			AppCommand::Version => write!(f, "Version"),
 		}
 	}
 }

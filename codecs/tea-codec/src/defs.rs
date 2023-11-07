@@ -23,3 +23,24 @@ pub struct SetFreezeRequest(pub FreezeTimeSettings);
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(())]
 pub struct CancelFreezeRequest;
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetVersionRequest;
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetVersionResponse(pub String);
+
+#[macro_export]
+macro_rules! impl_version {
+	( $x:ident ) => {
+		impl tea_sdk::serde::handle::Handle<tea_sdk::defs::GetVersionRequest> for $x {
+			async fn handle(
+				&self,
+				_: tea_sdk::defs::GetVersionRequest,
+			) -> Result<tea_sdk::defs::GetVersionResponse> {
+				let version = env!("CARGO_PKG_VERSION");
+				Ok(tea_sdk::defs::GetVersionResponse(version.to_string()))
+			}
+		}
+	};
+}
