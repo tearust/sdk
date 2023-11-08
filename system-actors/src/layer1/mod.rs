@@ -127,6 +127,15 @@ pub struct TappstoreOwnerResponse(pub Account);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(100)]
+pub struct StartupNodesOwnerRequest(pub AsyncQuery);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct StartupNodesOwnerResponse(pub Account);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(100)]
 pub struct TopupSinceRequest(pub BlockNumber);
 
 #[doc(hidden)]

@@ -15,6 +15,7 @@ pub struct Arg {
 pub enum Type {
 	Cml,
 	TappstoreOwner,
+	StartupNodesOwner,
 	CurrentHeight,
 	TopupLogs,
 	BasicString,
@@ -112,6 +113,13 @@ impl Arg {
 	pub fn tappstore_owner() -> Self {
 		Arg {
 			ty: Type::TappstoreOwner,
+			filter: Filter::Uncountable,
+		}
+	}
+
+	pub fn startup_nodes_owner() -> Self {
+		Arg {
+			ty: Type::StartupNodesOwner,
 			filter: Filter::Uncountable,
 		}
 	}
