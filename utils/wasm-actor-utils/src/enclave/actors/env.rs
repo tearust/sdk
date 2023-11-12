@@ -80,6 +80,11 @@ pub async fn usdt_id() -> Result<TokenId> {
 	Ok(TokenId::from_hex(usdt_id.0)?)
 }
 
+pub async fn is_mainnet() -> Result<bool> {
+	let is_mainnet = ActorId::Static(NAME).call(IsMainNetRequest).await?;
+	Ok(is_mainnet.0)
+}
+
 #[cfg(feature = "__test")]
 #[mockable]
 pub async fn tappstore_id() -> Result<TokenId> {
