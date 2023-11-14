@@ -85,6 +85,11 @@ pub async fn is_mainnet() -> Result<bool> {
 	Ok(is_mainnet.0)
 }
 
+pub async fn genesis_network() -> Result<String> {
+	let res = ActorId::Static(NAME).call(GetNetworkRequest).await?;
+	Ok(res.0)
+}
+
 #[cfg(feature = "__test")]
 #[mockable]
 pub async fn tappstore_id() -> Result<TokenId> {

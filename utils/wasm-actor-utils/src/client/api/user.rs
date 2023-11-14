@@ -6,7 +6,7 @@ use crate::client::types::txn_callback;
 
 use crate::client::api::state;
 use crate::enclave::actors::enclave::get_my_tea_id;
-use crate::enclave::actors::env::tappstore_id;
+use crate::enclave::actors::env::{genesis_network, tappstore_id};
 use crate::enclave::actors::util as actor_util;
 use prost::Message;
 use serde::Deserialize;
@@ -679,6 +679,7 @@ pub async fn query_system_version(payload: Vec<u8>, from_actor: String) -> Resul
 		"enclave_version": r.enclave.version,
 		"enclave_url": r.enclave.url,
 		"epoch": "alpha 0.1".to_string(),
+		"tea_network": genesis_network().await?,
 	});
 	help::set_query_cache(&cache_key, x.clone()).await?;
 	help::cache_json_with_uuid(&uuid, x).await?;
