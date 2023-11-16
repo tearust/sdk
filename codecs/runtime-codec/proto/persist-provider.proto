@@ -75,7 +75,9 @@ message SingleValue {
 	bytes value = 1;
 }
 
-message GetLastRequest {}
+message GetLastRequest {
+	bool scheduled = 1;
+}
 message GetLastResponse {
 	KeyValuePair kvp = 1;
 }
