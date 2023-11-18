@@ -18,7 +18,6 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
-use tabled::settings::format;
 use tea_sdk::Timeout;
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
