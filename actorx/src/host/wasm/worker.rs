@@ -7,6 +7,7 @@ use crate::{
 	context::{get_gas, set_gas},
 	error::{BadWorkerOutput, Error, Result, WorkerCrashed},
 };
+use std::path::PathBuf;
 use std::{
 	collections::HashMap,
 	env::current_exe,
@@ -17,6 +18,7 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
+use tabled::settings::format;
 use tea_sdk::Timeout;
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -161,13 +163,11 @@ impl WorkerProcess {
 		}
 	}
 
-	async fn create_file() -> Result<Arc<Path>> {
-		const WORKER_PATH: [&str; 3] = [
-			".actorx_worker_host.0",
-			".actorx_worker_host.1",
-			".actorx_worker_host.2",
-		];
+	fn worker_path(i: usize) -> String {
+		format!(".actorx_worker_host.{i}")
+	}
 
+	async fn create_file() -> Result<Arc<Path>> {
 		static WORKER_REAL_PATH: RwLock<Option<Arc<Path>>> = RwLock::const_new(None);
 
 		let path = WORKER_REAL_PATH.read().await;
@@ -182,16 +182,17 @@ impl WorkerProcess {
 
 		let mut result = current_exe()?;
 
-		for i in 0..=2 {
+		for i in 0..=usize::MAX {
 			result.pop();
-			result.push(WORKER_PATH[i]);
+			result.push(Self::worker_path(i));
 
 			if let Ok(true) | Err(_) = tokio::fs::try_exists(&result).await {
-				_ = tokio::fs::remove_file(WORKER_PATH[(i + 1) % 3]).await;
+				// continue and try next
 			} else {
 				break;
 			}
 		}
+		tokio::spawn(Self::remove_old_worker_files(result.clone()));
 
 		let mut file = OpenOptions::new()
 			.write(true)
@@ -210,6 +211,33 @@ impl WorkerProcess {
 
 		info!("Actor host emit worker \"{}\".", result.display());
 		Ok(result)
+	}
+
+	async fn remove_old_worker_files(exclude_path: PathBuf) {
+		let mut exe_folder = exclude_path.clone();
+		exe_folder.pop();
+
+		if let Ok(entries) = std::fs::read_dir(exe_folder) {
+			for entry in entries {
+				if let Ok(entry) = entry {
+					let path = entry.path();
+					if path == exclude_path {
+						continue;
+					}
+					if let Some(name) = path.file_name() {
+						if let Some(name) = name.to_str() {
+							if name.starts_with(".actorx_worker_host.") {
+								if let Err(e) = tokio::fs::remove_file(&path).await {
+									warn!("Failed to remove old worker file {path:?}: {e}");
+								} else {
+									info!("Removed old worker file {path:?}");
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 
 	async fn read_loop(this: Weak<Self>) {
