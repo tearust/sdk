@@ -5,14 +5,15 @@ use crate::actor_txns::error::{Result, TxnError};
 use crate::actor_txns::{auth::TokenAuthOp, tsid::Tsid};
 use crate::tapp::{Account, AuthKey, Balance, ChannelId, ChannelItem, TokenId};
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 use std::collections::{HashMap, HashSet, VecDeque};
-use tea_sdk::deserialize;
+use tea_sdk::{deserialize, serialize};
 
 pub mod concurrent;
 pub mod payment_channel;
 
 #[doc(hidden)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum TappStorageType {
 	AesKey,
 	Profile,
@@ -554,5 +555,36 @@ impl TokenContext {
 			&ctx.get_token_id(),
 			&ctx.bonding_context()
 		))
+	}
+
+	pub fn hash(&self, hasher: &mut sha2::Sha256) -> Result<()> {
+		hasher.update(serialize(&self.tid)?);
+		hasher.update(serialize(&self.tsid)?);
+		hasher.update(serialize(&self.base)?);
+
+		let mut reads_storage = self.reads_storage.iter().collect::<Vec<_>>();
+		reads_storage.sort_by(|a, b| a.cmp(&b));
+		for item in reads_storage {
+			hasher.update(serialize(item)?);
+		}
+
+		let mut storage_changes = self.storage_changes.iter().collect::<Vec<_>>();
+		storage_changes.sort_by(|a, b| a.0.cmp(&b.0));
+		for (k, v) in storage_changes {
+			hasher.update(serialize(k)?);
+			hasher.update(serialize(v)?);
+		}
+
+		self.tea.hash(hasher)?;
+		self.deposit.hash(hasher)?;
+		self.bonding.hash(hasher)?;
+		self.allowance.hash(hasher)?;
+		self.credit.hash(hasher)?;
+
+		hasher.update(serialize(&self.auth_ops)?);
+		hasher.update(serialize(&self.allowance_tid)?);
+
+		self.payment_channels.hash(hasher)?;
+		Ok(())
 	}
 }

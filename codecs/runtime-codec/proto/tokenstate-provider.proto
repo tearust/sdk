@@ -240,6 +240,7 @@ message StateCommitResponse {
   bytes hiddenAcctCredit = 2;
   bytes hiddenAcctDebit = 3;
   bytes statementsBytes = 4;
+  bytes commit_hash = 5;
 }
 
 message ExportStateRequest {

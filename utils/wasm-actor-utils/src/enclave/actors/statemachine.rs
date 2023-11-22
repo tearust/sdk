@@ -259,6 +259,7 @@ pub async fn commit(ctx: CommitContext) -> Result<(Balance, Balance, Vec<TypedSt
 	let hidden_acct_credit: Balance = deserialize(&res.hidden_acct_credit)?;
 	let hidden_acct_debit: Balance = deserialize(&res.hidden_acct_debit)?;
 	let statements: Vec<TypedStatement> = deserialize(&res.statements_bytes)?;
+	info!("commit hash is {}", hex::encode(&res.commit_hash));
 	Ok((hidden_acct_credit, hidden_acct_debit, statements))
 }
 

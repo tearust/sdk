@@ -2,7 +2,9 @@ use super::{AssetContext, CheckConflict, IsBalanceRelated, Merge, ReadConflictMo
 use crate::actor_txns::error::{ContextError, Result};
 use crate::tapp::{Account, Balance};
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 use std::collections::{HashMap, HashSet};
+use tea_sdk::serialize;
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
@@ -179,6 +181,46 @@ impl ConcurrentBalances {
 				return Err(ContextError::DoubleDebit.into());
 			}
 		}
+		Ok(())
+	}
+
+	pub fn hash(&self, hasher: &mut sha2::Sha256) -> Result<()> {
+		self.hash_balance_map(&self.token_add, hasher)?;
+		self.hash_balance_map(&self.token_subtract, hasher)?;
+		self.hash_balance_set(&self.read_add, hasher)?;
+		self.hash_balance_set(&self.read_subtract, hasher)?;
+		self.hash_balance_hash(&self.hidden_add, hasher)?;
+		self.hash_balance_hash(&self.hidden_subtract, hasher)?;
+		Ok(())
+	}
+
+	fn hash_balance_set(&self, set: &HashSet<Account>, hasher: &mut sha2::Sha256) -> Result<()> {
+		let mut token_set = set.iter().collect::<Vec<_>>();
+		token_set.sort();
+		for acc in token_set {
+			hasher.update(acc.as_ref());
+		}
+		Ok(())
+	}
+
+	fn hash_balance_map(
+		&self,
+		map: &HashMap<Account, Vec<Balance>>,
+		hasher: &mut sha2::Sha256,
+	) -> Result<()> {
+		let mut token_map = map.iter().collect::<Vec<_>>();
+		token_map.sort_by(|a, b| a.0.cmp(b.0));
+		for (acc, amount_list) in token_map {
+			hasher.update(acc.as_ref());
+			for amount in amount_list {
+				self.hash_balance_hash(amount, hasher)?;
+			}
+		}
+		Ok(())
+	}
+
+	fn hash_balance_hash(&self, balance: &Balance, hasher: &mut sha2::Sha256) -> Result<()> {
+		hasher.update(serialize(balance)?);
 		Ok(())
 	}
 }
