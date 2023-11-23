@@ -6,6 +6,7 @@ use crate::enclave::{
 	error::{Error, Errors, Result},
 };
 use prost::Message;
+use sha2::Digest;
 use tea_actorx::ActorId;
 use tea_codec::{deserialize, serialize, ResultExt};
 use tea_runtime_codec::tapp::{
@@ -125,7 +126,7 @@ impl CommitContextList {
 	}
 
 	/// Commit txn result to state machine
-	pub async fn commit(&self, base: Tsid, tsid: Tsid) -> Result<()> {
+	pub async fn commit(&self, base: Tsid, tsid: Tsid) -> Result<Vec<u8>> {
 		// check all contexts to avoid errors during actual commit
 		self.check().await?;
 
@@ -134,20 +135,24 @@ impl CommitContextList {
 			info!("commit context list is empty, commit placeholder context instead.");
 			let placeholder_ctx =
 				serialize(&TokenContext::new_slim(tsid, base, tappstore_id().await?))?;
-			let (credit, debit, _) = commit(CommitContext::ctx_god_mode(placeholder_ctx)).await?;
+			let (credit, debit, _, _) =
+				commit(CommitContext::ctx_god_mode(placeholder_ctx)).await?;
 			assert_eq!(credit, Balance::zero());
 			assert_eq!(debit, Balance::zero());
-			return Ok(());
+			return Ok(vec![]);
 		}
 
 		let mut global_statements = vec![];
 		let mut actual_neutral_balance: (Balance, Balance) = (Balance::zero(), Balance::zero());
+		let mut hasher = sha2::Sha256::new();
 		for ctx in self.ctx_list.iter() {
-			let (hidden_acct_credit, hidden_acct_debit, statements) = commit(ctx.clone()).await?;
+			let (hidden_acct_credit, hidden_acct_debit, statements, hash) =
+				commit(ctx.clone()).await?;
 			actual_neutral_balance = (
 				actual_neutral_balance.0 + hidden_acct_credit,
 				actual_neutral_balance.1 + hidden_acct_debit,
 			);
+			hasher.update(hash);
 
 			if !statements.is_empty() {
 				let timestamp = self.try_get_ctx_timestamp(&ctx.ctx)?;
@@ -196,7 +201,7 @@ impl CommitContextList {
 			}
 		}
 
-		Ok(())
+		Ok(hasher.finalize().to_vec())
 	}
 
 	fn try_get_ctx_timestamp(&self, ctx: &[u8]) -> Result<u128> {
@@ -250,7 +255,9 @@ pub async fn check(ctx: CommitContext) -> Result<()> {
 /// We'll need those two values to check the overall balance
 /// after commit.
 /// We need to make sure the overall balance is zero
-pub async fn commit(ctx: CommitContext) -> Result<(Balance, Balance, Vec<TypedStatement>)> {
+pub async fn commit(
+	ctx: CommitContext,
+) -> Result<(Balance, Balance, Vec<TypedStatement>, Vec<u8>)> {
 	let buf = encode_protobuf::<CommitRequest>(ctx.try_into()?)?;
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::CommitTxnRequest(buf))
@@ -260,7 +267,12 @@ pub async fn commit(ctx: CommitContext) -> Result<(Balance, Balance, Vec<TypedSt
 	let hidden_acct_debit: Balance = deserialize(&res.hidden_acct_debit)?;
 	let statements: Vec<TypedStatement> = deserialize(&res.statements_bytes)?;
 	info!("commit hash is {}", hex::encode(&res.commit_hash));
-	Ok((hidden_acct_credit, hidden_acct_debit, statements))
+	Ok((
+		hidden_acct_credit,
+		hidden_acct_debit,
+		statements,
+		res.commit_hash,
+	))
 }
 
 /// Return serialized txn.

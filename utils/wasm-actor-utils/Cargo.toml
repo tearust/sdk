@@ -34,6 +34,7 @@ lazy_static = { workspace = true }
 tokio = { workspace = true, features = ["sync"] }
 http = { workspace = true }
 bytes = { workspace = true }
+sha2 = { workspace = true }
 
 mocktopus = { workspace = true, optional = true }
 

@@ -203,6 +203,12 @@ pub struct AppendToHistoryRequest(pub HistoryItem);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
+#[response(())]
+pub struct AppendCommitHashRequest(pub Hash, pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct IsTxnAlreadyExecutedRequest(pub Tsid);
 
 #[doc(hidden)]
@@ -212,11 +218,14 @@ pub struct IsTxnAlreadyExecutedResponse(pub bool);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10)]
-#[response(())]
-pub struct ExecTxnCast(
+pub struct ExecTxnRequest(
 	pub Tsid,
 	pub Vec<u8>,
 	pub u64,
 	pub u32,
 	pub Option<ArgSlots>,
 );
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ExecTxnResponse(pub Vec<u8>);
