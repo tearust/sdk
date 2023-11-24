@@ -105,4 +105,6 @@ pub struct ActiveMinerInfo {
 	pub plantd_at: u64,
 	pub node_status: String,
 	pub cid: String,
+	pub sell_price: String,
+	pub total_supply: String,
 }
