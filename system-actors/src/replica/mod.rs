@@ -229,3 +229,21 @@ pub struct ExecTxnRequest(
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ExecTxnResponse(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct GetDetermisiticCursorRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GetDetermisiticCursorResponse(pub Option<Tsid>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct IsMalformedSyncRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct IsMalformedSyncResponse(pub bool);
