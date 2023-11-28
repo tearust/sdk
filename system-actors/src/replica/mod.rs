@@ -233,11 +233,11 @@ pub struct ExecTxnResponse(pub Vec<u8>);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
-pub struct GetDetermisiticCursorRequest;
+pub struct GetDeterministicCursorRequest;
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct GetDetermisiticCursorResponse(pub Option<Tsid>);
+pub struct GetDeterministicCursorResponse(pub Option<Tsid>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
