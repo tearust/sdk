@@ -69,6 +69,7 @@ nitro = [
 backtrace = ["tea-codec/backtrace", "tea-actorx/backtrace"]
 dev = ["tea-runtime-codec/dev"]
 __test = [
+    "tea-actorx/__test",
     "tea-runtime-codec/__test",
     "tea-system-actors/__test",
     "tea-wasm-actor-utils/__test",

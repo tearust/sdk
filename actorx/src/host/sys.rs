@@ -71,6 +71,7 @@ impl ProcessInfo {
 	}
 }
 
+#[cfg(not(feature = "__test"))]
 fn process_info() -> ProcResult<String> {
 	let app = Process::myself()?;
 
@@ -87,4 +88,9 @@ fn process_info() -> ProcResult<String> {
 		}
 	}
 	Ok(Table::new(processes).to_string())
+}
+
+#[cfg(feature = "__test")]
+fn process_info() -> ProcResult<String> {
+	Ok("".to_string())
 }

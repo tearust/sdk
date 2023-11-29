@@ -208,6 +208,7 @@ impl Actor for WasmActor {
 		Some(self.id.clone())
 	}
 
+	#[cfg(not(feature = "__test"))]
 	async fn size(&self) -> Result<u64> {
 		let worker = self.worker::<false>().await?;
 		let pid = worker.pid().ok_or_err("worker pid")?;
@@ -217,6 +218,11 @@ impl Actor for WasmActor {
 		// MAX_COUNT / CACHE_COUNT is the cache coefficient
 		let total_size = process_size * MAX_COUNT as u64 / CACHE_COUNT as u64;
 		Ok(total_size)
+	}
+
+	#[cfg(feature = "__test")]
+	async fn size(&self) -> Result<u64> {
+		Ok(0)
 	}
 
 	async fn instance_count(&self) -> Result<u8> {
