@@ -208,7 +208,7 @@ impl Actor for WasmActor {
 		Some(self.id.clone())
 	}
 
-	#[cfg(not(feature = "__test"))]
+	#[cfg(target_os = "linux")]
 	async fn size(&self) -> Result<u64> {
 		let worker = self.worker::<false>().await?;
 		let pid = worker.pid().ok_or_err("worker pid")?;
@@ -220,7 +220,7 @@ impl Actor for WasmActor {
 		Ok(total_size)
 	}
 
-	#[cfg(feature = "__test")]
+	#[cfg(not(target_os = "linux"))]
 	async fn size(&self) -> Result<u64> {
 		Ok(0)
 	}

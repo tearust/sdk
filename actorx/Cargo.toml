@@ -46,11 +46,13 @@ openssl = { workspace = true, optional = true }
 leb128 = { workspace = true, optional = true }
 zstd = { workspace = true, optional = true }
 sysinfo = { workspace = true, optional = true }
-procfs = { workspace = true, optional = true }
 tabled = { workspace = true, optional = true }
 
 wasmer = { workspace = true, optional = true }
 wasmer-middlewares = { workspace = true, optional = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = "0.15"
 
 [features]
 default = ["sdk"]
@@ -84,7 +86,6 @@ host = [
     "tokio-util",
     "command-fds",
     "sysinfo",
-    "procfs",
     "tabled",
 ]
 wasm = ["sdk", "futures"]
@@ -95,17 +96,4 @@ backtrace = ["tea-codec/backtrace"]
 llvm = ["worker", "wasmer/llvm"]
 timeout = []
 track = ["timeout"]
-__test = [
-    "sdk",
-    "tokio",
-    "tokio/io-util",
-    "tokio/net",
-    "tokio/parking_lot",
-    "tokio/process",
-    "tokio/time",
-    "tokio/sync",
-    "tokio-util",
-    "command-fds",
-    "sysinfo",
-    "tabled",
-]
+__test = []

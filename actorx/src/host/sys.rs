@@ -1,6 +1,8 @@
+#[cfg(target_os = "linux")]
 use procfs::{process::Process, ProcResult};
 use sysinfo::SystemExt;
 use tabled::{Table, Tabled};
+use crate::error::Result;
 
 pub fn dump_sys_usages() -> String {
 	let mut result = String::new();
@@ -11,7 +13,7 @@ pub fn dump_sys_usages() -> String {
 	result
 }
 
-pub fn get_memory_usage() -> ProcResult<(u64, u64)> {
+pub fn get_memory_usage() -> Result<(u64, u64)> {
 	let mut sys = sysinfo::System::new_all();
 	sys.refresh_all();
 	let total = sys.total_memory();
@@ -61,6 +63,7 @@ struct ProcessInfo {
 }
 
 impl ProcessInfo {
+	#[cfg(target_os = "linux")]
 	fn new(pro: &Process, memory_m_bytes: u64, app_pid: i32) -> ProcResult<Self> {
 		Ok(Self {
 			pid: pro.pid,
@@ -71,7 +74,7 @@ impl ProcessInfo {
 	}
 }
 
-#[cfg(not(feature = "__test"))]
+#[cfg(target_os = "linux")]
 fn process_info() -> ProcResult<String> {
 	let app = Process::myself()?;
 
@@ -90,7 +93,7 @@ fn process_info() -> ProcResult<String> {
 	Ok(Table::new(processes).to_string())
 }
 
-#[cfg(feature = "__test")]
-fn process_info() -> ProcResult<String> {
+#[cfg(not(target_os = "linux"))]
+fn process_info() -> Result<String> {
 	Ok("".to_string())
 }
