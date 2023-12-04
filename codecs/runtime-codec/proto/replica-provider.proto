@@ -45,6 +45,7 @@ message HistorySinceResponse {
 
 message RecoverHistoryRequest {
   repeated HistoryItem historyItems = 1;
+  optional bytes historySince = 2;
 }
 
 message GetLastHistoryRequest {}

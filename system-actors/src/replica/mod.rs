@@ -247,3 +247,21 @@ pub struct IsMalformedSyncRequest;
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct IsMalformedSyncResponse(pub bool);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct DeleteAfterRequest(pub Tsid);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct ImportExecutedTxnsRequest(pub Vec<(TxnItem, Vec<u8>)>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct UpdateDeterministicCursorRequest(pub Tsid);

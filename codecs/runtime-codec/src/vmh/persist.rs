@@ -49,7 +49,11 @@ pub trait Persist {
 
 	fn get(&self, key: &[u8]) -> Result<Option<Vec<u8>>>;
 
-	fn get_last(&self, scheduled: bool) -> Result<Option<(Vec<u8>, Vec<u8>)>>;
+	fn get_last(
+		&self,
+		scheduled: bool,
+		ts_before: Option<TimestampShort>,
+	) -> Result<Option<(Vec<u8>, Vec<u8>)>>;
 
 	/// find with prefix and return matched results
 	fn find(

@@ -272,6 +272,7 @@ message ExportGlueSqlResponse {
 
 message ImportGlueSqlRequest {
   bytes data = 1;
+  bytes tsid = 2;
 }
 
 message InitGlueSqlRequest {
@@ -319,6 +320,7 @@ message ExecCursor {
 message SyncStateRequest {
   Checkpoint checkpoint = 1;
   ExecCursor execCursor = 2;
+  bool isMalformed = 3;
 }
 
 message SyncStateResponse {
@@ -333,6 +335,7 @@ message SyncStateResponse {
   bytes removedTsids = 9;
   string ciphertext = 10;
   bool persistTxnHash = 11;
+  optional bytes historySince = 12;
 }
 message CheckpointData {
   bytes encryptedData = 1;
