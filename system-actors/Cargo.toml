@@ -22,5 +22,5 @@ strum = { workspace = true }
 thiserror = { workspace = true }
 
 [features]
-nitro = []
+nitro = ["tea-runtime-codec/nitro"]
 __test = []
