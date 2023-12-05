@@ -359,6 +359,9 @@ pub enum TappstoreTxn {
 	CheckToEndCreditSystem {
 		timestamp: TimestampShort,
 	},
+	PaymentGasSecondStep {
+		timestamp: TimestampShort,
+	},
 	AdminAddGlobalCredit {
 		amt: Balance,
 	},
