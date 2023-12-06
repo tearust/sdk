@@ -136,7 +136,10 @@ pub struct StartupNodesOwnerResponse(pub Account);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(100)]
-pub struct TopupSinceRequest(pub BlockNumber);
+pub struct TopupSinceRequest {
+	pub from_block: BlockNumber,
+	pub to_block: BlockNumber,
+}
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
