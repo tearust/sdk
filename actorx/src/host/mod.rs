@@ -33,7 +33,15 @@ pub use wasm::*;
 pub mod context;
 pub mod invoke;
 
-type OutputHandler = Arc<RwLock<Box<dyn Fn(String, ActorId) + Send + Sync>>>;
+type OutputHandler = Arc<
+	RwLock<
+		Box<
+			dyn Fn(String, ActorId) -> std::pin::Pin<Box<dyn Future<Output = ()> + Send>>
+				+ Send
+				+ Sync,
+		>,
+	>,
+>;
 
 pub(crate) struct Host {
 	actors: RwLock<HashMap<ActorId, Arc<ActorAgent>>>,
@@ -219,7 +227,9 @@ where
 		let host = Arc::new(Host {
 			actors: RwLock::new(HashMap::new()),
 			wasm_output_handler: Arc::new(RwLock::new(Box::new(|content, actor| {
-				println!("{actor}: {content}");
+				Box::pin(async move {
+					println!("{actor}: {content}");
+				})
 			}))),
 			#[cfg(feature = "track")]
 			tracker: tracker::WorkerTracker::new(),
@@ -232,7 +242,10 @@ where
 
 pub fn set_wasm_output_handler<F>(handler: F) -> Result<()>
 where
-	F: Fn(String, ActorId) + Send + Sync + 'static,
+	F: Fn(String, ActorId) -> std::pin::Pin<Box<dyn Future<Output = ()> + Send>>
+		+ Send
+		+ Sync
+		+ 'static,
 {
 	let host = host()?;
 	let handler = Box::new(handler);

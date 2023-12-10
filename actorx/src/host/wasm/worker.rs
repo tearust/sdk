@@ -158,7 +158,7 @@ impl WorkerProcess {
 				else => continue,
 			};
 			let handler = handler.read().await;
-			handler(content, actor.clone());
+			handler(content, actor.clone()).await;
 		}
 	}
 
