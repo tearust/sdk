@@ -75,9 +75,24 @@ pub async fn tappstore_id() -> Result<TokenId> {
 	Ok(TokenId::from_hex(tappstore_id.0)?)
 }
 
+#[cfg(feature = "__test")]
+#[mockable]
+pub async fn tappstore_id() -> Result<TokenId> {
+	use tea_runtime_codec::tapp::MOCK_TOKEN_ID_TAPPSTORE;
+
+	Ok(MOCK_TOKEN_ID_TAPPSTORE)
+}
+
+#[cfg(not(feature = "__test"))]
 pub async fn usdt_id() -> Result<TokenId> {
 	let usdt_id = ActorId::Static(NAME).call(GetUsdtAddressRequest).await?;
 	Ok(TokenId::from_hex(usdt_id.0)?)
+}
+
+#[cfg(feature = "__test")]
+#[mockable]
+pub async fn usdt_id() -> Result<TokenId> {
+	Ok(TokenId(primitive_types::H160([11; 20])))
 }
 
 pub async fn is_mainnet() -> Result<bool> {
@@ -88,14 +103,6 @@ pub async fn is_mainnet() -> Result<bool> {
 pub async fn genesis_network() -> Result<String> {
 	let res = ActorId::Static(NAME).call(GetNetworkRequest).await?;
 	Ok(res.0)
-}
-
-#[cfg(feature = "__test")]
-#[mockable]
-pub async fn tappstore_id() -> Result<TokenId> {
-	use tea_runtime_codec::tapp::MOCK_TOKEN_ID_TAPPSTORE;
-
-	Ok(MOCK_TOKEN_ID_TAPPSTORE)
 }
 
 #[cfg(feature = "__test")]
