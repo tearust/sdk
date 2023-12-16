@@ -1,3 +1,4 @@
+use crate::tokenstate_service::UpgradeVersion;
 use serde::{Deserialize, Serialize};
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
@@ -228,7 +229,7 @@ pub struct ExecTxnRequest(
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct ExecTxnResponse(pub Vec<u8>);
+pub struct ExecTxnResponse(pub Vec<u8>, pub Option<UpgradeVersion>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
