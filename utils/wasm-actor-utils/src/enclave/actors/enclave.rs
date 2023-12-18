@@ -1,9 +1,10 @@
+use super::crypto::{aes_decrypt, aes_encrypt};
 use crate::enclave::error::{Errors, Result};
+#[cfg(feature = "__test")]
+use mocktopus::macros::mockable;
 use tea_actorx::ActorId;
 use tea_sdk::ResultExt;
 use tea_system_actors::nitro::*;
-
-use super::crypto::{aes_decrypt, aes_encrypt};
 
 /// Return current node's tea_id
 pub async fn get_my_tea_id() -> Result<Vec<u8>> {
@@ -59,6 +60,7 @@ pub async fn generate_random(len: u32) -> Result<Vec<u8>> {
 }
 
 #[doc(hidden)]
+#[cfg(not(feature = "__test"))]
 pub async fn verify_peer(
 	doc_request: AttestationDocRequest,
 	conn_id: &str,
@@ -77,6 +79,16 @@ pub async fn verify_peer(
 		})
 		.await?;
 	Ok(res.0)
+}
+
+#[cfg(feature = "__test")]
+#[mockable]
+pub async fn verify_peer(
+	_doc_request: AttestationDocRequest,
+	_conn_id: &str,
+	_is_seat: bool,
+) -> Result<bool> {
+	Ok(true)
 }
 
 #[doc(hidden)]

@@ -3,6 +3,8 @@ use super::{
 	replica::{random_select_validators_locally, IntelliSendMode},
 };
 use crate::enclave::error::{Error, Errors, Result};
+#[cfg(feature = "__test")]
+use mocktopus::macros::mockable;
 use prost::Message;
 use std::collections::HashSet;
 use tea_actorx::ActorId;
@@ -25,12 +27,19 @@ use tea_system_actors::libp2p::{
 
 const INTELLI_CANDIDATES_COUNT: usize = 2;
 
+#[cfg(not(feature = "__test"))]
 /// Return current node's connection id
 pub async fn my_conn_id() -> Result<String> {
 	let conn_id = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(MyConnIdRequest)
 		.await?;
 	Ok(conn_id.0)
+}
+
+#[cfg(feature = "__test")]
+#[mockable]
+pub async fn my_conn_id() -> Result<String> {
+	Ok("test-conn-id".to_string())
 }
 
 #[doc(hidden)]

@@ -12,6 +12,8 @@ use crate::enclave::{
 	},
 	error::{Error, Errors, ProviderOperationRejected, Result},
 };
+#[cfg(feature = "__test")]
+use mocktopus::macros::mockable;
 use prost::Message;
 use std::collections::HashSet;
 use tea_actorx::ActorId;
@@ -257,6 +259,13 @@ pub async fn get_exec_cursor() -> Result<Option<Tsid>> {
 	Ok(tsid.0)
 }
 
+#[cfg(feature = "__test")]
+#[mockable]
+pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, String)>>> {
+	Ok(None)
+}
+
+#[cfg(not(feature = "__test"))]
 #[doc(hidden)]
 pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, String)>>> {
 	let msg = ActorId::Static(tea_system_actors::replica_service::NAME)
