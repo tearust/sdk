@@ -56,7 +56,7 @@ where
 impl<T> const Deref for Soo<T>
 where
 	T: ToOwned + ?Sized + 'static,
-	T::Owned: ~const Borrow<T>,
+	T::Owned: Borrow<T>,
 {
 	type Target = T;
 
@@ -71,7 +71,7 @@ where
 impl<T> const AsRef<T> for Soo<T>
 where
 	T: ToOwned + ?Sized + 'static,
-	T::Owned: ~const Borrow<T>,
+	T::Owned: Borrow<T>,
 {
 	fn as_ref(&self) -> &T {
 		self
@@ -81,7 +81,7 @@ where
 impl<T> const Borrow<T> for Soo<T>
 where
 	T: ToOwned + ?Sized + 'static,
-	T::Owned: ~const Borrow<T>,
+	T::Owned: Borrow<T>,
 {
 	fn borrow(&self) -> &T {
 		self
@@ -90,9 +90,9 @@ where
 
 impl<T, Rhs, V> const PartialEq<Rhs> for Soo<T>
 where
-	T: ToOwned + ?Sized + ~const PartialEq<V> + 'static,
-	T::Owned: ~const Borrow<T>,
-	Rhs: ~const Deref<Target = V> + ?Sized,
+	T: ToOwned + ?Sized + PartialEq<V> + 'static,
+	T::Owned: Borrow<T>,
+	Rhs: Deref<Target = V> + ?Sized,
 	V: ?Sized,
 {
 	default fn eq(&self, other: &Rhs) -> bool {
@@ -104,9 +104,9 @@ impl<T> Eq for Soo<T> where T: ToOwned + ?Sized + Eq + 'static {}
 
 impl<T, Rhs, V> const PartialOrd<Rhs> for Soo<T>
 where
-	T: ToOwned + ?Sized + ~const PartialOrd<V> + 'static,
-	T::Owned: ~const Borrow<T>,
-	Rhs: ~const Deref<Target = V> + ?Sized,
+	T: ToOwned + ?Sized + PartialOrd<V> + 'static,
+	T::Owned: Borrow<T>,
+	Rhs: Deref<Target = V> + ?Sized,
 	V: ?Sized,
 {
 	fn partial_cmp(&self, other: &Rhs) -> Option<std::cmp::Ordering> {
@@ -117,7 +117,7 @@ where
 impl<T> Ord for Soo<T>
 where
 	T: ToOwned + ?Sized + Ord + 'static,
-	T::Owned: ~const Borrow<T>,
+	T::Owned: Borrow<T>,
 {
 	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
 		self.as_ref().cmp(other)

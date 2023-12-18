@@ -1,5 +1,3 @@
-#![feature(drain_filter)]
-
 use proc_macro::TokenStream;
 mod errorx;
 mod handle;

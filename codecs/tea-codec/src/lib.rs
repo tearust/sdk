@@ -27,6 +27,7 @@
 #![feature(adt_const_params)]
 #![feature(generic_const_exprs)]
 #![feature(associated_type_bounds)]
+#![feature(impl_trait_in_assoc_type)]
 
 extern crate self as tea_sdk;
 
