@@ -48,6 +48,7 @@ members = [
     "utils/*",
     "actorx",
     "actorx/examples/*",
+    "tests/*",
 ]
 
 [features]

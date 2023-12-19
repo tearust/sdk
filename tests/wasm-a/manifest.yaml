@@ -1,0 +1,5 @@
+actor_id: wasm-a-actor
+owner_id: com.tea
+token_id: 0000000000000000000000000000000000000000
+access:
+  - com.tea.time-actor

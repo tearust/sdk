@@ -1,0 +1,26 @@
+[package]
+name = "test-examples-host"
+version = { workspace = true }
+edition = { workspace = true }
+description = { workspace = true }
+authors = { workspace = true }
+license-file = { workspace = true }
+keywords = { workspace = true }
+categories = { workspace = true }
+homepage = { workspace = true }
+repository = { workspace = true }
+publish = false
+
+[dependencies]
+tea-sdk = { path = "../..", features = ["host"] }
+test-examples-codec = { path = "../codec" }
+tokio = { workspace = true, features = ["full"] }
+tea-actorx = { path = "../../actorx", features = ["nitro"] }
+tracing-subscriber = { workspace = true }
+
+[build-dependencies]
+tea-sdk = { path = "../..", features = ["sign"] }
+
+[features]
+timeout = ["tea-sdk/timeout"]
+__test = ["tea-sdk/__test", "tea-actorx/__test"]

@@ -3072,6 +3072,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "test-examples-codec"
+version = "0.3.0-dev.7"
+dependencies = [
+ "serde",
+ "tea-sdk",
+]
+
+[[package]]
+name = "test-examples-host"
+version = "0.3.0-dev.7"
+dependencies = [
+ "tea-actorx",
+ "tea-sdk",
+ "test-examples-codec",
+ "tokio",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "textwrap"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3411,6 +3430,24 @@ name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
+
+[[package]]
+name = "wasm-a-actor"
+version = "0.3.0-dev.7"
+dependencies = [
+ "tea-sdk",
+ "test-examples-codec",
+ "tokio",
+]
+
+[[package]]
+name = "wasm-b-actor"
+version = "0.3.0-dev.7"
+dependencies = [
+ "tea-sdk",
+ "test-examples-codec",
+ "tokio",
+]
 
 [[package]]
 name = "wasm-bindgen"
