@@ -9,10 +9,7 @@ use error::Result;
 use tea_actorx_examples_codec::{
 	AddRequest, AddResponse, FactorialRequest, FactorialResponse, GreetingsRequest, WASM_ID,
 };
-use tea_sdk::{
-	actorx::{get_gas, set_gas, ActorExt, WasmActor, WithActorHost},
-	timeout_retry_worker,
-};
+use tea_sdk::actorx::{get_gas, set_gas, ActorExt, WasmActor, WithActorHost};
 #[cfg(feature = "timeout")]
 use ::{std::time::Duration, tea_sdk::actorx::context::tracker};
 
@@ -28,7 +25,8 @@ async fn init() -> Result<()> {
 			env!("OUT_DIR"),
 			"/wasm32-unknown-unknown/release/tea_actorx_examples_actor.wasm"
 		)),
-		1,
+		5,
+		false,
 	)
 	.await?
 	.register()

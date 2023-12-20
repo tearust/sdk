@@ -45,6 +45,7 @@ pub struct Host {
 	metadata: Arc<Metadata>,
 	states: Arc<RwLock<StateArray>>,
 	instance_count: u8,
+	auto_increase: bool,
 	compiled_path: String,
 }
 
@@ -70,7 +71,7 @@ impl State {
 }
 
 impl Host {
-	pub async fn new(source: Vec<u8>, instance_count: u8) -> Result<Self> {
+	pub async fn new(source: Vec<u8>, instance_count: u8, auto_increase: bool) -> Result<Self> {
 		let metadata = Arc::new(verify(&source)?);
 		let mut hasher = DefaultHasher::new();
 		source.hash(&mut hasher);
@@ -82,6 +83,7 @@ impl Host {
 			states: Arc::new(RwLock::new(StateArray { states: vec![] })),
 			instance_count,
 			compiled_path,
+			auto_increase,
 		};
 
 		result.create_instances(source).await?;
@@ -90,6 +92,14 @@ impl Host {
 
 	pub fn metadata(&self) -> Arc<Metadata> {
 		self.metadata.clone()
+	}
+
+	pub fn compiled_path(&self) -> &str {
+		&self.compiled_path
+	}
+
+	pub fn auto_increase(&self) -> bool {
+		self.auto_increase
 	}
 
 	pub(crate) fn states(&self) -> Arc<RwLock<StateArray>> {
@@ -102,7 +112,7 @@ impl Host {
 
 		let (first_module, first_store, module_bytes): (Module, Store, Arc<[u8]>) =
 			if Path::new(&self.compiled_path).exists() {
-				let bytes = self.read_module_cache().await?;
+				let bytes = read_module_cache(&self.compiled_path).await?;
 				let s = create_store();
 				let m = Module::deserialize_checked(&s, &bytes)?;
 				(m, s, bytes.into())
@@ -154,13 +164,6 @@ impl Host {
 		let module = Module::new(&store, source)?;
 		let bytes = module.serialize()?.into();
 		Ok((module, store, bytes))
-	}
-
-	pub(crate) async fn instance_from_cache(&self) -> Result<State> {
-		let module_bytes = self.read_module_cache().await?;
-		let store = create_store();
-		let module = Module::deserialize_checked(&store, &module_bytes)?;
-		Self::new_state(self.metadata.clone(), module, store).await
 	}
 
 	async fn state_from_proto(
@@ -259,18 +262,16 @@ impl Host {
 			}
 		});
 	}
-
-	async fn read_module_cache(&self) -> Result<Vec<u8>> {
-		let mut file = fs::OpenOptions::new()
-			.read(true)
-			.open(&self.compiled_path)
-			.await?;
-		let wasm = read_var_bytes(&mut file).await?;
-		Ok(wasm)
-	}
 }
 
-pub(crate) async fn get_instance(states: &Arc<RwLock<StateArray>>) -> SharedState {
+pub(crate) async fn get_instance(
+	states: &Arc<RwLock<StateArray>>,
+	auto_increase: bool,
+	compiled_path: &str,
+	metadata: Arc<Metadata>,
+) -> SharedState {
+	let mut increased_new = false;
+
 	loop {
 		if let Ok(states) = states.try_read() {
 			if let Some(i) = states.idle_instance().await {
@@ -281,8 +282,50 @@ pub(crate) async fn get_instance(states: &Arc<RwLock<StateArray>>) -> SharedStat
 			}
 		}
 
+		if auto_increase && !increased_new {
+			let states_cp = states.clone();
+			let compiled_path = compiled_path.to_string();
+			let metadata = metadata.clone();
+			tokio::spawn(async move {
+				let state = instance_from_cache(&compiled_path, metadata).await;
+				if let Ok(state) = state {
+					let mut states = states_cp.write().await;
+					states.states.push(Arc::new(RwLock::new(state)));
+				}
+			});
+			increased_new = true;
+		}
+
 		tokio::time::sleep(Duration::from_millis(1)).await;
 	}
+}
+
+pub(crate) async fn instance_from_cache(
+	compiled_path: &str,
+	metadata: Arc<Metadata>,
+) -> Result<State> {
+	let now = Instant::now();
+	let module_bytes = read_module_cache(compiled_path).await?;
+	let store = create_store();
+	let module = Module::deserialize_checked(&store, &module_bytes)?;
+	let actor_id = metadata.id.clone();
+	let state = Host::new_state(metadata, module, store).await;
+
+	println!(
+		r#"create instance from cache about {} takes: {:?}"#,
+		actor_id,
+		now.elapsed(),
+	);
+	state
+}
+
+async fn read_module_cache(compiled_path: &str) -> Result<Vec<u8>> {
+	let mut file = fs::OpenOptions::new()
+		.read(true)
+		.open(compiled_path)
+		.await?;
+	let wasm = read_var_bytes(&mut file).await?;
+	Ok(wasm)
 }
 
 fn create_store() -> Store {
@@ -389,7 +432,7 @@ fn wasm_bindgen_polyfill(store: &mut Store, imports: &mut Imports) {
 
 impl StateArray {
 	pub(crate) async fn idle_instance(&self) -> Option<&SharedState> {
-		for (i, item) in self.states.iter().enumerate() {
+		for item in self.states.iter() {
 			if let Ok(try_item) = item.try_read() {
 				if try_item.idle {
 					return Some(item);

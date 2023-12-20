@@ -9,7 +9,7 @@ use tokio::sync::oneshot::channel;
 #[tokio::test]
 async fn waiting_for_instance_works() -> Result<()> {
 	async {
-		init(2, 1).await?;
+		init(2, false, 1, false).await?;
 		set_gas();
 
 		let FactorialResponse(r) = WASM_A.call(FactorialRequest(3)).await?;
@@ -39,6 +39,24 @@ async fn waiting_for_instance_works() -> Result<()> {
 		if let Err(e) = r {
 			assert_eq!(e.name(), tea_actorx::error::ActorX::ChannelReceivingTimeout);
 		}
+
+		Ok(())
+	}
+	.with_actor_host()
+	.await
+}
+
+#[tokio::test]
+async fn auto_increase_works() -> Result<()> {
+	async {
+		init(1, true, 1, false).await?;
+		set_gas();
+
+		let FactorialResponse(r) = WASM_A.call(FactorialRequest(3)).await?; // auto increase to 2
+		assert_eq!(r, 6);
+
+		let FactorialResponse(r) = WASM_A.call(FactorialRequest(5)).await?; // auto increase to 4
+		assert_eq!(r, 120);
 
 		Ok(())
 	}

@@ -19,7 +19,7 @@ use ::{std::time::Duration, tea_sdk::actorx::context::tracker};
 static LOG_INIT: Once = Once::new();
 
 #[allow(dead_code)]
-async fn init(instance_a: u8, instance_b: u8) -> Result<()> {
+async fn init(instance_a: u8, auto_a: bool, instance_b: u8, auto_b: bool) -> Result<()> {
 	LOG_INIT.call_once(|| {
 		tracing_subscriber::fmt().init();
 	});
@@ -30,6 +30,7 @@ async fn init(instance_a: u8, instance_b: u8) -> Result<()> {
 			"/wasm32-unknown-unknown/release/wasm_a_actor.wasm"
 		)),
 		instance_a,
+		auto_a,
 	)
 	.await?
 	.register()
@@ -41,6 +42,7 @@ async fn init(instance_a: u8, instance_b: u8) -> Result<()> {
 			"/wasm32-unknown-unknown/release/wasm_b_actor.wasm"
 		)),
 		instance_b,
+		auto_b,
 	)
 	.await?
 	.register()
@@ -67,7 +69,7 @@ mod tests {
 	#[tokio::test]
 	async fn basic_test() -> Result<()> {
 		async {
-			init(5, 1).await?;
+			init(5, false, 1, false).await?;
 			set_gas();
 
 			WASM_A.call(GreetingsRequest("Alice".to_string())).await?;

@@ -42,20 +42,26 @@ const MAX_COUNT: usize = 128;
 const CACHE_COUNT: usize = 100;
 
 impl WasmActor {
-	pub async fn new(wasm_path: &str, instance_count: u8) -> Result<Self> {
+	pub async fn new(wasm_path: &str, instance_count: u8, auto_increase: bool) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_path.len() + size_of::<u64>() + 1);
 		source.push(0);
 		source.push(instance_count);
+		source.push(if auto_increase { 1 } else { 0 });
 		source.extend_from_slice(&(wasm_path.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_path.as_bytes());
 		info!("begin of load {wasm_path}");
 		Self::new_source(source, instance_count).await
 	}
 
-	pub async fn from_binary(wasm_binary: &[u8], instance_count: u8) -> Result<Self> {
+	pub async fn from_binary(
+		wasm_binary: &[u8],
+		instance_count: u8,
+		auto_increase: bool,
+	) -> Result<Self> {
 		let mut source = Vec::with_capacity(wasm_binary.len() + size_of::<u64>() + 1);
 		source.push(1);
 		source.push(instance_count);
+		source.push(if auto_increase { 1 } else { 0 });
 		source.extend_from_slice(&(wasm_binary.len() as u64).to_le_bytes());
 		source.extend_from_slice(wasm_binary);
 		Self::new_source(source, instance_count).await

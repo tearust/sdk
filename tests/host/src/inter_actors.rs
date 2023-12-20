@@ -5,7 +5,7 @@ use test_examples_codec::wasm_a::{WASM_ID as WASM_A, *};
 #[tokio::test]
 async fn ping_pong_1_time_works() -> Result<()> {
 	async {
-		init(1, 1).await?;
+		init(1, false, 1, false).await?;
 		set_gas();
 
 		let r = WASM_A
@@ -24,7 +24,7 @@ async fn ping_pong_1_time_works() -> Result<()> {
 #[tokio::test]
 async fn ping_pong_2_times_works() -> Result<()> {
 	async {
-		init(2, 2).await?;
+		init(2, false, 2, false).await?;
 		set_gas();
 
 		let r = WASM_A

@@ -30,7 +30,7 @@ use crate::{
 	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
 	worker::{
 		error::Result,
-		wasm::{get_instance, Host},
+		wasm::{get_instance, instance_from_cache, Host},
 	},
 };
 
@@ -47,13 +47,14 @@ impl Worker {
 	pub async fn init(mut socket: UnixStream) -> Result<Arc<Self>> {
 		let is_path = socket.read_u8().await?;
 		let instance_count = socket.read_u8().await?;
+		let auto_increase = socket.read_u8().await? == 1;
 		let host = if is_path == 0 {
 			let path = String::from_utf8(read_var_bytes(&mut socket).await?)?;
 			let wasm = tokio::fs::read(path).await?;
-			Host::new(wasm, instance_count).await
+			Host::new(wasm, instance_count, auto_increase).await
 		} else {
 			let wasm = read_var_bytes(&mut socket).await?;
-			Host::new(wasm, instance_count).await
+			Host::new(wasm, instance_count, auto_increase).await
 		};
 		let (host, metadata) = match host {
 			Ok(host) => {
@@ -109,9 +110,12 @@ impl Worker {
 	async fn process_new(self: &Arc<Self>, cid: u64, gas: u64, rx: Receiver<(Operation, u64)>) {
 		let states = self.host.states();
 		let slf = self.clone();
+		let auto_increase = self.host.auto_increase();
+		let compiled_path = self.host.compiled_path().to_string();
+		let metadata = self.host.metadata().clone();
 
 		tokio::spawn(async move {
-			let state = get_instance(&states).await;
+			let state = get_instance(&states, auto_increase, &compiled_path, metadata).await;
 			let channel = slf.clone().channel(cid, state.clone(), rx);
 			if let Err(e) = channel.await {
 				let mut write = slf.write.lock().await;
@@ -175,7 +179,9 @@ impl Worker {
 					Ok(r) => r,
 					Err(e) => {
 						println!("Worker channel fails due to {e:?}, restarting...");
-						let mut new_state = self.host.instance_from_cache().await?;
+						let mut new_state =
+							instance_from_cache(self.host.compiled_path(), self.host.metadata())
+								.await?;
 						let result = new_state.instance().invoke(operation, Some(&mut gas))?;
 						*state_write = new_state;
 						result
