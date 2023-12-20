@@ -28,7 +28,10 @@ use tokio::{
 use crate::core::actor::ActorId;
 use crate::{
 	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
-	worker::{error::Result, wasm::Host},
+	worker::{
+		error::Result,
+		wasm::{get_instance, Host},
+	},
 };
 
 use self::wasm::SharedState;
@@ -80,36 +83,20 @@ impl Worker {
 			match Operation::read(read, code).await? {
 				Ok((operation, cid, gas)) => {
 					let mut channels = self.channels.lock().await;
-					let channel = match channels.entry(cid) {
-						Entry::Occupied(entry) => entry.into_mut(),
+					let (channel, is_new, rx) = match channels.entry(cid) {
+						Entry::Occupied(entry) => (entry.into_mut().clone(), false, None),
 						Entry::Vacant(entry) => {
 							let (tx, rx) = unbounded_channel();
-							let tx = entry.insert(tx);
-							let state = self.host.get_instance().await;
-							let channel = self.clone().channel(cid, state.clone(), rx);
-							let slf = self.clone();
-							tokio::spawn(async move {
-								if let Err(e) = channel.await {
-									let mut write = slf.write.lock().await;
-									let writing = match (Operation::ReturnErr { error: e.into() }
-										.write(&mut *write, cid, gas)
-										.await)
-									{
-										Ok(_) => write.flush().await.err_into(),
-										e => e,
-									};
-									if let Err(e2) = writing {
-										println!("Worker channel {cid} fails, but the error is unable to report due to {e2:?}");
-									}
-								}
-								slf.channels.lock().await.remove(&cid);
-								state.write().await.reset_idle();
-							});
-							tx
+							entry.insert(tx.clone());
+							(tx, true, Some(rx))
 						}
-					}
-					.clone();
+					};
 					drop(channels);
+
+					if is_new {
+						self.process_new(cid, gas, rx.expect("channel rx")).await;
+					}
+
 					channel
 						.send((operation, gas))
 						.expect("Actor runtime internal error: worker channel exited");
@@ -117,6 +104,31 @@ impl Worker {
 				Err(i) => unreachable!("Malformed operation {i}"),
 			}
 		}
+	}
+
+	async fn process_new(self: &Arc<Self>, cid: u64, gas: u64, rx: Receiver<(Operation, u64)>) {
+		let states = self.host.states();
+		let slf = self.clone();
+
+		tokio::spawn(async move {
+			let state = get_instance(&states).await;
+			let channel = slf.clone().channel(cid, state.clone(), rx);
+			if let Err(e) = channel.await {
+				let mut write = slf.write.lock().await;
+				let res = Operation::ReturnErr { error: e.into() }
+					.write(&mut *write, cid, gas)
+					.await;
+				let writing = match res {
+					Ok(_) => write.flush().await.err_into(),
+					e => e,
+				};
+				if let Err(e2) = writing {
+					println!("Worker channel {cid} fails, but the error is unable to report due to {e2:?}");
+				}
+			}
+			slf.channels.lock().await.remove(&cid);
+			state.write().await.reset_idle();
+		});
 	}
 
 	#[cfg(feature = "verbose_log")]

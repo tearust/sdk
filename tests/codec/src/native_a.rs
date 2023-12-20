@@ -8,3 +8,7 @@ pub struct GetSystemTimeRequest;
 
 #[derive(Serialize, Deserialize, TypeId)]
 pub struct GetSystemTimeResponse(pub u128);
+
+#[derive(Serialize, Deserialize, TypeId)]
+#[response(())]
+pub struct WaitingForRequest(pub u64);

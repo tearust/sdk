@@ -348,8 +348,9 @@ impl Channel {
 		operation.write(&mut *write, self.id, get_gas()).await?;
 		write.flush().await?;
 		drop(write);
+
 		let Some((result, gas)) = 
-			self.rx.recv().timeout(15000, "invocation").await.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))? 
+			self.rx.recv().timeout(invoke_timeout_ms(), "invocation").await.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))? 
 		 else {
 			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());
 		};
@@ -372,3 +373,9 @@ impl Drop for WorkerProcess {
 		});
 	}
 }
+
+#[cfg(not(feature = "__test"))]
+pub fn invoke_timeout_ms() -> u64 { 15000 }
+#[cfg(feature = "__test")]
+#[mocktopus::macros::mockable]
+pub fn invoke_timeout_ms() -> u64 { 100 }

@@ -27,6 +27,7 @@ strum = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 primitive-types = { workspace = true }
+mocktopus = { workspace = true }
 
 tokio = { workspace = true, features = [
     "rt",

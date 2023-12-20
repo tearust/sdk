@@ -38,7 +38,6 @@ async fn init() -> Result<()> {
 	Ok(())
 }
 
-#[timeout_retry_worker(9000)]
 async fn run() -> Result<()> {
 	init().await?;
 

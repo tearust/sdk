@@ -8,8 +8,9 @@ use tea_sdk::{
 	serde::handle::handles,
 };
 use test_examples_codec::{
-	native_a::{GetSystemTimeRequest, GetSystemTimeResponse, NATIVE_ID},
+	native_a::{GetSystemTimeRequest, GetSystemTimeResponse, WaitingForRequest, NATIVE_ID},
 	wasm_a::*,
+	WasmSleep,
 };
 
 pub mod error;
@@ -47,5 +48,10 @@ impl Actor {
 		} else {
 			arg * WASM_ID.call(FactorialRequest(arg - 1)).await?.0
 		}))
+	}
+
+	async fn handle(&self, WasmSleep(ms): WasmSleep) -> Result<()> {
+		NATIVE_ID.call(WaitingForRequest(ms)).await?;
+		Ok(())
 	}
 }

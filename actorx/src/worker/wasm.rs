@@ -92,6 +92,10 @@ impl Host {
 		self.metadata.clone()
 	}
 
+	pub(crate) fn states(&self) -> Arc<RwLock<StateArray>> {
+		self.states.clone()
+	}
+
 	pub(crate) async fn create_instances(&self, source: Vec<u8>) -> Result<()> {
 		let now = Instant::now();
 		let source: Arc<[u8]> = source.into();
@@ -234,20 +238,6 @@ impl Host {
 		Ok(instance)
 	}
 
-	pub(crate) async fn get_instance(&self) -> SharedState {
-		loop {
-			let states = self.states.read().await;
-			if let Some(i) = states.idle_instance().await {
-				let s = i.clone();
-				s.write().await.idle = false;
-				return s;
-			}
-			drop(states);
-
-			tokio::time::sleep(Duration::from_millis(1)).await;
-		}
-	}
-
 	pub fn write_module_cache(compiled_path: String, module_bytes: Arc<[u8]>) {
 		tokio::spawn(async move {
 			if let Err(e) = async {
@@ -277,6 +267,21 @@ impl Host {
 			.await?;
 		let wasm = read_var_bytes(&mut file).await?;
 		Ok(wasm)
+	}
+}
+
+pub(crate) async fn get_instance(states: &Arc<RwLock<StateArray>>) -> SharedState {
+	loop {
+		if let Ok(states) = states.try_read() {
+			if let Some(i) = states.idle_instance().await {
+				let s = i.clone();
+				s.write().await.idle = false;
+				drop(states);
+				return s;
+			}
+		}
+
+		tokio::time::sleep(Duration::from_millis(1)).await;
 	}
 }
 
@@ -384,9 +389,11 @@ fn wasm_bindgen_polyfill(store: &mut Store, imports: &mut Imports) {
 
 impl StateArray {
 	pub(crate) async fn idle_instance(&self) -> Option<&SharedState> {
-		for item in self.states.iter() {
-			if item.read().await.idle {
-				return Some(item);
+		for (i, item) in self.states.iter().enumerate() {
+			if let Ok(try_item) = item.try_read() {
+				if try_item.idle {
+					return Some(item);
+				}
 			}
 		}
 		None

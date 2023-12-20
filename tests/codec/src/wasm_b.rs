@@ -14,3 +14,14 @@ pub struct SubRequest(pub u32, pub u32);
 
 #[derive(Serialize, Deserialize, TypeId)]
 pub struct SubResponse(pub u32);
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct PongRequest {
+	pub left_count: u32,
+	pub sleep_ms: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct PongResponse {
+	pub total_ticks: u32,
+}

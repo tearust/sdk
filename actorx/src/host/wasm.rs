@@ -183,7 +183,7 @@ impl Actor for WasmActor {
 			loop {
 				result = match result {
 					Operation::Call { ctx, req } => {
-						Self::host_call(&mut channel, &metadata, ctx, req).await?
+						Self::inner_call(&mut channel, &metadata, ctx, req).await?
 					}
 
 					Operation::ReturnOk { resp } => {
@@ -232,7 +232,7 @@ impl Actor for WasmActor {
 
 impl WasmActor {
 	#[inline(always)]
-	async fn host_call(
+	async fn inner_call(
 		channel: &mut Channel,
 		metadata: &Metadata,
 		ctx: Vec<u8>,

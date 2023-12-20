@@ -5,6 +5,9 @@
 pub mod error;
 mod time_actor;
 
+#[cfg(all(test, feature = "__test"))]
+mod timeout;
+
 use error::Result;
 use tea_sdk::actorx::{ActorExt, WasmActor};
 #[cfg(feature = "timeout")]

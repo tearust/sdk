@@ -7,7 +7,11 @@ use tea_sdk::{
 	actorx::{actor, hooks::Activate, println, ActorId, HandlerActor},
 	serde::handle::handles,
 };
-use test_examples_codec::wasm_b::*;
+use test_examples_codec::{
+	native_a::{WaitingForRequest, NATIVE_ID},
+	wasm_b::*,
+	WasmSleep,
+};
 
 pub mod error;
 
@@ -38,5 +42,10 @@ impl Actor {
 
 	async fn handle(&self, SubRequest(lhs, rhs): _) -> Result<_> {
 		Ok(SubResponse(lhs - rhs))
+	}
+
+	async fn handle(&self, WasmSleep(ms): WasmSleep) -> Result<()> {
+		NATIVE_ID.call(WaitingForRequest(ms)).await?;
+		Ok(())
 	}
 }

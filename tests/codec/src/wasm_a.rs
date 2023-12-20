@@ -12,3 +12,14 @@ pub struct FactorialRequest(pub u64);
 
 #[derive(Serialize, Deserialize, TypeId)]
 pub struct FactorialResponse(pub u64);
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct PingRequest {
+	pub left_count: u32,
+	pub sleep_ms: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct PingResponse {
+	pub total_ticks: u32,
+}
