@@ -1,4 +1,4 @@
-use crate::{init, Result};
+use crate::{init, set_gas, Result};
 use tea_sdk::actorx::WithActorHost;
 use test_examples_codec::{
 	wasm_a::{WASM_ID as WASM_A, *},
@@ -8,7 +8,6 @@ use tokio::sync::oneshot::channel;
 
 #[tokio::test]
 async fn waiting_for_instance_works() -> Result<()> {
-	tracing_subscriber::fmt().init();
 	async {
 		init(2, 1).await?;
 		set_gas();
@@ -31,7 +30,7 @@ async fn waiting_for_instance_works() -> Result<()> {
 		tea_sdk::actorx::spawn(async move {
 			set_gas();
 			// sleep 200 mill-seconds that is longer than the invoke timeout of 100 mill-seconds
-			WASM_A.call(WasmSleep(200)).await.unwrap();
+			WASM_A.call(WasmSleep(2000)).await.unwrap();
 			tx.send(()).unwrap();
 		});
 		let r = WASM_A.call(FactorialRequest(3)).await;
@@ -45,8 +44,4 @@ async fn waiting_for_instance_works() -> Result<()> {
 	}
 	.with_actor_host()
 	.await
-}
-
-fn set_gas() {
-	tea_sdk::actorx::set_gas(1000000);
 }

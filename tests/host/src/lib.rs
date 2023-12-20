@@ -6,15 +6,24 @@ pub mod error;
 mod time_actor;
 
 #[cfg(all(test, feature = "__test"))]
+mod inter_actors;
+#[cfg(all(test, feature = "__test"))]
 mod timeout;
 
 use error::Result;
+use std::sync::Once;
 use tea_sdk::actorx::{ActorExt, WasmActor};
 #[cfg(feature = "timeout")]
 use ::{std::time::Duration, tea_sdk::actorx::context::tracker};
 
+static LOG_INIT: Once = Once::new();
+
 #[allow(dead_code)]
 async fn init(instance_a: u8, instance_b: u8) -> Result<()> {
+	LOG_INIT.call_once(|| {
+		tracing_subscriber::fmt().init();
+	});
+
 	WasmActor::from_binary(
 		include_bytes!(concat!(
 			env!("OUT_DIR"),
@@ -41,10 +50,15 @@ async fn init(instance_a: u8, instance_b: u8) -> Result<()> {
 	Ok(())
 }
 
+#[allow(dead_code)]
+fn set_gas() {
+	tea_sdk::actorx::set_gas(1000000);
+}
+
 #[cfg(all(test, feature = "__test"))]
 mod tests {
 	use super::*;
-	use tea_sdk::actorx::{set_gas, WithActorHost};
+	use tea_sdk::actorx::WithActorHost;
 	use test_examples_codec::{
 		wasm_a::{WASM_ID as WASM_A, *},
 		wasm_b::{WASM_ID as WASM_B, *},
@@ -52,10 +66,9 @@ mod tests {
 
 	#[tokio::test]
 	async fn basic_test() -> Result<()> {
-		tracing_subscriber::fmt().init();
 		async {
 			init(5, 1).await?;
-			set_gas(1000000);
+			set_gas();
 
 			WASM_A.call(GreetingsRequest("Alice".to_string())).await?;
 

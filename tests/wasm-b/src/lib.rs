@@ -9,6 +9,7 @@ use tea_sdk::{
 };
 use test_examples_codec::{
 	native_a::{WaitingForRequest, NATIVE_ID},
+	wasm_a::{PingRequest, PingResponse},
 	wasm_b::*,
 	WasmSleep,
 };
@@ -47,5 +48,33 @@ impl Actor {
 	async fn handle(&self, WasmSleep(ms): WasmSleep) -> Result<()> {
 		NATIVE_ID.call(WaitingForRequest(ms)).await?;
 		Ok(())
+	}
+
+	async fn handle(
+		&self,
+		PongRequest {
+			left_count,
+			sleep_ms,
+		}: PongRequest,
+	) -> Result<_> {
+		println!("PongRequest: left_count={}", left_count);
+
+		if let Some(ms) = sleep_ms {
+			NATIVE_ID.call(WaitingForRequest(ms)).await?;
+		}
+
+		if left_count == 0 {
+			Ok(PongResponse { total_ticks: 1 })
+		} else {
+			let PingResponse { total_ticks } = test_examples_codec::wasm_a::WASM_ID
+				.call(PingRequest {
+					left_count: left_count - 1,
+					sleep_ms,
+				})
+				.await?;
+			Ok(PongResponse {
+				total_ticks: total_ticks + 1,
+			})
+		}
 	}
 }

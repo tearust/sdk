@@ -132,7 +132,7 @@ impl WorkerProcess {
 			Ok(this)
 	}
 
-	#[cfg(feature = "nitro")]
+	#[cfg(all(feature = "nitro", not(feature = "__test")))]
 	fn calculate_temp_path(hash: u64) -> String {
 		use std::{hint::unreachable_unchecked, time::SystemTime};
 
@@ -142,6 +142,15 @@ impl WorkerProcess {
 		let time = time.as_millis();
 
 		format!("/tmp/tea-actorx.worker.{hash}.{time}.socket")
+	}
+
+	#[cfg(all(feature = "nitro", feature = "__test"))]
+	fn calculate_temp_path(hash: u64) -> String {
+		use rand::prelude::*;
+		let mut rng = rand::thread_rng();
+		let num: u64 = rng.gen();
+
+		format!("/tmp/tea-actorx.worker.{hash}.{num}.socket")
 	}
 
 	async fn redirect_stdout(

@@ -48,6 +48,7 @@ leb128 = { workspace = true, optional = true }
 zstd = { workspace = true, optional = true }
 sysinfo = { workspace = true, optional = true }
 tabled = { workspace = true, optional = true }
+rand = { workspace = true, optional = true }
 
 wasmer = { workspace = true, optional = true }
 wasmer-middlewares = { workspace = true, optional = true }
@@ -97,4 +98,4 @@ backtrace = ["tea-codec/backtrace"]
 llvm = ["worker", "wasmer/llvm"]
 timeout = []
 track = ["timeout"]
-__test = []
+__test = ["rand"]
