@@ -22,13 +22,7 @@ impl Actor {
 	}
 
 	async fn handle(&self, WaitingForRequest(ms): WaitingForRequest) -> Result<()> {
-		println!(
-			"Waiting for {} ms..., current time: {:?}",
-			ms,
-			SystemTime::now()
-		);
 		tokio::time::sleep(std::time::Duration::from_millis(ms)).await;
-		println!("Done waiting, current time: {:?}", SystemTime::now());
 		Ok(())
 	}
 

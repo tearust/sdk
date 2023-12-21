@@ -1,4 +1,4 @@
-use std::{mem::size_of, sync::Arc};
+use std::{mem::size_of, sync::Arc, time::Duration};
 
 use crate::core::{
 	actor::ActorId,
@@ -17,11 +17,15 @@ use crate::{
 	sdk::{actor::Actor, context::calling_stack, hooks::Deactivate},
 };
 
-use self::worker::{Channel, Worker};
+use self::{
+	predictor::VariablePredictor,
+	worker::{Channel, Worker},
+};
 
 #[cfg(feature = "__test")]
 pub use worker::invoke_timeout_ms;
 
+pub mod predictor;
 #[cfg(feature = "track")]
 pub mod tracker;
 pub mod worker;
@@ -39,10 +43,39 @@ struct State {
 	cached: Option<Result<Worker, JoinHandle<Result<Worker>>>>,
 	count: usize,
 	instance_count: u8,
+	predictor: VariablePredictor,
 }
 
 const MAX_COUNT: usize = 128;
 const CACHE_COUNT: usize = 100;
+
+impl State {
+	fn increase_tick(&mut self) {
+		self.count += 1;
+		self.predictor.record_request(self.count as u8);
+	}
+
+	fn should_reset(&self) -> bool {
+		self.count > self.predictor.total
+	}
+
+	fn should_cache(&self) -> bool {
+		if self.cached.is_some() {
+			return false;
+		}
+
+		// if the number of instances is less than 3, cache it directly
+		if self.count >= MAX_COUNT - 3 {
+			return true;
+		}
+
+		match self.predictor.predict_time_to_zero() {
+			// we assume worker cache instance will be ready in 10 seconds
+			Some(duration) => duration < Duration::from_secs(10),
+			None => false,
+		}
+	}
+}
 
 impl WasmActor {
 	pub async fn new(wasm_path: &str, instance_count: u8, auto_increase: bool) -> Result<Self> {
@@ -94,6 +127,7 @@ impl WasmActor {
 				cached: None,
 				count: 0,
 				instance_count,
+				predictor: VariablePredictor::new(MAX_COUNT, Duration::from_secs(10)),
 			}),
 			source,
 			id,
@@ -121,12 +155,12 @@ impl WasmActor {
 		};
 
 		if INC {
-			state.count += 1;
-			if state.count > MAX_COUNT {
+			state.increase_tick();
+			if state.should_reset() {
 				info!("reset worker {:?}", result.metadata().id);
 				self.new_state(&mut state);
 				state.count = 0;
-			} else if state.count > CACHE_COUNT && state.cached.is_none() {
+			} else if state.should_cache() {
 				info!("cache worker {:?}", result.metadata().id);
 				self.new_cache(&mut state);
 			}
@@ -224,7 +258,7 @@ impl Actor for WasmActor {
 		let prc = procfs::process::Process::new(pid as i32)?;
 		let process_size = prc.stat()?.rss_bytes();
 
-		// MAX_COUNT / CACHE_COUNT is the cache coefficient
+		// MAX_COUNT / CACHE_COUNT is the approximate coefficient of the number of instances
 		let total_size = process_size * MAX_COUNT as u64 / CACHE_COUNT as u64;
 		Ok(total_size)
 	}

@@ -9,6 +9,8 @@ mod time_actor;
 mod inter_actors;
 #[cfg(all(test, feature = "__test"))]
 mod timeout;
+#[cfg(all(test, feature = "__test"))]
+mod worker;
 
 use error::Result;
 use std::sync::Once;

@@ -47,9 +47,11 @@ mod export {
 	#[cfg(any(feature = "sdk", feature = "sign", feature = "worker"))]
 	pub use crate::core::metadata;
 
+	#[cfg(all(feature = "host", feature = "__test"))]
+	pub use crate::host::invoke_timeout_ms;
 	#[cfg(feature = "host")]
 	pub use crate::host::{
-		invoke_timeout_ms, set_wasm_output_handler, spawn,
+		set_wasm_output_handler, spawn,
 		sys::{dump_sys_usages, get_memory_usage},
 		ActorExt, WasmActor, WithActorHost,
 	};

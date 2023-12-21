@@ -1,6 +1,6 @@
 use crate::{init, set_gas, Result};
 use mocktopus::mocking::{MockResult, Mockable};
-use tea_actorx::{dump_sys_usages, get_memory_usage, invoke_timeout_ms};
+use tea_actorx::{dump_sys_usages, invoke_timeout_ms};
 use tea_sdk::actorx::WithActorHost;
 use test_examples_codec::{
 	wasm_a::{WASM_ID as WASM_A, *},
@@ -91,6 +91,6 @@ async fn auto_drop_instance_works() -> Result<()> {
 }
 
 fn print_memory(msg: &str) -> Result<()> {
-	println!("{}", dump_sys_usages());
+	println!("{} - {}", msg, dump_sys_usages());
 	Ok(())
 }
