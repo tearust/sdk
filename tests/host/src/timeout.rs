@@ -1,4 +1,6 @@
 use crate::{init, set_gas, Result};
+use mocktopus::mocking::{MockResult, Mockable};
+use tea_actorx::{dump_sys_usages, get_memory_usage, invoke_timeout_ms};
 use tea_sdk::actorx::WithActorHost;
 use test_examples_codec::{
 	wasm_a::{WASM_ID as WASM_A, *},
@@ -11,6 +13,9 @@ async fn waiting_for_instance_works() -> Result<()> {
 	async {
 		init(2, false, 1, false).await?;
 		set_gas();
+
+		// set invoke timeout to 100 mill-seconds
+		invoke_timeout_ms.mock_safe(|| MockResult::Return(100));
 
 		let FactorialResponse(r) = WASM_A.call(FactorialRequest(3)).await?;
 		assert_eq!(r, 6);
@@ -47,7 +52,7 @@ async fn waiting_for_instance_works() -> Result<()> {
 }
 
 #[tokio::test]
-async fn auto_increase_works() -> Result<()> {
+async fn auto_increase_instance_works() -> Result<()> {
 	async {
 		init(1, true, 1, false).await?;
 		set_gas();
@@ -62,4 +67,30 @@ async fn auto_increase_works() -> Result<()> {
 	}
 	.with_actor_host()
 	.await
+}
+
+#[tokio::test]
+async fn auto_drop_instance_works() -> Result<()> {
+	async {
+		init(1, true, 1, false).await?;
+		set_gas();
+
+		print_memory("init")?;
+
+		let FactorialResponse(r) = WASM_A.call(FactorialRequest(5)).await?; // auto increase to 4
+		assert_eq!(r, 120);
+		print_memory("after auto increase to 4")?;
+
+		WASM_A.call(WasmSleep(1100)).await.unwrap();
+		print_memory("after sleep 1100 mill-seconds")?;
+
+		Ok(())
+	}
+	.with_actor_host()
+	.await
+}
+
+fn print_memory(msg: &str) -> Result<()> {
+	println!("{}", dump_sys_usages());
+	Ok(())
 }

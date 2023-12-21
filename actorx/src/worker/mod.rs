@@ -66,6 +66,14 @@ impl Worker {
 		write_var_bytes(&mut socket, &bincode::serialize(&metadata)?).await?;
 		socket.flush().await?;
 
+		if let Ok(metadata) = metadata.as_ref() {
+			let proc_id = std::process::id();
+			println!(
+				"Worker initialized with {instance_count} instances, auto increase: {auto_increase}, actor id: {}, process id: {}",
+				metadata.id, proc_id
+			);
+		}
+
 		let host = host?;
 		let (read, write) = socket.into_split();
 		Ok(Arc::new(Self {

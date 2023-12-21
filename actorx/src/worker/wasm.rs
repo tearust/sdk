@@ -12,6 +12,7 @@ use std::{
 use crate::core::error::GasFeeExhausted;
 use crate::{
 	core::{
+		actor::ActorId,
 		metadata::Metadata,
 		wasm::{pricing, MEMORY_LIMIT},
 		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
@@ -148,6 +149,14 @@ impl Host {
 					}
 				});
 			}
+		}
+
+		if self.auto_increase {
+			tokio::spawn(auto_drop_instances(
+				self.instance_count,
+				self.metadata.id.clone(),
+				self.states.clone(),
+			));
 		}
 
 		println!(
@@ -297,6 +306,62 @@ pub(crate) async fn get_instance(
 		}
 
 		tokio::time::sleep(Duration::from_millis(1)).await;
+	}
+}
+
+pub(crate) async fn auto_drop_instances(
+	init_instance: u8,
+	actor_id: ActorId,
+	states: Arc<RwLock<StateArray>>,
+) {
+	#[cfg(not(feature = "__test"))]
+	const UNSATURATED_TIMES_THRESHOLD: u8 = 6;
+	#[cfg(feature = "__test")]
+	const UNSATURATED_TIMES_THRESHOLD: u8 = 2;
+
+	let mut unsaturated_times = 0;
+	loop {
+		if let Ok(states) = states.try_read() {
+			let mut idle_count = 0;
+
+			if states.states.len() > init_instance as usize {
+				for item in states.states.iter() {
+					if let Ok(try_item) = item.try_read() {
+						if try_item.idle {
+							idle_count += 1;
+						}
+					}
+				}
+			}
+
+			if idle_count >= 1 {
+				unsaturated_times += 1;
+			}
+		} else if unsaturated_times > 0 {
+			unsaturated_times -= 1;
+		}
+
+		if unsaturated_times > UNSATURATED_TIMES_THRESHOLD {
+			let mut states = states.write().await;
+			if let Some(i) = states.states.iter().position(|state| {
+				if let Ok(try_item) = state.try_read() {
+					try_item.idle
+				} else {
+					false
+				}
+			}) {
+				// remove the first idle instance and reset the unsaturated times
+				states.states.remove(i);
+				unsaturated_times = 0;
+
+				println!("dropped an idle instance of actor {}", actor_id);
+			}
+		}
+
+		#[cfg(not(feature = "__test"))]
+		tokio::time::sleep(Duration::from_secs(10)).await;
+		#[cfg(feature = "__test")]
+		tokio::time::sleep(Duration::from_millis(10)).await;
 	}
 }
 

@@ -17,10 +17,11 @@ test-examples-codec = { path = "../codec" }
 tokio = { workspace = true, features = ["full"] }
 tea-actorx = { path = "../../actorx", features = ["nitro"] }
 tracing-subscriber = { workspace = true }
+mocktopus = { workspace = true, optional = true }
 
 [build-dependencies]
 tea-sdk = { path = "../..", features = ["sign"] }
 
 [features]
 timeout = ["tea-sdk/timeout"]
-__test = ["tea-sdk/__test", "tea-actorx/__test"]
+__test = ["tea-sdk/__test", "tea-actorx/__test", "mocktopus"]

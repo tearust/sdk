@@ -49,7 +49,7 @@ mod export {
 
 	#[cfg(feature = "host")]
 	pub use crate::host::{
-		set_wasm_output_handler, spawn,
+		invoke_timeout_ms, set_wasm_output_handler, spawn,
 		sys::{dump_sys_usages, get_memory_usage},
 		ActorExt, WasmActor, WithActorHost,
 	};

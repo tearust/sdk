@@ -387,4 +387,4 @@ impl Drop for WorkerProcess {
 pub fn invoke_timeout_ms() -> u64 { 15000 }
 #[cfg(feature = "__test")]
 #[mocktopus::macros::mockable]
-pub fn invoke_timeout_ms() -> u64 { 100 }
+pub fn invoke_timeout_ms() -> u64 { 1000 }

@@ -19,6 +19,9 @@ use crate::{
 
 use self::worker::{Channel, Worker};
 
+#[cfg(feature = "__test")]
+pub use worker::invoke_timeout_ms;
+
 #[cfg(feature = "track")]
 pub mod tracker;
 pub mod worker;
