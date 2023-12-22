@@ -11,7 +11,7 @@
         "track",
         "metering",
         "wasmer-middlewares",
-        "__test"
+        // "__test"
     ],
     "rust-analyzer.cargo.extraEnv": {
         "RUSTFLAGS": "--cfg rust_analyzer"

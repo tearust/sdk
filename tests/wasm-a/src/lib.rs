@@ -2,8 +2,6 @@
 #![feature(async_fn_in_trait)]
 #![allow(incomplete_features)]
 
-use std::pin::Pin;
-
 use crate::error::Result;
 use tea_sdk::{
 	actorx::{actor, hooks::Activate, println, ActorId, HandlerActor},
