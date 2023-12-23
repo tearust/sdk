@@ -51,6 +51,13 @@ impl Actor {
 		}))
 	}
 
+	async fn handle(&self, MulWithWaitingRequest { lhs, rhs, sleep_ms }: _) -> Result<_> {
+		if let Some(ms) = sleep_ms {
+			NATIVE_ID.call(WaitingForRequest(ms)).await?;
+		}
+		Ok(MulWithWaitingResponse(lhs * rhs))
+	}
+
 	async fn handle(&self, WasmSleep(ms): WasmSleep) -> Result<()> {
 		NATIVE_ID.call(WaitingForRequest(ms)).await?;
 		Ok(())

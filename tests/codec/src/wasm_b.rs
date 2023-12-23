@@ -25,3 +25,23 @@ pub struct PongRequest {
 pub struct PongResponse {
 	pub total_ticks: u32,
 }
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct AddWithWaitingRequest {
+	pub lhs: u32,
+	pub rhs: u32,
+	pub sleep_ms: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct AddWithWaitingResponse(pub u32);
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct SubWithWaitingRequest {
+	pub lhs: u32,
+	pub rhs: u32,
+	pub sleep_ms: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct SubWithWaitingResponse(pub u32);

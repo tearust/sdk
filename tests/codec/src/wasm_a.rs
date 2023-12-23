@@ -23,3 +23,13 @@ pub struct PingRequest {
 pub struct PingResponse {
 	pub total_ticks: u32,
 }
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct MulWithWaitingRequest {
+	pub lhs: u32,
+	pub rhs: u32,
+	pub sleep_ms: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, TypeId)]
+pub struct MulWithWaitingResponse(pub u32);
