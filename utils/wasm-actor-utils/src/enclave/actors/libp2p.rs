@@ -21,8 +21,10 @@ use tea_runtime_codec::vmh::{
 	},
 };
 use tea_sdk::ResultExt;
+#[cfg(not(feature = "__test"))]
+use tea_system_actors::libp2p::MyConnIdRequest;
 use tea_system_actors::libp2p::{
-	HasCooldownRequest, ListPeersRequest, MyConnIdRequest, PubMessageRequest, RandomPeersRequest,
+	HasCooldownRequest, ListPeersRequest, PubMessageRequest, RandomPeersRequest,
 };
 
 const INTELLI_CANDIDATES_COUNT: usize = 2;

@@ -1,7 +1,6 @@
 use crate::enclave::error::Result;
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
-use tea_actorx::ActorId;
 use tea_codec::OptionExt;
 use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic},
@@ -9,7 +8,7 @@ use tea_runtime_codec::tapp::{
 	Account, BlockNumber,
 };
 #[cfg(not(feature = "__test"))]
-use tea_system_actors::layer1::*;
+use {tea_actorx::ActorId, tea_system_actors::layer1::*};
 
 #[cfg(feature = "__test")]
 #[mockable]
