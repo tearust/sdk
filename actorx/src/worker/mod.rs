@@ -175,15 +175,13 @@ impl Worker {
 		mut input: Receiver<(Operation, u64)>,
 	) -> Result<()> {
 		let mut first = true;
+		let mut state_write = state.write().await;
 
 		while let Some((operation, mut gas)) = input.recv().await {
-			let mut state_write = state.write().await;
-			let instance = state_write.instance();
-
 			let resp = if first {
 				first = false;
 				let op = operation.clone();
-				match instance.invoke(op, Some(&mut gas)) {
+				match state_write.instance().invoke(op, Some(&mut gas)) {
 					Ok(r) => r,
 					Err(e) => {
 						println!("Worker channel fails due to {e:?}, restarting...");
@@ -196,10 +194,13 @@ impl Worker {
 					}
 				}
 			} else {
-				instance.invoke(operation, Some(&mut gas)).map_err(|e| {
-					println!("Worker channel (cid {cid}) invoke fails due to {e:?}");
-					e
-				})?
+				state_write
+					.instance()
+					.invoke(operation, Some(&mut gas))
+					.map_err(|e| {
+						println!("Worker channel (cid {cid}) invoke fails due to {e:?}");
+						e
+					})?
 			};
 
 			let is_completed = !matches!(resp, Operation::Call { .. });
