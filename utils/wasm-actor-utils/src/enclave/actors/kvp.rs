@@ -60,6 +60,23 @@ pub async fn del(key: &str) -> Result<String> {
 	Ok(r.key)
 }
 
+pub async fn lock(key: &str, expires_s: Option<i32>) -> Result<()> {
+	let req = LockRequest {
+		key: key.to_owned(),
+		expires_s,
+	};
+	KVP_ACTOR.call(req).await?;
+	Ok(())
+}
+
+pub async fn cancel_lock(key: &str) -> Result<()> {
+	let req = CancelLockRequest {
+		key: key.to_owned(),
+	};
+	KVP_ACTOR.call(req).await?;
+	Ok(())
+}
+
 #[doc(hidden)]
 pub async fn add(key: &str, value: i32) -> Result<i32> {
 	let req = AddRequest {

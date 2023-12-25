@@ -48,6 +48,23 @@ pub struct DelResponse {
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(30000)]
+#[response(())]
+pub struct LockRequest {
+	pub key: String,
+	pub expires_s: Option<i32>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct CancelLockRequest {
+	pub key: String,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
 pub struct AddRequest {
 	pub key: String,
