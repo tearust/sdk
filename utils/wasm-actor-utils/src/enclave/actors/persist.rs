@@ -23,7 +23,11 @@ pub async fn async_persist_request(
 	use tea_system_actors::persist::*;
 
 	let msg = ActorId::Static(NAME)
-		.call(ProtoRequest(OP_ASYNC_REQUEST.into(), encode_protobuf(req)?))
+		.call(ProtoRequest(
+			OP_ASYNC_REQUEST.into(),
+			encode_protobuf(req)?,
+			true,
+		))
 		.await?;
 	let res = persist::PersistResponse::decode(msg.0.as_slice())?;
 	match res.msg.as_ref() {
@@ -34,14 +38,27 @@ pub async fn async_persist_request(
 	}
 }
 
-#[doc(hidden)]
-pub async fn persist_file(file_name: String, data: Vec<u8>) -> Result<()> {
-	async_persist_request(persist::PersistRequest {
-		msg: Some(persist::persist_request::Msg::WriteFile(
-			persist::WriteFile { file_name, data },
-		)),
-		..Default::default()
-	})
-	.await?;
+#[mockable]
+#[cfg(feature = "__test")]
+pub async fn async_persist_request_silently(
+	_req: persist::PersistRequest,
+) -> Result<persist::PersistResponse> {
+	Ok(Default::default())
+}
+
+#[cfg(not(feature = "__test"))]
+pub async fn async_persist_request_silently(req: persist::PersistRequest) -> Result<()> {
+	use tea_actorx::ActorId;
+	use tea_runtime_codec::runtime::ops::persist::OP_ASYNC_REQUEST;
+	use tea_runtime_codec::vmh::message::encode_protobuf;
+	use tea_system_actors::persist::*;
+
+	ActorId::Static(NAME)
+		.call(ProtoRequest(
+			OP_ASYNC_REQUEST.into(),
+			encode_protobuf(req)?,
+			false,
+		))
+		.await?;
 	Ok(())
 }

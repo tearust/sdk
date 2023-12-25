@@ -10,7 +10,7 @@ pub const NAME: &[u8] = b"tea:persist";
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
-pub struct ProtoRequest(pub Cow<'static, str>, pub Vec<u8>);
+pub struct ProtoRequest(pub Cow<'static, str>, pub Vec<u8>, pub bool);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
