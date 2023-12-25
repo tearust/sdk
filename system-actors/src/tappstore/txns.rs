@@ -375,6 +375,11 @@ pub enum TappstoreTxn {
 		acct: Account,
 		reward_acct: Account,
 	},
+	BurnTeaCarefully {
+		token_id: TokenId,
+		acct: Account,
+		amt: Balance,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
