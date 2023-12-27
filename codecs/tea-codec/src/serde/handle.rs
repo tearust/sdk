@@ -41,7 +41,7 @@ pub trait Handle<Req>
 where
 	Req: Request,
 {
-	async fn handle(&self, req: Req) -> Result<Req::Response, Error<impl Scope>>;
+	async fn handle(&self, req: Req) -> Result<Req::Response, Error>;
 }
 
 pub trait HandleBytes {
@@ -66,7 +66,7 @@ where
 	fn handle_bytes<'a>(&'a self, req: &'a [u8]) -> Self::Handle<'a> {
 		async move {
 			T::List::handle(self, req).await.ok_or_else(|| {
-				Error::<Serde>::from(UnexpectedType(
+				Error::from(UnexpectedType(
 					match get_type_id(req) {
 						Ok(id) => id,
 						Err(e) => return e,

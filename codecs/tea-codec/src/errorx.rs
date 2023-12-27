@@ -20,15 +20,13 @@ use std::{
 	borrow::Cow,
 	boxed::ThinBox,
 	fmt::{Debug, Display, Formatter},
-	marker::PhantomData,
 	mem::{self, ManuallyDrop},
 };
 
 use crate::type_gym::{Equality, NotEqual, TypeMark};
 
-pub struct Error<S = ()> {
+pub struct Error {
 	data: ThinBox<ErrorData<dyn Descriptee>>,
-	_p: PhantomData<S>,
 }
 
 #[cfg(feature = "backtrace")]
@@ -47,18 +45,16 @@ where
 }
 
 auto trait NotWrappedError {}
-impl<S> !NotWrappedError for TypeMark<Error<S>> {}
-impl<S> NotWrappedError for Error<S> {}
+impl !NotWrappedError for TypeMark<Error> {}
+impl NotWrappedError for Error {}
 pub trait NotError {}
 impl<T> NotError for T where TypeMark<T>: NotWrappedError {}
 
-impl<S> Error<S>
-where
-	S: Scope,
-{
-	fn new<T>(data: T, #[cfg(feature = "backtrace")] location: ErrorLocation) -> Self
+impl Error {
+	fn new<T, S>(data: T, #[cfg(feature = "backtrace")] location: ErrorLocation) -> Self
 	where
 		T: NotError + Send + Sync + 'static,
+		S: Scope,
 	{
 		Self {
 			data: ThinBox::new_unsize(ErrorData {
@@ -66,16 +62,13 @@ where
 				location,
 				source: Dispatcher::<_, S>::new(data),
 			}),
-			_p: PhantomData,
 		}
 	}
 }
 
-#[cfg(not(feature = "checked"))]
-impl<T, S> From<T> for Error<S>
+impl<T> From<T> for Error
 where
 	T: NotError + Send + Sync + 'static,
-	S: Scope,
 {
 	default fn from(data: T) -> Self {
 		Self::new(
@@ -86,43 +79,25 @@ where
 	}
 }
 
-#[cfg(feature = "checked")]
-impl<T, S> From<T> for Error<S>
-where
-	T: NotError + Send + Sync + 'static,
-	S: Scope + DescriptableMark<T>,
-{
-	default fn from(data: T) -> Self {
-		Self::new(
-			data,
-			#[cfg(feature = "backtrace")]
-			ErrorLocation::Native(Backtrace::capture()),
-		)
-	}
-}
+// impl<X, Y> From<Error> for Error
+// where
+// 	Equality<X, Y>: NotEqual,
+// {
+// 	fn from(source: Error) -> Self {
+// 		Self { data: source.data }
+// 	}
+// }
 
-impl<X, Y> From<Error<X>> for Error<Y>
-where
-	Equality<X, Y>: NotEqual,
-{
-	fn from(source: Error<X>) -> Self {
-		Self {
-			data: source.data,
-			_p: PhantomData,
-		}
-	}
-}
+// impl<'a, X, Y> From<&'a Error> for &'a Error
+// where
+// 	Equality<X, Y>: NotEqual,
+// {
+// 	fn from(scope: &'a Error) -> Self {
+// 		scope.as_scope()
+// 	}
+// }
 
-impl<'a, X, Y> From<&'a Error<X>> for &'a Error<Y>
-where
-	Equality<X, Y>: NotEqual,
-{
-	fn from(scope: &'a Error<X>) -> Self {
-		scope.as_scope()
-	}
-}
-
-impl<S> Error<S> {
+impl Error {
 	pub fn name(&self) -> Cow<str> {
 		if let Some(name) = self.data.source.name() {
 			name
@@ -164,20 +139,18 @@ impl<S> Error<S> {
 		}
 	}
 
-	pub fn into_scope<T>(self) -> Error<T> {
-		Error {
-			data: self.data,
-			_p: PhantomData,
-		}
+	pub fn into_scope(self) -> Error {
+		Error { data: self.data }
 	}
 
-	pub fn as_scope<T>(&self) -> &Error<T> {
+	pub fn as_scope(&self) -> &Error {
 		unsafe { mem::transmute(self) }
 	}
 
-	pub fn back_cast<T>(self) -> Result<T, Self>
+	pub fn back_cast<T, S>(self) -> Result<T, Self>
 	where
 		T: Send + Sync + 'static,
+		S: Scope,
 	{
 		if self.data.source.type_id() == Some(TypeId::of::<T>()) {
 			let mut data = self.data;
@@ -193,9 +166,10 @@ impl<S> Error<S> {
 		}
 	}
 
-	pub fn back_cast_ref<T>(&self) -> Option<&T>
+	pub fn back_cast_ref<T, S>(&self) -> Option<&T>
 	where
 		T: Send + Sync + 'static,
+		S: Scope,
 	{
 		if self.data.source.type_id() == Some(TypeId::of::<T>()) {
 			unsafe { Some(&(*(&self.data.source as *const _ as *const Dispatcher<T, S>)).data) }
@@ -204,7 +178,7 @@ impl<S> Error<S> {
 		}
 	}
 
-	pub fn is_name_of<T>(&self) -> bool
+	pub fn is_name_of<T, S>(&self) -> bool
 	where
 		T: Send + Sync + Default + 'static,
 		S: Scope,
@@ -212,7 +186,7 @@ impl<S> Error<S> {
 		Dispatcher::<T, S>::new(Default::default()).name() == Some(self.name())
 	}
 
-	pub fn name_of<T>() -> Option<String>
+	pub fn name_of<T, S>() -> Option<String>
 	where
 		T: Send + Sync + Default + 'static,
 		S: Scope,
@@ -223,7 +197,7 @@ impl<S> Error<S> {
 	}
 }
 
-impl<S> Display for Error<S> {
+impl Display for Error {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		if let Some(value) = self.summary() {
 			f.write_str(value.as_ref())?;
@@ -232,7 +206,7 @@ impl<S> Display for Error<S> {
 	}
 }
 
-impl<S> Debug for Error<S> {
+impl Debug for Error {
 	fn fmt(&self, f: &mut Formatter) -> std::fmt::Result {
 		f.write_fmt(format_args!("[{}]", self.name().as_ref()))?;
 		if let Some(value) = self.summary() {
@@ -251,7 +225,7 @@ impl<S> Debug for Error<S> {
 	}
 }
 
-impl<S> std::error::Error for Error<S> {}
+impl std::error::Error for Error {}
 
 pub trait ResultXExt {
 	fn assume_error_into_backcast<E>(self) -> Option<E>
@@ -259,7 +233,7 @@ pub trait ResultXExt {
 		E: Send + Sync + 'static;
 }
 
-impl<T, S> ResultXExt for Result<T, Error<S>> {
+impl<T> ResultXExt for Result<T, Error> {
 	fn assume_error_into_backcast<E>(self) -> Option<E>
 	where
 		E: Send + Sync + 'static,
@@ -273,7 +247,7 @@ impl<T, S> ResultXExt for Result<T, Error<S>> {
 	}
 }
 
-impl<S> PartialEq for Error<S> {
+impl PartialEq for Error {
 	fn eq(&self, other: &Self) -> bool {
 		self.name() == other.name()
 			&& self.summary() == other.summary()
@@ -282,4 +256,4 @@ impl<S> PartialEq for Error<S> {
 	}
 }
 
-impl<S> Eq for Error<S> {}
+impl Eq for Error {}

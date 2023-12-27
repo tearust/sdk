@@ -43,10 +43,10 @@ use std::task::{Context, Poll};
 use ::serde::{de::DeserializeOwned, Serialize};
 use bincode::Options as _;
 pub use errorx::define_scope;
-use errorx::{CannotBeNone, Error, Global, Scope};
+use errorx::{CannotBeNone, Error};
 use futures::Future;
 #[doc(hidden)]
-pub type Result<T, E = errorx::Error<errorx::Global>> = std::result::Result<T, E>;
+pub type Result<T, E = errorx::Error> = std::result::Result<T, E>;
 
 #[inline(always)]
 fn bincode_options() -> impl bincode::Options {
@@ -102,34 +102,27 @@ impl<T, E> ResultExt for std::result::Result<T, E> {
 pub trait OptionExt {
 	type Value;
 	/// Map `None` condition to an error message with a const name of some value that is expected not to be `None`.
-	fn ok_or_err<S>(self, name: impl Into<String>) -> Result<Self::Value, Error<S>>
-	where
-		S: Scope;
+	fn ok_or_err(self, name: impl Into<String>) -> Result<Self::Value, Error>;
 
 	/// Map `None` condition to an error message with a function generatred name of some value that is expected not to be `None`.
-	fn ok_or_err_else<S, N, F>(self, name_factory: F) -> Result<Self::Value, Error<S>>
+	fn ok_or_err_else<N, F>(self, name_factory: F) -> Result<Self::Value, Error>
 	where
-		S: Scope,
 		N: Into<String>,
 		F: FnOnce() -> N;
 }
 
 impl<T> OptionExt for Option<T> {
 	type Value = T;
-	fn ok_or_err<S>(self, name: impl Into<String>) -> Result<Self::Value, Error<S>>
-	where
-		S: Scope,
-	{
-		self.ok_or_else(move || Error::<Global>::from(CannotBeNone(name.into())).into())
+	fn ok_or_err(self, name: impl Into<String>) -> Result<Self::Value, Error> {
+		self.ok_or_else(move || Error::from(CannotBeNone(name.into())).into())
 	}
 
-	fn ok_or_err_else<S, N, F>(self, name_factory: F) -> Result<Self::Value, Error<S>>
+	fn ok_or_err_else<N, F>(self, name_factory: F) -> Result<Self::Value, Error>
 	where
-		S: Scope,
 		N: Into<String>,
 		F: FnOnce() -> N,
 	{
-		self.ok_or_else(move || Error::<Global>::from(CannotBeNone(name_factory().into())).into())
+		self.ok_or_else(move || Error::from(CannotBeNone(name_factory().into())).into())
 	}
 }
 

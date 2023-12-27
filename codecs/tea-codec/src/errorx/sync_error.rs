@@ -47,9 +47,7 @@ pub trait SyncErrorExt {
 
 #[cfg(not(feature = "checked"))]
 pub trait SyncErrorExt {
-	fn sync_into<S>(self) -> Error<S>
-	where
-		S: Scope;
+	fn sync_into(self) -> Error;
 }
 
 #[cfg(feature = "checked")]
@@ -57,10 +55,7 @@ impl<T> SyncErrorExt for T
 where
 	T: Send + 'static,
 {
-	fn sync_into<S>(self) -> Error<S>
-	where
-		S: Scope + DescriptableMark<T>,
-	{
+	fn sync_into(self) -> Error {
 		SyncError(Mutex::new(self)).into()
 	}
 }
@@ -70,10 +65,7 @@ impl<T> SyncErrorExt for T
 where
 	T: Send + 'static,
 {
-	fn sync_into<S>(self) -> Error<S>
-	where
-		S: Scope,
-	{
+	fn sync_into(self) -> Error {
 		SyncError(Mutex::new(self)).into()
 	}
 }
@@ -90,9 +82,7 @@ pub trait SyncResultExt {
 #[cfg(not(feature = "checked"))]
 pub trait SyncResultExt {
 	type Value;
-	fn sync_err_into<S>(self) -> Result<Self::Value, Error<S>>
-	where
-		S: Scope;
+	fn sync_err_into(self) -> Result<Self::Value, Error>;
 }
 
 #[cfg(feature = "checked")]
@@ -116,10 +106,7 @@ where
 	E: Send + 'static,
 {
 	type Value = T;
-	fn sync_err_into<S>(self) -> Result<T, Error<S>>
-	where
-		S: Scope,
-	{
+	fn sync_err_into(self) -> Result<T, Error> {
 		self.map_err(|e| SyncError(Mutex::new(e)).into())
 	}
 }

@@ -130,7 +130,7 @@ pub fn emit<const WRAP_ERROR: bool>(source: &DefineScope) -> TokenStream {
 
 	let wrap_error = if WRAP_ERROR {
 		quote! {
-			pub type Error<S = #name> = ::tea_sdk::errorx::Error<S>;
+			pub type Error = ::tea_sdk::errorx::Error;
 			pub type Result<T, E = Error> = std::result::Result<T, E>;
 		}
 	} else {

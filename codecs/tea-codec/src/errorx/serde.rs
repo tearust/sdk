@@ -64,7 +64,7 @@ impl<'a> Descriptor<SerializedData<'a>> for Global {
 	}
 }
 
-impl<X> Serialize for Error<X> {
+impl Serialize for Error {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where
 		S: serde::Serializer,
@@ -80,7 +80,7 @@ where
 	fn serialize(&self, serializer: S) -> Result<S::Ok, S::Error>;
 }
 
-impl<S, X> SerializeSpec<S> for Error<X>
+impl<S> SerializeSpec<S> for Error
 where
 	S: serde::Serializer,
 {
@@ -89,7 +89,7 @@ where
 	}
 }
 
-impl<'a, X, W, F> SerializeSpec<&'a mut serde_json::Serializer<W, F>> for Error<X>
+impl<'a, W, F> SerializeSpec<&'a mut serde_json::Serializer<W, F>> for Error
 where
 	&'a mut serde_json::Serializer<W, F>: serde::Serializer,
 {
@@ -104,7 +104,7 @@ where
 	}
 }
 
-impl<'a, X> Deserialize<'a> for Error<X> {
+impl<'a> Deserialize<'a> for Error {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where
 		D: serde::Deserializer<'a>,
@@ -120,7 +120,7 @@ where
 	fn deserialize(deserializer: D) -> Result<Self, D::Error>;
 }
 
-impl<'a, D, X> DeserializeSpec<'a, D> for Error<X>
+impl<'a, D> DeserializeSpec<'a, D> for Error
 where
 	D: serde::Deserializer<'a>,
 {
@@ -131,7 +131,7 @@ where
 				let mut data = data;
 				#[cfg(feature = "backtrace")]
 				let backtrace = data.backtrace.take().unwrap();
-				Error::<Global>::new(
+				Error::new::<_, Global>(
 					data,
 					#[cfg(feature = "backtrace")]
 					super::ErrorLocation::Serialized(backtrace),
@@ -141,7 +141,7 @@ where
 	}
 }
 
-impl<'a, 'b, R, X> DeserializeSpec<'a, &'b mut serde_json::Deserializer<R>> for Error<X>
+impl<'a, 'b, R> DeserializeSpec<'a, &'b mut serde_json::Deserializer<R>> for Error
 where
 	&'b mut serde_json::Deserializer<R>: serde::Deserializer<'a>,
 {
@@ -154,7 +154,7 @@ where
 				let mut data = data;
 				#[cfg(feature = "backtrace")]
 				let backtrace = data.backtrace.take().unwrap();
-				Error::<Global>::new(
+				Error::new(
 					SerializedData {
 						name: data.name,
 						summary: data.summary,
@@ -170,14 +170,14 @@ where
 	}
 }
 
-impl<S> Clone for Error<S> {
+impl Clone for Error {
 	fn clone(&self) -> Self {
-		let result: Error<Global> = self.to_serialized_data().into_owned().into();
+		let result: Error = self.to_serialized_data().into_owned().into();
 		result.into_scope()
 	}
 }
 
-impl<S> Error<S> {
+impl Error {
 	fn to_serialized_data(&self) -> SerializedData {
 		SerializedData {
 			name: self.name(),

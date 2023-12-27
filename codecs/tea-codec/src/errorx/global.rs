@@ -18,11 +18,11 @@ use thiserror::Error;
 
 use crate::serde::error::UnexpectedType;
 
-use super::{aggregate::Aggregate, DescriptableMark, Descriptor};
+use super::{DescriptableMark, Descriptor};
 
 tea_codec_macros::define_scope_internal! {
 	Global {
-		Aggregate as v => Aggregate, "Multiple errors occurred", format!("{v:?}", ), v.0.iter().collect::<SmallVec<_>>();
+		// Aggregate as v => Aggregate, "Multiple errors occurred", format!("{v:?}", ), v.0.iter().collect::<SmallVec<_>>();
 		CannotBeNone => CannotBeNone, @Display, @Debug;
 		UnexpectedType => UnexpectedType, @Display, @Debug;
 		String as s => Unknown, format!("A string is thrown: \"{s}\""), s;
