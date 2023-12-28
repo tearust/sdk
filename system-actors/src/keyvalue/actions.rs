@@ -264,28 +264,6 @@ pub struct PersistentStorage {
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(10000)]
-#[response(())]
-pub struct PersistentStoreRequest {
-	pub prefix_list: Vec<String>,
-	pub file_name: String,
-}
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
-#[price(0)]
-pub struct RestoreFromFileRequest {
-	pub file_name: String,
-}
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct RestoreFromFileResponse {
-	pub keys: Vec<String>,
-}
-
-#[doc(hidden)]
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(0)]
 pub struct TaskMemorySizeRequest {
 	pub uuid: String,
