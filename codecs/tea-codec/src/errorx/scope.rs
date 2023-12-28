@@ -1,6 +1,6 @@
-use std::{any::TypeId, borrow::Cow, marker::PhantomData};
+use std::{any::TypeId, borrow::Cow};
 
-use super::{Error, SmallVec};
+use super::{Error, Global, SmallVec};
 
 pub trait Scope: Send + Sync + 'static {
 	type Parent: Scope;
@@ -33,45 +33,37 @@ pub(crate) trait Descriptee: Send + Sync {
 }
 
 #[repr(transparent)]
-pub(crate) struct Dispatcher<T, S> {
+pub(crate) struct Dispatcher<T> {
 	pub(crate) data: T,
-	_p: PhantomData<S>,
 }
 
-impl<T, S> Dispatcher<T, S>
-where
-	S: Scope,
-{
+impl<T> Dispatcher<T> {
 	pub fn new(data: T) -> Self {
-		Self {
-			data,
-			_p: PhantomData,
-		}
+		Self { data }
 	}
 }
 
-impl<T, S> Descriptee for Dispatcher<T, S>
+impl<T> Descriptee for Dispatcher<T>
 where
 	T: Send + Sync,
-	S: Scope,
 {
 	default fn name(&self) -> Option<Cow<str>> {
-		<<S as Scope>::Descriptor<T> as Descriptor<T>>::name(&self.data)
+		<<Global as Scope>::Descriptor<T> as Descriptor<T>>::name(&self.data)
 	}
 
 	default fn summary(&self) -> Option<Cow<str>> {
-		<<S as Scope>::Descriptor<T> as Descriptor<T>>::summary(&self.data)
+		<<Global as Scope>::Descriptor<T> as Descriptor<T>>::summary(&self.data)
 	}
 
 	default fn detail(&self) -> Option<Cow<str>> {
-		<<S as Scope>::Descriptor<T> as Descriptor<T>>::detail(&self.data)
+		<<Global as Scope>::Descriptor<T> as Descriptor<T>>::detail(&self.data)
 	}
 
 	default fn inner(&self) -> Option<SmallVec<[&Error; 1]>> {
-		<<S as Scope>::Descriptor<T> as Descriptor<T>>::inner(&self.data)
+		<<Global as Scope>::Descriptor<T> as Descriptor<T>>::inner(&self.data)
 	}
 
 	default fn type_id(&self) -> Option<TypeId> {
-		<<S as Scope>::Descriptor<T> as Descriptor<T>>::type_id(&self.data)
+		<<Global as Scope>::Descriptor<T> as Descriptor<T>>::type_id(&self.data)
 	}
 }

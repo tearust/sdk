@@ -16,14 +16,13 @@ pub use smallvec::{smallvec, SmallVec};
 #[cfg(feature = "backtrace")]
 use std::backtrace::Backtrace;
 use std::{
-	any::TypeId,
 	borrow::Cow,
 	boxed::ThinBox,
 	fmt::{Debug, Display, Formatter},
-	mem::{self, ManuallyDrop},
+	mem::{self},
 };
 
-use crate::type_gym::{Equality, NotEqual, TypeMark};
+// use crate::type_gym::{Equality, NotEqual, TypeMark};
 
 pub struct Error {
 	data: ThinBox<ErrorData<dyn Descriptee>>,
@@ -44,23 +43,26 @@ where
 	source: T,
 }
 
-auto trait NotWrappedError {}
-impl !NotWrappedError for TypeMark<Error> {}
-impl NotWrappedError for Error {}
-pub trait NotError {}
-impl<T> NotError for T where TypeMark<T>: NotWrappedError {}
+pub trait IntoError {
+	fn into_error(self) -> Error;
+}
+
+// auto trait NotWrappedError {}
+// impl !NotWrappedError for TypeMark<Error> {}
+// impl NotWrappedError for Error {}
+// pub trait NotError {}
+// impl<T> NotError for T where TypeMark<T>: NotWrappedError {}
 
 impl Error {
-	fn new<T, S>(data: T, #[cfg(feature = "backtrace")] location: ErrorLocation) -> Self
+	fn new<T>(data: T, #[cfg(feature = "backtrace")] location: ErrorLocation) -> Self
 	where
-		T: NotError + Send + Sync + 'static,
-		S: Scope,
+		T: Send + Sync + 'static,
 	{
 		Self {
 			data: ThinBox::new_unsize(ErrorData {
 				#[cfg(feature = "backtrace")]
 				location,
-				source: Dispatcher::<_, S>::new(data),
+				source: Dispatcher::new(data),
 			}),
 		}
 	}
@@ -68,7 +70,7 @@ impl Error {
 
 impl<T> From<T> for Error
 where
-	T: NotError + Send + Sync + 'static,
+	T: std::error::Error + Send + Sync + 'static,
 {
 	default fn from(data: T) -> Self {
 		Self::new(
@@ -76,6 +78,12 @@ where
 			#[cfg(feature = "backtrace")]
 			ErrorLocation::Native(Backtrace::capture()),
 		)
+	}
+}
+
+impl<T: Send + Sync + 'static> IntoError for T {
+	fn into_error(self) -> Error {
+		Error::new(self)
 	}
 }
 
@@ -146,55 +154,6 @@ impl Error {
 	pub fn as_scope(&self) -> &Error {
 		unsafe { mem::transmute(self) }
 	}
-
-	pub fn back_cast<T, S>(self) -> Result<T, Self>
-	where
-		T: Send + Sync + 'static,
-		S: Scope,
-	{
-		if self.data.source.type_id() == Some(TypeId::of::<T>()) {
-			let mut data = self.data;
-			unsafe {
-				let result = (&mut (*(&mut data.source as *mut _ as *mut Dispatcher<T, S>)).data
-					as *mut T)
-					.read();
-				mem::transmute::<_, ThinBox<ErrorData<ManuallyDrop<dyn Descriptee>>>>(data);
-				Ok(result)
-			}
-		} else {
-			Err(self)
-		}
-	}
-
-	pub fn back_cast_ref<T, S>(&self) -> Option<&T>
-	where
-		T: Send + Sync + 'static,
-		S: Scope,
-	{
-		if self.data.source.type_id() == Some(TypeId::of::<T>()) {
-			unsafe { Some(&(*(&self.data.source as *const _ as *const Dispatcher<T, S>)).data) }
-		} else {
-			None
-		}
-	}
-
-	pub fn is_name_of<T, S>(&self) -> bool
-	where
-		T: Send + Sync + Default + 'static,
-		S: Scope,
-	{
-		Dispatcher::<T, S>::new(Default::default()).name() == Some(self.name())
-	}
-
-	pub fn name_of<T, S>() -> Option<String>
-	where
-		T: Send + Sync + Default + 'static,
-		S: Scope,
-	{
-		Dispatcher::<T, S>::new(Default::default())
-			.name()
-			.map(Into::into)
-	}
 }
 
 impl Display for Error {
@@ -225,27 +184,25 @@ impl Debug for Error {
 	}
 }
 
-impl std::error::Error for Error {}
+// pub trait ResultXExt {
+// 	fn assume_error_into_backcast<E>(self) -> Option<E>
+// 	where
+// 		E: Send + Sync + 'static;
+// }
 
-pub trait ResultXExt {
-	fn assume_error_into_backcast<E>(self) -> Option<E>
-	where
-		E: Send + Sync + 'static;
-}
-
-impl<T> ResultXExt for Result<T, Error> {
-	fn assume_error_into_backcast<E>(self) -> Option<E>
-	where
-		E: Send + Sync + 'static,
-	{
-		if let Err(e) = self {
-			if let Ok(e) = e.back_cast() {
-				return Some(e);
-			}
-		}
-		None
-	}
-}
+// impl<T> ResultXExt for Result<T, Error> {
+// 	fn assume_error_into_backcast<E>(self) -> Option<E>
+// 	where
+// 		E: Send + Sync + 'static,
+// 	{
+// 		if let Err(e) = self {
+// 			if let Ok(e) = e.back_cast() {
+// 				return Some(e);
+// 			}
+// 		}
+// 		None
+// 	}
+// }
 
 impl PartialEq for Error {
 	fn eq(&self, other: &Self) -> bool {

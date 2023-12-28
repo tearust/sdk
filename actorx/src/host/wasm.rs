@@ -1,9 +1,12 @@
 use std::{mem::size_of, sync::Arc, time::Duration};
 
-use crate::core::{
-	actor::ActorId,
-	metadata::{Claim, Metadata},
-	worker_codec::Operation,
+use crate::{
+	core::{
+		actor::ActorId,
+		metadata::{Claim, Metadata},
+		worker_codec::Operation,
+	},
+	IntoActor,
 };
 use tea_codec::serde::{get_type_id, TypeId};
 use tea_sdk::OptionExt;
@@ -281,7 +284,7 @@ impl WasmActor {
 		ctx: Vec<u8>,
 		req: Vec<u8>,
 	) -> Result<Operation> {
-		let target: ActorId = ctx.into();
+		let target: ActorId = ctx.into_actor();
 
 		#[allow(clippy::nonminimal_bool)]
 		let permitted = (metadata.claims.iter().any(|x| {

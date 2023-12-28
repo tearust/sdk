@@ -4,7 +4,7 @@ use super::error::{Error, Result};
 use http::{request, response, HeaderMap, HeaderValue, Method, StatusCode, Uri, Version};
 use prost::bytes::Bytes;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use tea_sdk::{errorx::Scope, serde::TypeId, ResultExt};
+use tea_sdk::{serde::TypeId, ResultExt};
 
 #[derive(Clone, Debug, TypeId, Serialize, Deserialize)]
 pub struct HttpRequest {
@@ -27,7 +27,7 @@ impl<B> TryFrom<http::Request<B>> for HttpRequest
 where
 	B: IntoHttpBytes,
 {
-	type Error = Error<impl Scope>;
+	type Error = Error;
 	fn try_from(value: http::Request<B>) -> Result<Self, Self::Error> {
 		let (
 			request::Parts {
@@ -54,7 +54,7 @@ impl<B> TryFrom<HttpRequest> for http::Request<B>
 where
 	B: FromHttpBytes,
 {
-	type Error = Error<impl Scope>;
+	type Error = Error;
 	fn try_from(value: HttpRequest) -> Result<Self, Self::Error> {
 		http::Request::builder()
 			.method(value.method)
@@ -87,7 +87,7 @@ impl<B> TryFrom<http::Response<B>> for HttpResponse
 where
 	B: IntoHttpBytes,
 {
-	type Error = Error<impl Scope>;
+	type Error = Error;
 	fn try_from(value: http::Response<B>) -> Result<Self, Self::Error> {
 		let (
 			response::Parts {
@@ -112,7 +112,7 @@ impl<B> TryFrom<HttpResponse> for http::Response<B>
 where
 	B: FromHttpBytes,
 {
-	type Error = Error<impl Scope>;
+	type Error = Error;
 	default fn try_from(value: HttpResponse) -> Result<Self, Self::Error> {
 		http::Response::builder()
 			.status(value.status)
@@ -127,11 +127,11 @@ where
 }
 
 pub trait IntoHttpBytes {
-	fn into_http_bytes(self) -> Result<Vec<u8>, Error<impl Scope>>;
+	fn into_http_bytes(self) -> Result<Vec<u8>, Error>;
 }
 
 pub trait FromHttpBytes: Sized {
-	fn from_http_bytes(input: Vec<u8>) -> Result<Self, Error<impl Scope>>;
+	fn from_http_bytes(input: Vec<u8>) -> Result<Self, Error>;
 }
 
 struct NotBytesWrapper<T>(fn() -> T);

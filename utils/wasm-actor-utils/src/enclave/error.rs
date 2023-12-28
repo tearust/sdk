@@ -70,10 +70,10 @@ pub enum Errors {
 	NeutralizeExpectation(Balance, Balance, (Balance, Balance)),
 
 	#[error("Actor_statemachine move {0} to {1} with amount {2} failed: {3}")]
-	StateMachineMoveFailed(String, String, Balance, Error<()>),
+	StateMachineMoveFailed(String, String, Balance, Error),
 
 	#[error("Actor_statemachine cross_move failed. From token_id {0} account {1} to token_id {2} account {3} with amount {4}. Reason: {5}")]
-	StateMachineCrossMoveFailed(String, String, String, String, Balance, Error<()>),
+	StateMachineCrossMoveFailed(String, String, String, String, Balance, Error),
 
 	#[error("Unknown txn request")]
 	UnknownTxnRequest,
@@ -104,7 +104,7 @@ pub enum Errors {
 }
 
 impl Errors {
-	fn inner(&self) -> SmallVec<[&Error<()>; 1]> {
+	fn inner(&self) -> SmallVec<[&Error; 1]> {
 		match self {
 			Self::StateMachineMoveFailed(_, _, _, err) => smallvec![err.as_scope()],
 			Self::StateMachineCrossMoveFailed(_, _, _, _, _, err) => smallvec![err.as_scope()],
@@ -118,7 +118,7 @@ impl Errors {
 pub struct AsyncNotFinished;
 
 #[derive(Debug)]
-pub struct ProcessTransactionErrorFailed(pub Error<()>);
+pub struct ProcessTransactionErrorFailed(pub Error);
 
 #[derive(Error, Debug)]
 pub enum Layer1Errors {

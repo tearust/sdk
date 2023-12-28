@@ -214,6 +214,7 @@ where
 	tokio::spawn(future.with_host(host().ok()).with_gas())
 }
 
+#[allow(async_fn_in_trait)]
 pub trait WithActorHost: Future {
 	async fn with_actor_host(self) -> Self::Output;
 }
@@ -260,6 +261,7 @@ where
 	Ok(())
 }
 
+#[allow(async_fn_in_trait)]
 pub trait ActorExt: ActorSend {
 	async fn register(self) -> Result<()>;
 }
@@ -280,14 +282,22 @@ impl ActorId {
 	pub async fn metadata(&self) -> Result<Arc<Metadata>> {
 		let host = host()?;
 		let actors = host.actors.read().await;
-		actors.get(self).ok_or(ActorNotExist)?.metadata().await
+		actors
+			.get(self)
+			.ok_or(ActorNotExist(self.clone()))?
+			.metadata()
+			.await
 	}
 
 	#[inline(always)]
 	pub async fn size(&self) -> Result<u64> {
 		let host = host()?;
 		let actors = host.actors.read().await;
-		actors.get(self).ok_or(ActorNotExist)?.size().await
+		actors
+			.get(self)
+			.ok_or(ActorNotExist(self.clone()))?
+			.size()
+			.await
 	}
 
 	#[inline(always)]
@@ -296,7 +306,7 @@ impl ActorId {
 		let actors = host.actors.read().await;
 		actors
 			.get(self)
-			.ok_or(ActorNotExist)?
+			.ok_or(ActorNotExist(self.clone()))?
 			.instance_count()
 			.await
 	}

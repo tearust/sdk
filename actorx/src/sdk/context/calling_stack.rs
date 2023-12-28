@@ -2,7 +2,7 @@
 #[cfg(feature = "timeout")]
 use std::sync::Arc;
 #[cfg(feature = "host")]
-use ::{std::future::Future, tea_sdk::errorx::Scope, tokio::task_local};
+use ::{std::future::Future, tokio::task_local};
 
 #[cfg(feature = "host")]
 use crate::error::Error;
@@ -85,10 +85,9 @@ pub(crate) fn full_stack() -> Option<Arc<tokio::sync::RwLock<CallingStack>>> {
 }
 
 #[cfg(feature = "host")]
-impl<T, R, S> WithCallingStack for T
+impl<T, R> WithCallingStack for T
 where
-	T: Future<Output = Result<R, Error<S>>>,
-	S: Scope,
+	T: Future<Output = Result<R, Error>>,
 {
 	#[inline(always)]
 	async fn invoke_target(self, value: ActorId) -> Self::Output {

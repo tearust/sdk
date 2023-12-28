@@ -15,6 +15,8 @@
 #![feature(auto_traits, negative_impls, never_type)]
 #![feature(min_specialization)]
 #![allow(incomplete_features)]
+#![allow(stable_features)]
+#![allow(internal_features)]
 #![feature(async_fn_in_trait)]
 #![feature(impl_trait_projections)]
 #![feature(return_position_impl_trait_in_trait)]

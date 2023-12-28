@@ -2,10 +2,10 @@ use std::marker::PhantomData;
 
 use futures::Future;
 
-use crate::{errorx::Scope, ResultExt};
+use crate::ResultExt;
 
 use super::{
-	error::{Error, Result, Serde, UnexpectedType},
+	error::{Error, Result, UnexpectedType},
 	get_type_id, FromBytes, ToBytes,
 };
 
@@ -37,6 +37,7 @@ pub trait Handles: Sized {
 	type List: HandleList<Self>;
 }
 
+#[allow(async_fn_in_trait)]
 pub trait Handle<Req>
 where
 	Req: Request,
@@ -51,6 +52,7 @@ pub trait HandleBytes {
 	fn handle_bytes<'a>(&'a self, req: &'a [u8]) -> Self::Handle<'a>;
 }
 
+#[allow(async_fn_in_trait)]
 pub trait HandleList<H> {
 	async fn handle(handler: &H, req: &[u8]) -> Option<Result<Vec<u8>>>;
 }

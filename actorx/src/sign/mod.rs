@@ -7,6 +7,7 @@ use openssl::{hash::MessageDigest, pkey::PKey, sign::Verifier};
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
 
+use crate::core::actor::IntoActor;
 use crate::metadata::Claim;
 
 use super::metadata::Metadata;
@@ -119,14 +120,14 @@ impl Manifest {
 				let mut id = handle_base64(self.owner_id)?;
 				id.push(b'.');
 				id.extend(handle_base64(self.actor_id)?.into_iter());
-				id.into()
+				id.into_actor()
 			},
 			signer: priv_key,
 			claims: self
 				.access
 				.into_iter()
 				.map(handle_base64)
-				.map(|x| x.map(Into::into).map(Claim::ActorAccess))
+				.map(|x| x.map(|id| Claim::ActorAccess(id.into_actor())))
 				.chain(Some(Ok(Claim::TokenId(self.token_id))))
 				.try_collect()?,
 		})

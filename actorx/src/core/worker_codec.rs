@@ -3,8 +3,9 @@ use std::time::Duration;
 
 #[cfg(any(feature = "host", feature = "worker"))]
 use strum::{Display, FromRepr};
+use tea_sdk::errorx::IntoError;
 #[cfg(any(feature = "wasm", feature = "worker"))]
-use tea_sdk::{errorx::Scope, serde::error::InvalidFormat};
+use tea_sdk::serde::error::InvalidFormat;
 #[cfg(any(feature = "host", feature = "worker"))]
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
@@ -33,11 +34,11 @@ pub enum Operation {
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
 pub struct OperationAbi {
-	flag: u8,
-	data_0: u32,
-	len_0: u32,
-	data_1: u32,
-	len_1: u32,
+	pub flag: u8,
+	pub data_0: u32,
+	pub len_0: u32,
+	pub data_1: u32,
+	pub len_1: u32,
 }
 
 #[cfg(any(feature = "wasm", feature = "worker"))]
@@ -47,14 +48,11 @@ impl OperationAbi {
 		self.flag = flag;
 	}
 
-	pub unsafe fn marshal<S>(
+	pub unsafe fn marshal(
 		&mut self,
 		op: Operation,
-		mut handle_vec: impl FnMut(Vec<u8>, &mut u32, &mut u32) -> Result<(), Error<S>>,
-	) -> Result<()>
-	where
-		S: Scope,
-	{
+		mut handle_vec: impl FnMut(Vec<u8>, &mut u32, &mut u32) -> Result<(), Error>,
+	) -> Result<()> {
 		match op {
 			Operation::Call { ctx, req } => {
 				self.flag = 0;
@@ -74,13 +72,10 @@ impl OperationAbi {
 		Ok(())
 	}
 
-	pub unsafe fn unmarshal<S>(
+	pub unsafe fn unmarshal(
 		&self,
-		mut handle_vec: impl FnMut(u32, u32) -> Result<Vec<u8>, Error<S>>,
-	) -> Result<Operation>
-	where
-		S: Scope,
-	{
+		mut handle_vec: impl FnMut(u32, u32) -> Result<Vec<u8>, Error>,
+	) -> Result<Operation> {
 		let vec_0 = handle_vec(self.data_0, self.len_0)?;
 		match self.flag {
 			0 => Ok(Operation::Call {
@@ -91,7 +86,7 @@ impl OperationAbi {
 			2 => Ok(Operation::ReturnErr {
 				error: bincode::deserialize(&vec_0)?,
 			}),
-			_ => Err(InvalidFormat.into()),
+			_ => Err(InvalidFormat.into_error()),
 		}
 	}
 
@@ -132,7 +127,7 @@ impl OperationAbi {
 }
 
 #[cfg(any(feature = "wasm", feature = "worker"))]
-impl const Default for OperationAbi {
+impl Default for OperationAbi {
 	fn default() -> Self {
 		Self {
 			flag: 3,

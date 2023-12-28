@@ -69,7 +69,7 @@ impl PartialEq<ActorId> for str {
 impl Eq for ActorId {}
 
 impl Hash for ActorId {
-	fn hash<H: ~const Hasher>(&self, state: &mut H) {
+	fn hash<H: Hasher>(&self, state: &mut H) {
 		(**self).hash(state)
 	}
 }
@@ -98,17 +98,16 @@ impl Display for ActorId {
 	}
 }
 
-struct NotActorIdWrapper<T>(T);
-auto trait NotActorId {}
-impl !NotActorId for NotActorIdWrapper<ActorId> {}
+pub trait IntoActor {
+	fn into_actor(self) -> ActorId;
+}
 
-impl<T> From<T> for ActorId
+impl<T> IntoActor for T
 where
 	T: AsRef<[u8]>,
-	NotActorIdWrapper<T>: NotActorId,
 {
-	fn from(value: T) -> Self {
-		Self::Shared(value.as_ref().into())
+	fn into_actor(self) -> ActorId {
+		ActorId::Shared(self.as_ref().into())
 	}
 }
 

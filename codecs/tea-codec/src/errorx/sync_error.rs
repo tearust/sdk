@@ -3,7 +3,7 @@ use std::{
 	sync::Mutex,
 };
 
-use super::{DescriptableMark, Error, Scope};
+use super::{DescriptableMark, Error, IntoError, Scope};
 
 pub struct SyncError<T>(Mutex<T>)
 where
@@ -66,7 +66,7 @@ where
 	T: Send + 'static,
 {
 	fn sync_into(self) -> Error {
-		SyncError(Mutex::new(self)).into()
+		SyncError(Mutex::new(self)).into_error()
 	}
 }
 
@@ -107,6 +107,6 @@ where
 {
 	type Value = T;
 	fn sync_err_into(self) -> Result<T, Error> {
-		self.map_err(|e| SyncError(Mutex::new(e)).into())
+		self.map_err(|e| SyncError(Mutex::new(e)).into_error())
 	}
 }

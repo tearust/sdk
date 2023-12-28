@@ -7,7 +7,13 @@ static CONTEXT: ContextCell = ContextCell(UnsafeCell::new(Context {
 	input: None,
 	output: None,
 	execution: None,
-	abi: OperationAbi::default(),
+	abi: OperationAbi {
+		flag: 3,
+		data_0: 0,
+		len_0: 0,
+		data_1: 0,
+		len_1: 0,
+	},
 }));
 
 struct ContextCell(UnsafeCell<Context>);

@@ -190,7 +190,7 @@ pub async fn set_item_tsid(item: &TxnCacheItem, tsid: Tsid) -> Result<()> {
 		return Ok(());
 	}
 	let (mut list, index) = wrap.unwrap();
-	let mut item = list.get_mut(index).unwrap();
+	let item = list.get_mut(index).unwrap();
 	item.hash_hex = Some(hex::encode(tsid.hash));
 	item.ts = Some(tsid.ts);
 	item.nonce = tsid.nonce;
@@ -207,7 +207,7 @@ pub async fn set_item_status(hash: &str, error: Option<&str>) -> Result<()> {
 		return Ok(());
 	}
 	let (mut list, index) = wrap.unwrap();
-	let mut item = list.get_mut(index).unwrap();
+	let item = list.get_mut(index).unwrap();
 
 	if let Some(err) = error {
 		item.status = Some("Fail".into());

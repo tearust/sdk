@@ -3,7 +3,7 @@ use std::{any::TypeId, borrow::Cow};
 use serde::{Deserialize, Serialize};
 use smallvec::SmallVec;
 
-use super::{DescriptableMark, Descriptor, Error, Global};
+use super::{DescriptableMark, Descriptor, Error, Global, IntoError};
 
 #[derive(Serialize, Deserialize)]
 pub(crate) struct SerializedData<'a> {
@@ -131,7 +131,7 @@ where
 				let mut data = data;
 				#[cfg(feature = "backtrace")]
 				let backtrace = data.backtrace.take().unwrap();
-				Error::new::<_, Global>(
+				Error::new(
 					data,
 					#[cfg(feature = "backtrace")]
 					super::ErrorLocation::Serialized(backtrace),
@@ -172,7 +172,7 @@ where
 
 impl Clone for Error {
 	fn clone(&self) -> Self {
-		let result: Error = self.to_serialized_data().into_owned().into();
+		let result: Error = self.to_serialized_data().into_owned().into_error();
 		result.into_scope()
 	}
 }

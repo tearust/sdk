@@ -7,13 +7,16 @@
 #![cfg_attr(feature = "sign", feature(iterator_try_collect))]
 #![cfg_attr(
 	feature = "worker",
-	feature(new_uninit, result_flattening, mutex_unpoison, once_cell)
+	feature(new_uninit, result_flattening, mutex_unpoison)
 )]
 #![cfg_attr(feature = "host", feature(unix_chown, map_try_insert))]
 #![feature(return_position_impl_trait_in_trait)]
 #![feature(async_fn_in_trait)]
 #![feature(allow_internal_unstable)]
 #![allow(incomplete_features)]
+#![allow(stable_features)]
+#![allow(internal_features)]
+#![feature(impl_trait_in_assoc_type)]
 
 extern crate tea_codec as tea_sdk;
 #[cfg(any(feature = "host", feature = "worker"))]

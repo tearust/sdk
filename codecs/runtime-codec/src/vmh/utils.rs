@@ -13,10 +13,10 @@ pub fn split_once<'a>(in_string: &'a str, pattern: &'a str) -> Result<(&'a str, 
 	let mut splitter = in_string.splitn(2, pattern);
 	let first = splitter
 		.next()
-		.ok_or_else(|| "missing first section".to_string())?;
+		.ok_or_err("missing first section".to_string())?;
 	let second = splitter
 		.next()
-		.ok_or_else(|| "missing second section".to_string())?;
+		.ok_or_err("missing second section".to_string())?;
 	Ok((first, second))
 }
 
@@ -42,7 +42,7 @@ pub fn system_time_from_nanos(nanos: u128) -> Result<SystemTime> {
 	let duration = Duration::new(seconds, sub_nanos);
 	Ok(std::time::SystemTime::UNIX_EPOCH
 		.checked_add(duration)
-		.ok_or(format!("calculate system time from nanos {nanos} failed"))?)
+		.ok_or_err(format!("calculate system time from nanos {nanos} failed"))?)
 }
 
 pub fn to_short_timestamp(ts: u128) -> Result<TimestampShort> {
@@ -73,6 +73,7 @@ pub fn format_system_time(time: SystemTime) -> String {
 #[cfg(test)]
 mod tests {
 	use chrono::{DateTime, Utc};
+	use tea_sdk::OptionExt;
 
 	use super::{format_timestamp, split_once, to_short_timestamp};
 	use crate::vmh::error::Result;
@@ -120,7 +121,7 @@ mod tests {
 	#[test]
 	fn to_short_timestamp_works() -> Result<()> {
 		let short = to_short_timestamp(1673816999950360000u128)?;
-		let f = format_timestamp(short).ok_or("format")?;
+		let f = format_timestamp(short).ok_or_err("format")?;
 		assert_eq!("2023-01-15 21:09:59 UTC", f);
 
 		let utc: DateTime<Utc> = f.parse()?;

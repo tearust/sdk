@@ -4,7 +4,6 @@ use std::{
 	sync::Arc,
 	time::{Duration, SystemTime},
 };
-use tea_sdk::errorx::Scope;
 use tokio::sync::{oneshot, Mutex};
 
 use crate::{
@@ -52,10 +51,9 @@ impl Tracker {
 		&self.full_stack
 	}
 
-	pub async fn track<F, T, S>(self: &Arc<Self>, f: F) -> Result<T, Error<S>>
+	pub async fn track<F, T>(self: &Arc<Self>, f: F) -> Result<T, Error>
 	where
-		F: Future<Output = Result<T, Error<S>>>,
-		S: Scope,
+		F: Future<Output = Result<T, Error>>,
 	{
 		let (tx, rx) = oneshot::channel();
 		let mut state = self.state.lock().await;
@@ -115,13 +113,13 @@ mod tests {
 	use super::*;
 	use crate::context::CALLING_STACK;
 	use crate::error::ActorX;
-	use crate::ActorId;
+	use crate::{ActorId, IntoActor};
 	use futures::stream::FuturesUnordered;
 	use futures::StreamExt;
 	use tokio::sync::oneshot::Receiver;
 
 	async fn new_track(expiry_millis: u64) -> (Arc<Tracker>, Receiver<()>) {
-		let test_actor: ActorId = b"test_actor".to_vec().into();
+		let test_actor: ActorId = b"test_actor".to_vec().into_actor();
 		let current_stack = CallingStack::step(test_actor);
 		assert!(current_stack.caller.is_none());
 
@@ -151,13 +149,13 @@ mod tests {
 
 	#[tokio::test]
 	async fn track_works() {
-		let test_actor: ActorId = b"test_actor".to_vec().into();
+		let test_actor: ActorId = b"test_actor".to_vec().into_actor();
 		let current_stack = CallingStack::step(test_actor);
 		assert!(current_stack.caller.is_none());
 
 		let tracker = Arc::new(Tracker::new(current_stack));
 		let result = tracker
-			.track::<_, _, ActorX>(async {
+			.track::<_, _>(async {
 				tokio::time::sleep(Duration::from_millis(10)).await;
 				Ok(())
 			})
@@ -168,7 +166,7 @@ mod tests {
 	#[tokio::test]
 	#[ignore]
 	async fn track_timeout_works() {
-		let test_actor: ActorId = b"test_actor".to_vec().into();
+		let test_actor: ActorId = b"test_actor".to_vec().into_actor();
 		let current_stack = CallingStack::step(test_actor);
 		assert!(current_stack.caller.is_none());
 		assert!(calling_stack().is_none());
@@ -179,7 +177,7 @@ mod tests {
 
 				let tracker = Arc::new(Tracker::new(current_stack));
 				let result = tracker
-					.track::<_, _, ActorX>(async {
+					.track::<_, _>(async {
 						tokio::time::sleep(Duration::from_secs(40)).await;
 						Ok(())
 					})
@@ -194,7 +192,7 @@ mod tests {
 	#[tokio::test]
 	#[ignore]
 	async fn hug_trackers_works() {
-		let test_actor: ActorId = b"test_actor".to_vec().into();
+		let test_actor: ActorId = b"test_actor".to_vec().into_actor();
 		let current_stack = CallingStack::step(test_actor);
 
 		for _ in 0..10000 {
@@ -207,7 +205,7 @@ mod tests {
 						let mut futures = FuturesUnordered::new();
 						let times = 100000;
 						for _ in 0..times {
-							futures.push(tracker.track::<_, _, ActorX>(async { Ok(()) }));
+							futures.push(tracker.track::<_, _>(async { Ok(()) }));
 						}
 
 						let mut actual_counts = 0;

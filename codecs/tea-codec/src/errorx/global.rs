@@ -13,7 +13,6 @@ use std::{
 
 use hex::FromHexError;
 use log::{ParseLevelError, SetLoggerError};
-use smallvec::SmallVec;
 use thiserror::Error;
 
 use crate::serde::error::UnexpectedType;

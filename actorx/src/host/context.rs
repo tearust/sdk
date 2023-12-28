@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::error::{ActorHostDropped, GasFeeExhausted};
-use tea_sdk::ResultExt;
+use tea_sdk::{errorx::IntoError, ResultExt};
 use tokio::task_local;
 
 use crate::{error::Result, host::Host};
@@ -67,7 +67,7 @@ pub fn cost(cost: u64) -> Result<()> {
 		Ok(())
 	} else {
 		set_gas(0);
-		Err(GasFeeExhausted.into())
+		Err(GasFeeExhausted.into_error())
 	}
 }
 

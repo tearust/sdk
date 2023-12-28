@@ -6,7 +6,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use crate::errorx::NotError;
+// use crate::errorx::NotError;
 
 #[rustc_unsafe_specialization_marker]
 pub trait Is<T> {}
@@ -24,14 +24,14 @@ where
 	type Type = !;
 }
 
-pub struct Equality<X, Y>(<X as Irrelative>::Type, <Y as Irrelative>::Type);
-#[rustc_unsafe_specialization_marker]
-pub auto trait NotEqual {}
-impl<X> !NotEqual for Equality<X, X> {}
+// pub struct Equality<X, Y>(<X as Irrelative>::Type, <Y as Irrelative>::Type);
+// #[rustc_unsafe_specialization_marker]
+// pub auto trait NotEqual {}
+// impl<X> !NotEqual for Equality<X, X> {}
 
-pub struct TypeMark<T>(<T as Irrelative>::Type)
-where
-	T: ?Sized;
+// pub struct TypeMark<T>(<T as Irrelative>::Type)
+// where
+// 	T: ?Sized;
 
 #[rustc_specialization_trait]
 trait SpecializedDebug = Debug;
@@ -109,28 +109,27 @@ where
 	}
 }
 
-pub auto trait NotImplDefault {}
-impl<T> !NotImplDefault for TypeMark<ImplDefault<T>> {}
+// pub auto trait NotImplDefault {}
+// impl<T> !NotImplDefault for TypeMark<ImplDefault<T>> {}
 
-impl<T> From<T> for ImplDefault<T>
-where
-	TypeMark<T>: NotImplDefault,
-{
-	fn from(value: T) -> Self {
-		Self(value)
-	}
-}
+// impl<T> From<T> for ImplDefault<T>
+// where
+// 	TypeMark<T>: NotImplDefault,
+// {
+// 	fn from(value: T) -> Self {
+// 		Self(value)
+// 	}
+// }
 
-#[allow(clippy::from_over_into)]
-impl<T> Into<T> for ImplDefault<T>
-where
-	TypeMark<T>: NotImplDefault,
-	T: NotError,
-{
-	fn into(self) -> T {
-		todo!()
-	}
-}
+// #[allow(clippy::from_over_into)]
+// impl<T> Into<T> for ImplDefault<T>
+// where
+// 	TypeMark<T>: NotImplDefault,
+// {
+// 	fn into(self) -> T {
+// 		todo!()
+// 	}
+// }
 
 impl<T> Deref for ImplDefault<T>
 where

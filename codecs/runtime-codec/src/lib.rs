@@ -19,6 +19,8 @@
 #![feature(type_alias_impl_trait)]
 #![feature(async_fn_in_trait)]
 #![allow(clippy::module_inception)]
+#![allow(stable_features)]
+#![feature(impl_trait_in_assoc_type)]
 
 pub mod actor_txns;
 pub mod runtime;
