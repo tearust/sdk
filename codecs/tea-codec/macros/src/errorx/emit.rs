@@ -351,6 +351,28 @@ fn emit_definition(scope: &Ident, def: &TypedDefinition) -> TokenStream {
 				Some(::std::any::TypeId::of::<#r#type>())
 			}
 		}
+
+		impl ::tea_sdk::errorx::Descriptee for ::tea_sdk::errorx::Dispatcher<#r#type> {
+			fn name(&self) -> Option<::std::borrow::Cow<str>> {
+				<#scope as ::tea_sdk::errorx::Descriptor<#r#type>>::name(&self.data)
+			}
+
+			fn summary(&self) -> Option<::std::borrow::Cow<str>> {
+				<#scope as ::tea_sdk::errorx::Descriptor<#r#type>>::summary(&self.data)
+			}
+
+			fn detail(&self) -> Option<::std::borrow::Cow<str>> {
+				<#scope as ::tea_sdk::errorx::Descriptor<#r#type>>::detail(&self.data)
+			}
+
+			fn inner(&self) -> Option<::tea_sdk::errorx::SmallVec<[&::tea_sdk::errorx::Error; 1]>> {
+				<#scope as ::tea_sdk::errorx::Descriptor<#r#type>>::inner(&self.data)
+			}
+
+			fn type_id(&self) -> Option<::std::any::TypeId> {
+				<#scope as ::tea_sdk::errorx::Descriptor<#r#type>>::type_id(&self.data)
+			}
+		}
 	}
 }
 

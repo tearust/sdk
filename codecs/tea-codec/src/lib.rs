@@ -30,6 +30,8 @@
 #![feature(generic_const_exprs)]
 #![feature(associated_type_bounds)]
 #![feature(impl_trait_in_assoc_type)]
+#![feature(type_name_of_val)]
+#![feature(associated_type_defaults)]
 
 extern crate self as tea_sdk;
 

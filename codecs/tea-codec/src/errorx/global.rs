@@ -27,12 +27,12 @@ tea_codec_macros::define_scope_internal! {
 		String as s => Unknown, format!("A string is thrown: \"{s}\""), s;
 		&str as s => Unknown, format!("A string is thrown: \"{s}\""), *s;
 		Box<str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
-		Rc<str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
+		// Rc<str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
 		Arc<str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
 		Cow<'_, str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
-		Box<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
-		Rc<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
-		Arc<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
+		// Box<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
+		// Rc<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
+		// Arc<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
 		serde_json::Error => JsonSerde, @Display, @Debug;
 		bincode::Error => BincodeSerde, @Display, @Debug;
 		Utf8Error => Utf8, @Display, @Debug;
