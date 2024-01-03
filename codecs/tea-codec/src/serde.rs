@@ -5,8 +5,11 @@ use std::{io::Write, mem::size_of};
 use bincode::Options;
 use prost::bytes::BufMut;
 
-use self::error::{Result, TypeIdMismatch};
-use crate::{bincode_options, const_concat::ConstStr, errorx::BadBinaryFormat, ResultExt};
+use self::error::TypeIdMismatch;
+use crate::Result;
+use crate::{
+	bincode_options, const_concat::ConstStr, errorx::BadBinaryFormat, IntoGlobal, ResultExt,
+};
 pub use tea_codec_macros::TypeId;
 
 pub mod error;
@@ -133,12 +136,14 @@ where
 		}
 		let (type_id, payload) = buf.split_at(type_id_len);
 		if type_id != T::TYPE_ID.as_bytes() {
-			return Err(
-				TypeIdMismatch(T::TYPE_ID, String::from_utf8_lossy(type_id).into_owned()).into(),
-			);
+			return Err(TypeIdMismatch(
+				T::TYPE_ID.to_string(),
+				String::from_utf8_lossy(type_id).into_owned(),
+			)
+			.into());
 		}
 
-		bincode_options().deserialize(payload).err_into()
+		bincode_options().deserialize(payload).into_g()
 	}
 }
 
@@ -151,7 +156,7 @@ pub fn get_type_id(buf: &[u8]) -> Result<&str> {
 	if buf.len() < type_id_len {
 		return Err(BadBinaryFormat.into());
 	}
-	std::str::from_utf8(&buf[..type_id_len]).err_into()
+	std::str::from_utf8(&buf[..type_id_len]).into_g()
 }
 
 impl<T> ToBytesUsingSerialize for T
@@ -160,7 +165,7 @@ where
 {
 	#[inline(always)]
 	default fn to_bytes(&self) -> Result<Vec<u8>> {
-		bincode_options().serialize(self).err_into()
+		bincode_options().serialize(self).into_g()
 	}
 
 	#[inline(always)]
@@ -170,7 +175,7 @@ where
 
 	#[inline(always)]
 	default fn write_to(&self, w: impl SerBuf) -> Result<()> {
-		bincode_options().serialize_into(w, self).err_into()
+		bincode_options().serialize_into(w, self).into_g()
 	}
 }
 
@@ -180,7 +185,7 @@ where
 {
 	#[inline(always)]
 	default fn from_bytes(buf: &'a [u8]) -> Result<Self> {
-		bincode_options().deserialize(buf).err_into()
+		bincode_options().deserialize(buf).into_g()
 	}
 }
 

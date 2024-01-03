@@ -1,8 +1,9 @@
-use crate::enclave::error::Result;
+use crate::enclave::error::{Error, Result};
 use prost::Message;
 use tea_actorx::ActorId;
 use tea_runtime_codec::tapp::Account;
 use tea_runtime_codec::vmh::message::{encode_protobuf, structs_proto::crypto};
+use tea_sdk::IntoGlobal;
 use tea_system_actors::crypto::*;
 
 /// Base sha-256.
@@ -14,7 +15,7 @@ pub async fn sha256(content: Vec<u8>) -> Result<Vec<u8>> {
 	let r = ActorId::Static(NAME)
 		.call(Sha256Request(encode_protobuf(req)?))
 		.await?;
-	let res = crypto::ShaResponse::decode(r.0.as_slice())?;
+	let res = crypto::ShaResponse::decode(r.0.as_slice()).into_g::<Error>()?;
 	Ok(res.hash)
 }
 
@@ -36,7 +37,7 @@ pub async fn aes_encrypt(key: Vec<u8>, data: Vec<u8>) -> Result<Vec<u8>> {
 			crypto::AesEncryptRequest { key, data },
 		)?))
 		.await?;
-	let res_data = crypto::AesEncryptResponse::decode(res.0.as_slice())?;
+	let res_data = crypto::AesEncryptResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	Ok(res_data.encrypted_data)
 }
 
@@ -49,6 +50,6 @@ pub async fn aes_decrypt(key: Vec<u8>, encrypted_data: Vec<u8>) -> Result<Vec<u8
 			},
 		)?))
 		.await?;
-	let res_data = crypto::AesDecryptResponse::decode(res.0.as_slice())?;
+	let res_data = crypto::AesDecryptResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	Ok(res_data.data)
 }

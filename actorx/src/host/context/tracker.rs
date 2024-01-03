@@ -4,6 +4,7 @@ use std::{
 	sync::Arc,
 	time::{Duration, SystemTime},
 };
+use tea_sdk::serialize;
 use tokio::sync::{oneshot, Mutex};
 
 use crate::{
@@ -71,7 +72,7 @@ impl Tracker {
 		let f2 = &mut f;
 		let result = tokio::select! {
 			r = f2 => r,
-			Ok(_) = rx => Err(InvocationTimeout(calling_stack().expect("internal error: no calling stack")).into()),
+			Ok(_) = rx => Err(InvocationTimeout(serialize(&calling_stack().expect("internal error: no calling stack"))?).into()),
 			else => f.await
 		};
 
@@ -184,7 +185,7 @@ mod tests {
 					.await;
 				assert!(result.is_err());
 				let error = result.unwrap_err();
-				assert!(error.name() == ActorX::InvocationTimeout);
+				assert!(matches!(error, ActorX::InvocationTimeout(_)));
 			})
 			.await;
 	}

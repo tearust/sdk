@@ -2,7 +2,7 @@ pub use crate::core::actor::*;
 
 use std::{borrow::Cow, future::Future, pin::Pin, sync::Arc};
 
-use tea_codec::{serde::handle::HandleBytes, ResultExt};
+use tea_codec::serde::handle::HandleBytes;
 
 use crate::{
 	core::metadata::Metadata,
@@ -14,7 +14,7 @@ pub trait Actor: 'static {
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>, Error>;
 
 	async fn metadata(&self) -> Result<Arc<Metadata>> {
-		Err(NotSupported("metadata").into())
+		Err(NotSupported("metadata".to_owned()).into())
 	}
 
 	fn id(&self) -> Option<ActorId> {
@@ -53,7 +53,7 @@ where
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>, Error> {
 		let req = self.pre_handle(req).await?;
 		let resp = self.handle_bytes(&req).await?;
-		self.post_handle(&req, resp).await.err_into()
+		self.post_handle(&req, resp).await
 	}
 
 	fn id(&self) -> Option<ActorId> {
@@ -218,19 +218,19 @@ where
 		&'a self,
 		req: &'a [u8],
 	) -> Pin<Box<dyn Future<Output = Result<Vec<u8>>> + Send + 'a>> {
-		Box::pin(async move { ActorSend::invoke(self, req).await.err_into() })
+		Box::pin(async move { ActorSend::invoke(self, req).await })
 	}
 
 	fn metadata(&self) -> Pin<Box<dyn Future<Output = Result<Arc<Metadata>>> + Send + '_>> {
-		Box::pin(async move { ActorSend::metadata(self).await.err_into() })
+		Box::pin(async move { ActorSend::metadata(self).await })
 	}
 
 	fn size(&self) -> Pin<Box<dyn Future<Output = Result<u64>> + Send + '_>> {
-		Box::pin(async move { ActorSend::size(self).await.err_into() })
+		Box::pin(async move { ActorSend::size(self).await })
 	}
 
 	fn instance_count(&self) -> Pin<Box<dyn Future<Output = Result<u8>> + Send + '_>> {
-		Box::pin(async move { ActorSend::instance_count(self).await.err_into() })
+		Box::pin(async move { ActorSend::instance_count(self).await })
 	}
 
 	fn id(&self) -> Option<ActorId> {

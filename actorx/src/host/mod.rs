@@ -6,11 +6,11 @@ use std::{
 	sync::Arc,
 };
 
-use crate::{core::actor::ActorId, metadata::Metadata};
+use crate::{core::actor::ActorId, error::ActorX, metadata::Metadata};
 use tea_codec::{
 	errorx::Global,
 	serde::{get_type_id, ToBytes, TypeId},
-	ResultExt,
+	IntoGlobal,
 };
 use tokio::{
 	sync::{RwLock, RwLockReadGuard},
@@ -114,17 +114,17 @@ enum Status {
 impl ActorAgent {
 	#[inline(always)]
 	async fn metadata(&self) -> Result<Arc<Metadata>> {
-		self.actor.metadata().await.err_into()
+		self.actor.metadata().await
 	}
 
 	#[inline(always)]
 	async fn size(&self) -> Result<u64> {
-		self.actor.size().await.err_into()
+		self.actor.size().await
 	}
 
 	#[inline(always)]
 	async fn instance_count(&self) -> Result<u8> {
-		self.actor.instance_count().await.err_into()
+		self.actor.instance_count().await
 	}
 
 	async fn activate(&self) -> Result<()> {
@@ -146,7 +146,7 @@ impl ActorAgent {
 		*is_active = Status::Active;
 
 		if let Err(e) = self.actor.invoke(&Activate.to_bytes()?).await {
-			if e.name() != Global::UnexpectedType {
+			if !matches!(e, ActorX::Global(Global::UnexpectedType(_))) {
 				return Err(e.into());
 			}
 		}
@@ -159,10 +159,7 @@ impl ActorAgent {
 		let type_id = get_type_id(req);
 
 		if let Ok(Deactivate::TYPE_ID) = type_id {
-			return self
-				.deactivate()
-				.await
-				.and_then(|_| ().to_bytes().err_into());
+			return self.deactivate().await.and_then(|_| ().to_bytes().into_g());
 		}
 
 		self.activate().await?;
@@ -171,7 +168,7 @@ impl ActorAgent {
 			return Ok(().to_bytes()?);
 		}
 
-		self.actor.invoke(req).await.err_into()
+		self.actor.invoke(req).await
 	}
 
 	async fn deactivate(&self) -> Result<()> {
@@ -189,7 +186,7 @@ impl ActorAgent {
 		drop(is_active);
 
 		if let Err(e) = self.actor.invoke(&Deactivate.to_bytes()?).await {
-			if e.name() != Global::UnexpectedType {
+			if !matches!(e, ActorX::Global(Global::UnexpectedType(_))) {
 				self.remove_self().await?;
 				return Err(e.into());
 			}

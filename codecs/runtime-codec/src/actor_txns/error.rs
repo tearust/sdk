@@ -1,18 +1,23 @@
 use crate::actor_txns::{auth::AllowedOp, context::TappStorageType};
-use crate::runtime::error::RuntimeCodec;
-use crate::tapp::{error::TApp, Account, AuthKey, TokenId};
+use crate::tapp::{Account, AuthKey, TokenId};
 use serde::{Deserialize, Serialize};
-use tea_sdk::define_scope;
+use tea_sdk::errorx::Global;
 use thiserror::Error;
 
-define_scope! {
-	ActorTxns: pub RuntimeCodec, TApp {
-		TxnError => Txn, @Display, @Debug;
-		ContextError => Context, @Display, @Debug;
-	}
+pub type Error = ActorTxnsError;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ActorTxnsError {
+	#[error("Txn error:'{0}")]
+	TxnError(#[from] TxnError),
+	#[error("Context error:'{0}")]
+	ContextError(#[from] ContextError),
+	#[error("Global error: {0}")]
+	Global(#[from] Global),
 }
 
-#[derive(Debug, Error, PartialEq, Eq)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TxnError {
 	#[error("Txn error:'{0}")]
 	ErrorMessage(String),
@@ -46,7 +51,7 @@ pub enum TxnError {
 	StorageHasBeTouched(TappStorageType),
 }
 
-#[derive(Debug, Error, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ContextError {
 	#[error("CX_204__read_an_account_while_other_debit_the_same_account")]
 	ReadWhileDebit,

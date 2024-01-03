@@ -1,21 +1,14 @@
-use tea_codec_macros::define_scope;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-define_scope! {
-	Serde {
-		TypeIdMismatch => TypeIdMismatch, @Display, @Debug;
-		InvalidFormat => InvalidFormat, @Display, @Debug;
-	}
-}
-
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Type id does not match, expected \"{0}\", actual \"{1}\"")]
-pub struct TypeIdMismatch(pub &'static str, pub String);
+pub struct TypeIdMismatch(pub String, pub String);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Type id \"{0}\" is not supported here")]
 pub struct UnexpectedType(pub String);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Invalid byte format when reading {0}")]
-pub struct InvalidFormat(pub &'static str);
+pub struct InvalidFormat(pub String);

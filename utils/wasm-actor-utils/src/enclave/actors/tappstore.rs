@@ -23,6 +23,7 @@ use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{persist, tappstore, tokenstate},
 };
+use tea_sdk::IntoGlobal;
 use tea_system_actors::tappstore::*;
 use tea_system_actors::tokenstate::HasDbInitRequest;
 
@@ -66,7 +67,7 @@ pub async fn has_tappstore_init() -> Result<bool> {
 			},
 		)?))
 		.await?;
-	let res = tokenstate::HasGlueDbInitResponse::decode(buf.0.as_slice())?;
+	let res = tokenstate::HasGlueDbInitResponse::decode(buf.0.as_slice()).into_g::<Error>()?;
 	Ok(res.has_init)
 }
 
@@ -118,7 +119,7 @@ pub async fn query_tea_balance_async(
 		None,
 	)
 	.await?;
-	let res = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
+	let res = tappstore::TeaBalanceResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	Ok((deserialize(&res.balance)?, deserialize(&res.ts)?))
 }
 

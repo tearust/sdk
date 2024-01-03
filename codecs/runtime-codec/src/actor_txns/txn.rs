@@ -2,7 +2,6 @@ use crate::actor_txns::pre_args::ArgSlots;
 use crate::actor_txns::{error::Result, txn_hash};
 use crate::tapp::Hash;
 use serde::{Deserialize, Serialize};
-use tea_sdk::ResultExt;
 
 use super::TxnSerial;
 
@@ -35,10 +34,10 @@ impl FullTxn {
 
 	pub fn txn_hash(&self) -> Result<Hash> {
 		let txn_serial: TxnSerial = tea_codec::deserialize(&self.txn_bytes)?;
-		txn_hash(txn_serial.hash_bytes()?.as_slice()).err_into()
+		txn_hash(txn_serial.hash_bytes()?.as_slice())
 	}
 
 	pub fn args_hash(&self) -> Result<Option<Hash>> {
-		self.args.as_ref().map(|v| v.hash()).transpose().err_into()
+		self.args.as_ref().map(|v| v.hash()).transpose()
 	}
 }

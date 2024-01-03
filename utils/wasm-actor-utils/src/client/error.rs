@@ -1,12 +1,10 @@
-use crate::enclave::error::Actor;
-use tea_codec::define_scope;
+use tea_actorx::error::ActorX;
+use tea_runtime_codec::{tapp::error::RuntimeTappError, vmh::error::VmhError};
+use tea_sdk::errorx::Global;
 use thiserror::Error;
 
-define_scope! {
-	ClientUtilityActor: Actor {
-		Errors => ClientUtilityActor, @Display, @Debug;
-	}
-}
+pub type Error = Errors;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, Error)]
 pub enum Errors {
@@ -24,4 +22,31 @@ pub enum Errors {
 
 	#[error("You need at least 0.001 TEA or Credit to submit txn.")]
 	NotEnoughBalanceForTxn,
+
+	#[error("Unclave utils error: {0}")]
+	EnclaveUtilsError(#[from] crate::enclave::error::Error),
+
+	#[error("serde json error: {0}")]
+	SerdeJsonError(#[from] serde_json::Error),
+
+	#[error("Global error: {0}")]
+	Global(#[from] Global),
+
+	#[error("Actor error: {0}")]
+	ActorX(#[from] ActorX),
+
+	#[error("Runtime tapp error: {0}")]
+	RuntimeTappError(#[from] RuntimeTappError),
+
+	#[error("Vmh error: {0}")]
+	VmhError(#[from] VmhError),
+
+	#[error("Parse address error: {0}")]
+	ParseAddress(#[from] fixed_hash::rustc_hex::FromHexError),
+
+	#[error("Parse balance error: {0}")]
+	ParseBalance(String),
+
+	#[error("Http error: {0}")]
+	HttpError(String),
 }

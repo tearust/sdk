@@ -3,7 +3,7 @@ pub mod error;
 use error::Result;
 use ethereum_types::Address;
 use serde::{Deserialize, Serialize};
-use tea_sdk::ResultExt;
+use tea_sdk::errorx::Global;
 
 pub mod queries;
 pub mod txns;
@@ -50,7 +50,9 @@ impl ContractAddresses {
 	}
 
 	fn string_to_address(&self, addr: &str, _name: &str) -> Result<Address> {
-		addr.parse().err_into()
+		Ok(addr
+			.parse()
+			.map_err(|e| Global::Unnamed(format!("parse address error: {e}")))?)
 	}
 }
 

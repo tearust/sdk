@@ -2,12 +2,9 @@ use std::{any::type_name, mem::size_of};
 
 use impl_trait_for_tuples::impl_for_tuples;
 
-use crate::ResultExt;
+use crate::{IntoGlobal, Result, ResultExt};
 
-use super::{
-	error::{InvalidFormat, Result},
-	FromBytes, SerBuf, ToBytes,
-};
+use super::{error::InvalidFormat, FromBytes, SerBuf, ToBytes};
 
 pub trait LayoutWrite: Sized {
 	type Write<'a>: Copy
@@ -44,7 +41,7 @@ macro_rules! impl_nums {
 			#[inline(always)]
 			fn read(buf: &mut &[u8]) -> Result<Self> {
 				if buf.len() < size_of::<Self>() {
-					return Err(InvalidFormat(type_name::<Self>()).into());
+					return Err(InvalidFormat(type_name::<Self>().to_string()).into());
 				}
 				let (read, rest) = buf.split_at(size_of::<Self>());
 				let result = Self::from_le_bytes(unsafe { read.try_into().unwrap_unchecked() });
@@ -68,7 +65,7 @@ impl LayoutWrite for String {
 	#[inline(always)]
 	fn write(value: Self::Write<'_>, mut buf: impl SerBuf) -> Result<()> {
 		u32::write(value.len() as _, &mut buf)?;
-		buf.write_all(value.as_bytes()).err_into()
+		buf.write_all(value.as_bytes()).into_g()
 	}
 }
 
@@ -79,7 +76,7 @@ impl LayoutRead for String {
 	fn read<'a>(buf: &mut &'a [u8]) -> Result<Self::Read<'a>> {
 		let len = u32::read(buf)? as _;
 		if len > buf.len() {
-			return Err(InvalidFormat(type_name::<Self>()).into());
+			return Err(InvalidFormat(type_name::<Self>().to_string()).into());
 		}
 		let (read, rest) = buf.split_at(len);
 		let result = std::str::from_utf8(read)?;
@@ -99,7 +96,7 @@ impl LayoutWrite for Vec<u8> {
 	#[inline(always)]
 	fn write(value: Self::Write<'_>, mut buf: impl SerBuf) -> Result<()> {
 		u32::write(value.len() as _, &mut buf)?;
-		buf.write_all(value).err_into()
+		buf.write_all(value).into_g()
 	}
 }
 
@@ -110,7 +107,7 @@ impl LayoutRead for Vec<u8> {
 	fn read<'a>(buf: &mut &'a [u8]) -> Result<Self::Read<'a>> {
 		let len = u32::read(buf)? as _;
 		if len > buf.len() {
-			return Err(InvalidFormat(type_name::<Self>()).into());
+			return Err(InvalidFormat(type_name::<Self>().to_string()).into());
 		}
 		let (read, rest) = buf.split_at(len);
 		*buf = rest;
@@ -175,13 +172,13 @@ where
 
 	#[inline(always)]
 	fn size(value: Self::Write<'_>) -> Result<usize> {
-		value.bytes_len().map(|x| x + size_of::<u32>()).err_into()
+		value.bytes_len().map(|x| x + size_of::<u32>()).into_g()
 	}
 
 	#[inline(always)]
 	fn write(value: Self::Write<'_>, mut buf: impl SerBuf) -> Result<()> {
 		u32::write(value.bytes_len()? as _, &mut buf)?;
-		value.write_to(buf).err_into()
+		value.write_to(buf).into_g()
 	}
 }
 
@@ -195,7 +192,7 @@ where
 	fn read<'a>(buf: &mut &'a [u8]) -> Result<Self::Read<'a>> {
 		let len = u32::read(buf)? as _;
 		if len > buf.len() {
-			return Err(InvalidFormat(type_name::<T>()).into());
+			return Err(InvalidFormat(type_name::<T>().to_string()).into());
 		}
 		let (read, rest) = buf.split_at(len);
 		let result = T::from_bytes(read)?;
@@ -238,7 +235,7 @@ where
 	fn read<'a>(buf: &mut &'a [u8]) -> Result<Self::Read<'a>> {
 		let size = u32::read(buf)? as usize;
 		if size > buf.len() {
-			return Err(InvalidFormat(type_name::<T>()).into());
+			return Err(InvalidFormat(type_name::<T>().to_string()).into());
 		}
 		T::read(buf)
 	}

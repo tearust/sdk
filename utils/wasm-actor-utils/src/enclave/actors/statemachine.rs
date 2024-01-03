@@ -8,7 +8,7 @@ use crate::enclave::{
 use prost::Message;
 use sha2::Digest;
 use tea_actorx::ActorId;
-use tea_codec::{deserialize, serialize, ResultExt};
+use tea_codec::{deserialize, serialize, IntoGlobal};
 use tea_runtime_codec::tapp::{
 	statement::TypedStatement, Account, AuthKey, Balance, TokenId, GOD_MODE_AUTH_KEY,
 };
@@ -236,7 +236,7 @@ pub async fn query_state_tsid() -> Result<Tsid> {
 	let buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryStateTsidRequest)
 		.await?;
-	let res = QueryStateTsidResponse::decode(buf.0.as_slice())?;
+	let res = QueryStateTsidResponse::decode(buf.0.as_slice()).into_g::<Error>()?;
 	let tsid: Tsid = deserialize(res.state_tsid)?;
 	Ok(tsid)
 }
@@ -262,7 +262,7 @@ pub async fn commit(
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::CommitTxnRequest(buf))
 		.await?;
-	let res = StateCommitResponse::decode(res_buf.0.as_slice())?;
+	let res = StateCommitResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	let hidden_acct_credit: Balance = deserialize(&res.hidden_acct_credit)?;
 	let hidden_acct_debit: Balance = deserialize(&res.hidden_acct_debit)?;
 	let statements: Vec<TypedStatement> = deserialize(&res.statements_bytes)?;
@@ -361,7 +361,7 @@ pub async fn read_bonding_balance(
 			},
 		)?))
 		.await?;
-	let res = ReadTokenBalanceResponse::decode(res_buf.0.as_slice())?;
+	let res = ReadTokenBalanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	Ok((deserialize(&res.amount)?, res.ctx))
 }
 
@@ -381,7 +381,7 @@ pub async fn read_tea_balance(
 			},
 		)?))
 		.await?;
-	let res = ReadTeaBalanceResponse::decode(res_buf.0.as_slice())?;
+	let res = ReadTeaBalanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	Ok((deserialize(&res.balance_bytes)?, res.ctx))
 }
 
@@ -396,8 +396,8 @@ pub async fn query_tea_balance(token_id: TokenId, account: Account) -> Result<Ba
 			},
 		)?))
 		.await?;
-	let res = QueryTeaBalanceResponse::decode(res_buf.0.as_slice())?;
-	deserialize(res.balance_bytes).err_into()
+	let res = QueryTeaBalanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+	deserialize(res.balance_bytes).into_g()
 }
 
 /// Return tea deposit amount from state-machine.
@@ -411,7 +411,7 @@ pub async fn query_tea_deposit_balance(token_id: TokenId, account: Account) -> R
 			},
 		)?))
 		.await?;
-	let res = QueryTeaBalanceResponse::decode(res_buf.0.as_slice())?;
+	let res = QueryTeaBalanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	let balance = deserialize(res.balance_bytes)?;
 	Ok(balance)
 }
@@ -426,7 +426,7 @@ pub async fn query_allowance(token_id: &TokenId, address: &Account) -> Result<Ba
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryAllowanceRequest(buf))
 		.await?;
-	let res = QueryAllowanceResponse::decode(res_buf.0.as_slice())?;
+	let res = QueryAllowanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	let allowance: Balance = deserialize(res.allowance)?;
 	Ok(allowance)
 }
@@ -440,7 +440,7 @@ pub async fn query_credit(token_id: &TokenId, address: &Account) -> Result<Balan
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::QueryCreditRequest(buf))
 		.await?;
-	let res = QueryCreditResponse::decode(res_buf.0.as_slice())?;
+	let res = QueryCreditResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	let credit: Balance = deserialize(res.credit)?;
 	Ok(credit)
 }
@@ -455,7 +455,7 @@ pub async fn read_bonding_total_supply(ctx: Vec<u8>) -> Result<(Balance, Vec<u8>
 			ReadBondingTotalSupplyRequest { ctx },
 		)?))
 		.await?;
-	let res = ReadBondingTotalSupplyResponse::decode(res_buf.0.as_slice())?;
+	let res = ReadBondingTotalSupplyResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	Ok((deserialize(&res.total_supply)?, res.ctx))
 }
 
@@ -474,7 +474,7 @@ pub async fn burn_bonding_token(
 			},
 		)?))
 		.await?;
-	let res = BondingBurnResponse::decode(res_buf.0.as_slice())?;
+	let res = BondingBurnResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	Ok(res.ctx)
 }
 
@@ -487,8 +487,8 @@ pub async fn get_reserved_token_balance(token_id: TokenId) -> Result<Balance> {
 			},
 		)?))
 		.await?;
-	let res = GetTokenReservedBalanceResponse::decode(res_buf.0.as_slice())?;
-	deserialize(res.amount).err_into()
+	let res = GetTokenReservedBalanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+	deserialize(res.amount).into_g()
 }
 
 /// This get function can only be called from a pure query, not inside a txn.
@@ -502,8 +502,8 @@ pub async fn get_bonding_total_supply(token_id: TokenId) -> Result<Balance> {
 			},
 		)?))
 		.await?;
-	let res = GetTokenTotalSupplyResponse::decode(res_buf.0.as_slice())?;
-	deserialize(res.amount).err_into()
+	let res = GetTokenTotalSupplyResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+	deserialize(res.amount).into_g()
 }
 
 #[doc(hidden)]
@@ -525,7 +525,7 @@ pub async fn in_app_purchase(
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::InAppPurchaseRequest(buf))
 		.await?;
-	let res = InAppPurchaseResponse::decode(res_buf.0.as_slice())?;
+	let res = InAppPurchaseResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	Ok((res.tappstore_ctx, res.payee_ctx))
 }
 
@@ -544,7 +544,7 @@ pub async fn set_allowance(
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::SetAllowanceRequest(buf))
 		.await?;
-	let res = SetAllowanceResponse::decode(res_buf.0.as_slice())?;
+	let res = SetAllowanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	Ok(res.ctx)
 }
 
@@ -602,7 +602,7 @@ pub async fn pay_miner_gas(
 	let res_buf = ActorId::Static(codec::NAME)
 		.call(codec::PayMinerGasRequest(buf))
 		.await?;
-	let res = PayMinerGasResponse::decode(res_buf.0.as_slice())?;
+	let res = PayMinerGasResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
 	Ok((res.tappstore_ctx, res.payee_ctx))
 }
 
@@ -616,6 +616,6 @@ pub async fn query_token_balance(token_id: TokenId, account: Account) -> Result<
 			},
 		)?))
 		.await?;
-	let res = QueryTokenBalanceResponse::decode(res_buf.0.as_slice())?;
-	deserialize(res.balance_bytes).err_into()
+	let res = QueryTokenBalanceResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+	deserialize(res.balance_bytes).into_g()
 }

@@ -1,18 +1,23 @@
-use crate::runtime::error::RuntimeCodec;
-use tea_sdk::define_scope;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-define_scope! {
-	TApp: pub RuntimeCodec {
-		StatementTypeParse as v => StatementTypeParse, format!("Failed to parse '{}' to statement type", &v.0);
-		Errors => TApp, @Display, @Debug;
-	}
+pub type Error = RuntimeTappError;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum RuntimeTappError {
+	#[error(transparent)]
+	StatementTypeParse(#[from] StatementTypeParse),
+
+	#[error(transparent)]
+	Errors(#[from] Errors),
 }
 
-#[derive(Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[error("Failed to parse '{0}' to statement type")]
 pub struct StatementTypeParse(pub String);
 
-#[derive(Debug, Error)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Errors {
 	#[error("Failed to to parse mining status from \"{0}\"")]
 	ParseMiningStatus(String),

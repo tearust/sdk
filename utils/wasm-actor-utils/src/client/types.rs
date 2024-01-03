@@ -6,7 +6,7 @@ use crate::client::txn_cache;
 pub use crate::enclave::action::HttpRequest;
 use futures::Future;
 use std::pin::Pin;
-use tea_actorx::ActorId;
+use tea_actorx::IntoActor;
 
 use serde::{Deserialize, Serialize};
 use tea_codec::serde::TypeId;
@@ -88,7 +88,7 @@ pub async fn txn_callback(uuid: &str, from_actor: String) -> Result<Vec<u8>> {
 		payload: req_bytes,
 		uuid: ori_uuid,
 	};
-	let actor_id: ActorId = target_actor.as_bytes().into();
+	let actor_id = target_actor.as_bytes().to_vec().into_actor();
 	let rs = actor_id.call(req).await?;
 	Ok(rs)
 }

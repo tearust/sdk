@@ -1,5 +1,7 @@
 use std::{future::Future, mem::MaybeUninit, pin::Pin, task::Poll};
 
+use tea_sdk::errorx::Global;
+
 use crate::core::worker_codec::Operation;
 
 use crate::{
@@ -18,7 +20,11 @@ where
 		Operation::Call { ctx, req } => {
 			match bincode::deserialize(&ctx) {
 				Ok(c) => context().calling_stack = c,
-				Err(e) => return Operation::ReturnErr { error: e.into() },
+				Err(e) => {
+					return Operation::ReturnErr {
+						error: Into::<Global>::into(e).into(),
+					}
+				}
 			}
 			#[allow(clippy::uninit_assumed_init)]
 			let mut execution = Box::pin(Interruptable(A::default(), req, unsafe {

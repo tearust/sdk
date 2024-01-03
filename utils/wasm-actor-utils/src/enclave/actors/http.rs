@@ -2,7 +2,7 @@ use tea_actorx::ActorId;
 use tea_runtime_codec::runtime::http::{FromHttpBytes, IntoHttpBytes};
 use tea_sdk::ResultExt;
 
-use crate::enclave::error::Result;
+use crate::enclave::error::{Error, Result};
 
 pub use http::*;
 
@@ -55,7 +55,10 @@ impl RequestExt for request::Builder {
 	where
 		T: FromHttpBytes,
 	{
-		self.body(Vec::new())?.request().await
+		self.body(Vec::new())
+			.map_err(|e| Error::HttpRequest(e.to_string()))?
+			.request()
+			.await
 	}
 
 	async fn request_result<T, E>(self) -> Result<Response<Result<T, E>>>
@@ -63,6 +66,9 @@ impl RequestExt for request::Builder {
 		T: FromHttpBytes,
 		E: FromHttpBytes,
 	{
-		self.body(Vec::new())?.request_result().await
+		self.body(Vec::new())
+			.map_err(|e| Error::HttpRequest(e.to_string()))?
+			.request_result()
+			.await
 	}
 }

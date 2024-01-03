@@ -1,15 +1,31 @@
-use tea_codec::define_scope;
+use tea_sdk::errorx::Global;
 use thiserror::Error;
 
-use crate::error::ActorX;
+pub type Error = Signer;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-define_scope! {
-	Signer: ActorX {
-		openssl::error::ErrorStack => OpenSsl, @Display, @Debug;
-		SignatureMismatch => Signature, @Display, @Debug;
-		InvalidSignatureFormat => InvalidSignatureFormat, @Display, @Debug;
-		leb128::read::Error => Leb128ReadError, @Display, @Debug;
-	}
+#[derive(Debug, Error)]
+pub enum Signer {
+	#[error(transparent)]
+	OpenSsl(#[from] openssl::error::ErrorStack),
+
+	#[error(transparent)]
+	Signature(#[from] SignatureMismatch),
+
+	#[error(transparent)]
+	InvalidSignatureFormat(#[from] InvalidSignatureFormat),
+
+	#[error(transparent)]
+	Leb128ReadError(#[from] leb128::read::Error),
+
+	#[error(transparent)]
+	Global(#[from] Global),
+
+	#[error(transparent)]
+	YamlSerde(#[from] serde_yaml::Error),
+
+	#[error(transparent)]
+	StdIo(#[from] std::io::Error),
 }
 
 #[derive(Debug, Error)]

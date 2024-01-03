@@ -4,7 +4,6 @@ use crate::tapp::{
 };
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
-use tea_sdk::errorx::IntoError;
 
 #[doc(hidden)]
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -81,7 +80,7 @@ impl FromStr for StatementType {
 		match s {
 			"Incoming" => Ok(StatementType::Incoming),
 			"Outcoming" => Ok(StatementType::Outcoming),
-			_ => Err(StatementTypeParse(s.to_string()).into_error()),
+			_ => Err(StatementTypeParse(s.to_string()).into()),
 		}
 	}
 }
@@ -110,7 +109,7 @@ impl FromStr for StateType {
 			"BondingReserved" => Ok(StateType::BondingReserved),
 			"Credit" => Ok(StateType::Credit),
 			"Allowance" => Ok(StateType::Allowance),
-			_ => Err(StatementTypeParse(s.to_string()).into_error()),
+			_ => Err(StatementTypeParse(s.to_string()).into()),
 		}
 	}
 }

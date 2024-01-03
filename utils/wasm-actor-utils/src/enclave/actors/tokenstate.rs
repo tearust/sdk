@@ -3,7 +3,7 @@ use crate::enclave::error::{Error, Errors, GlueSqlErrors, Result};
 use gluesql_core::prelude::{Payload, Row, Value};
 use prost::Message;
 use tea_actorx::ActorId;
-use tea_codec::{deserialize, serialize, ResultExt};
+use tea_codec::{deserialize, serialize, IntoGlobal};
 use tea_runtime_codec::actor_txns::context::TokenContext;
 use tea_runtime_codec::tapp::{Account, Balance, TokenId};
 use tea_runtime_codec::vmh::message::{encode_protobuf, structs_proto::tokenstate};
@@ -27,7 +27,7 @@ pub async fn is_in_sql_transaction(token_id: TokenId) -> Result<bool> {
 			},
 		)?))
 		.await?;
-	let res = tokenstate::IsInTransactionResponse::decode(buf.0.as_slice())?;
+	let res = tokenstate::IsInTransactionResponse::decode(buf.0.as_slice()).into_g::<Error>()?;
 	Ok(res.yes)
 }
 
@@ -155,12 +155,12 @@ pub async fn sql_query(token_id: TokenId, sql: String) -> Result<Vec<Payload>> {
 	let res = ActorId::Static(NAME)
 		.call(ExecGlueQueryRequest(encode_protobuf(req)?))
 		.await?;
-	let res = tokenstate::ExecGlueQueryResponse::decode(res.0.as_slice())?;
-	res.payloads
+	let res = tokenstate::ExecGlueQueryResponse::decode(res.0.as_slice()).into_g::<Error>()?;
+	Ok(res
+		.payloads
 		.iter()
 		.map(|buf| deserialize::<Payload, _>(buf.as_slice()))
-		.collect::<Result<_, _>>()
-		.err_into()
+		.collect::<Result<_, _>>()?)
 }
 
 /// Generate an sql payload.
@@ -188,7 +188,7 @@ pub async fn mov(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Resu
 		.call(MoveRequest { from, to, amt, ctx })
 		.await
 		.map_err(|e| {
-			Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.into())
+			Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.to_string())
 		})?;
 	Ok(res.0)
 }
@@ -232,7 +232,7 @@ pub async fn cross_move(
 				to_ctx.tid.to_hex(),
 				to.to_string(),
 				amt,
-				e.into(),
+				e.to_string(),
 			)
 		})?;
 	Ok((res.from_ctx, res.to_ctx))
@@ -278,7 +278,7 @@ pub async fn api_cross_move(
 				to_ctx.tid.to_hex(),
 				to.to_string(),
 				amt,
-				e.into(),
+				e.to_string(),
 			)
 		})?;
 	Ok((res.from_ctx, res.to_ctx))
@@ -294,109 +294,111 @@ pub async fn mov_credit(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) 
 		.call(MoveCreditRequest { from, to, amt, ctx })
 		.await
 		.map_err(|e| {
-			Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.into())
+			Errors::StateMachineMoveFailed(from.to_string(), to.to_string(), amt, e.to_string())
 		})?;
 	Ok(res.0)
 }
 
-/// A wrapped method for deposit, which includes the allowance operation.
-pub async fn api_deposit(
-	acct: Account,
-	amt: Balance,
-	tappstore_ctx: Vec<u8>,
-	token_ctx: Vec<u8>,
-) -> Result<(Vec<u8>, Vec<u8>)> {
-	let buf = encode_protobuf(tokenstate::ApiDepositRequest {
-		acct: serialize(&acct)?,
-		amt: serialize(&amt)?,
-		ctx: tappstore_ctx,
-		token_ctx,
-	})?;
-	let res_buf = ActorId::Static(NAME).call(ApiDepositRequest(buf)).await?;
-	let res = tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice())?;
-	let operate_error: Error = deserialize(&res.operate_error)?;
-	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
-		info!("actor_statemachine api_deposit successed");
-		Ok((res.ctx, res.token_ctx))
-	} else {
-		error!(
-			"actor_statemachine api_deposit error {}",
-			operate_error.to_string()
-		);
-		Err(operate_error)
-	}
-}
+// /// A wrapped method for deposit, which includes the allowance operation.
+// pub async fn api_deposit(
+// 	acct: Account,
+// 	amt: Balance,
+// 	tappstore_ctx: Vec<u8>,
+// 	token_ctx: Vec<u8>,
+// ) -> Result<(Vec<u8>, Vec<u8>)> {
+// 	let buf = encode_protobuf(tokenstate::ApiDepositRequest {
+// 		acct: serialize(&acct)?,
+// 		amt: serialize(&amt)?,
+// 		ctx: tappstore_ctx,
+// 		token_ctx,
+// 	})?;
+// 	let res_buf = ActorId::Static(NAME).call(ApiDepositRequest(buf)).await?;
+// 	let res =
+// 		tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+// 	let operate_error: Error = deserialize(&res.operate_error)?;
+// 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+// 		info!("actor_statemachine api_deposit successed");
+// 		Ok((res.ctx, res.token_ctx))
+// 	} else {
+// 		error!(
+// 			"actor_statemachine api_deposit error {}",
+// 			operate_error.to_string()
+// 		);
+// 		Err(operate_error)
+// 	}
+// }
 
-/// A wrapped method for refund, which includes the allowance operation.
-pub async fn api_refund(
-	acct: Account,
-	amt: Balance,
-	tappstore_ctx: Vec<u8>,
-	token_ctx: Vec<u8>,
-) -> Result<(Vec<u8>, Vec<u8>)> {
-	let buf = encode_protobuf(tokenstate::ApiRefundRequest {
-		acct: serialize(&acct)?,
-		amt: serialize(&amt)?,
-		ctx: tappstore_ctx,
-		token_ctx,
-	})?;
-	let res_buf = ActorId::Static(NAME).call(ApiRefundRequest(buf)).await?;
-	let res = tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice())?;
-	let operate_error: Error = deserialize(&res.operate_error)?;
-	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
-		info!("actor_statemachine api_refund successed");
-		Ok((res.ctx, res.token_ctx))
-	} else {
-		error!(
-			"actor_statemachine api_refund error {}",
-			operate_error.to_string()
-		);
-		Err(operate_error)
-	}
-}
+// /// A wrapped method for refund, which includes the allowance operation.
+// pub async fn api_refund(
+// 	acct: Account,
+// 	amt: Balance,
+// 	tappstore_ctx: Vec<u8>,
+// 	token_ctx: Vec<u8>,
+// ) -> Result<(Vec<u8>, Vec<u8>)> {
+// 	let buf = encode_protobuf(tokenstate::ApiRefundRequest {
+// 		acct: serialize(&acct)?,
+// 		amt: serialize(&amt)?,
+// 		ctx: tappstore_ctx,
+// 		token_ctx,
+// 	})?;
+// 	let res_buf = ActorId::Static(NAME).call(ApiRefundRequest(buf)).await?;
+// 	let res =
+// 		tokenstate::ApiStateOperateResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+// 	let operate_error: Error = deserialize(&res.operate_error)?;
+// 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+// 		info!("actor_statemachine api_refund successed");
+// 		Ok((res.ctx, res.token_ctx))
+// 	} else {
+// 		error!(
+// 			"actor_statemachine api_refund error {}",
+// 			operate_error.to_string()
+// 		);
+// 		Err(operate_error)
+// 	}
+// }
 
-pub async fn balance_to_credit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
-	let buf = encode_protobuf(tokenstate::BalanceToCreditRequest {
-		acct: serialize(&acct)?,
-		amt: serialize(&amt)?,
-		ctx,
-	})?;
-	let res_buf = ActorId::Static(NAME)
-		.call(BalanceToCreditRequest(buf))
-		.await?;
-	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
-	let operate_error: Error = deserialize(&res.operate_error)?;
-	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
-		info!("actor_statemachine balance_to_credit successed");
-		Ok(res.ctx)
-	} else {
-		error!(
-			"actor_statemachine balance_to_credit error {}",
-			operate_error.to_string()
-		);
-		Err(operate_error.into())
-	}
-}
+// pub async fn balance_to_credit(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+// 	let buf = encode_protobuf(tokenstate::BalanceToCreditRequest {
+// 		acct: serialize(&acct)?,
+// 		amt: serialize(&amt)?,
+// 		ctx,
+// 	})?;
+// 	let res_buf = ActorId::Static(NAME)
+// 		.call(BalanceToCreditRequest(buf))
+// 		.await?;
+// 	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+// 	let operate_error: Error = deserialize(&res.operate_error)?;
+// 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+// 		info!("actor_statemachine balance_to_credit successed");
+// 		Ok(res.ctx)
+// 	} else {
+// 		error!(
+// 			"actor_statemachine balance_to_credit error {}",
+// 			operate_error.to_string()
+// 		);
+// 		Err(operate_error.into())
+// 	}
+// }
 
-pub async fn credit_to_balance(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
-	let buf = encode_protobuf(tokenstate::CreditToBalanceRequest {
-		acct: serialize(&acct)?,
-		amt: serialize(&amt)?,
-		ctx,
-	})?;
-	let res_buf = ActorId::Static(NAME)
-		.call(CreditToBalanceRequest(buf))
-		.await?;
-	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice())?;
-	let operate_error: Error = deserialize(&res.operate_error)?;
-	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
-		info!("actor_statemachine credit_to_balance successed");
-		Ok(res.ctx)
-	} else {
-		error!(
-			"actor_statemachine credit_to_balance error {}",
-			operate_error.to_string()
-		);
-		Err(operate_error.into())
-	}
-}
+// pub async fn credit_to_balance(acct: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+// 	let buf = encode_protobuf(tokenstate::CreditToBalanceRequest {
+// 		acct: serialize(&acct)?,
+// 		amt: serialize(&amt)?,
+// 		ctx,
+// 	})?;
+// 	let res_buf = ActorId::Static(NAME)
+// 		.call(CreditToBalanceRequest(buf))
+// 		.await?;
+// 	let res = tokenstate::StateOperateResponse::decode(res_buf.0.as_slice()).into_g::<Error>()?;
+// 	let operate_error: Error = deserialize(&res.operate_error)?;
+// 	if operate_error.summary().as_deref() == Some(OPERATE_ERROR_SUCCESS_SUMMARY) {
+// 		info!("actor_statemachine credit_to_balance successed");
+// 		Ok(res.ctx)
+// 	} else {
+// 		error!(
+// 			"actor_statemachine credit_to_balance error {}",
+// 			operate_error.to_string()
+// 		);
+// 		Err(operate_error.into())
+// 	}
+// }

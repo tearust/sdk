@@ -3,9 +3,9 @@ use std::time::Duration;
 
 #[cfg(any(feature = "host", feature = "worker"))]
 use strum::{Display, FromRepr};
-use tea_sdk::errorx::IntoError;
 #[cfg(any(feature = "wasm", feature = "worker"))]
 use tea_sdk::serde::error::InvalidFormat;
+use tea_sdk::{errorx::Global, IntoGlobal};
 #[cfg(any(feature = "host", feature = "worker"))]
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
@@ -51,7 +51,7 @@ impl OperationAbi {
 	pub unsafe fn marshal(
 		&mut self,
 		op: Operation,
-		mut handle_vec: impl FnMut(Vec<u8>, &mut u32, &mut u32) -> Result<(), Error>,
+		mut handle_vec: impl FnMut(Vec<u8>, &mut u32, &mut u32) -> Result<()>,
 	) -> Result<()> {
 		match op {
 			Operation::Call { ctx, req } => {
@@ -64,7 +64,7 @@ impl OperationAbi {
 				handle_vec(resp, &mut self.data_0, &mut self.len_0)?;
 			}
 			Operation::ReturnErr { error } => {
-				let error = bincode::serialize(&error)?;
+				let error = bincode::serialize(&error).into_g::<Error>()?;
 				self.flag = 2;
 				handle_vec(error, &mut self.data_0, &mut self.len_0)?;
 			}
@@ -74,7 +74,7 @@ impl OperationAbi {
 
 	pub unsafe fn unmarshal(
 		&self,
-		mut handle_vec: impl FnMut(u32, u32) -> Result<Vec<u8>, Error>,
+		mut handle_vec: impl FnMut(u32, u32) -> Result<Vec<u8>>,
 	) -> Result<Operation> {
 		let vec_0 = handle_vec(self.data_0, self.len_0)?;
 		match self.flag {
@@ -84,9 +84,12 @@ impl OperationAbi {
 			}),
 			1 => Ok(Operation::ReturnOk { resp: vec_0 }),
 			2 => Ok(Operation::ReturnErr {
-				error: bincode::deserialize(&vec_0)?,
+				error: bincode::deserialize(&vec_0).into_g::<Error>()?,
 			}),
-			_ => Err(InvalidFormat.into_error()),
+			_ => Err(Global::InvalidFormat(InvalidFormat(
+				format! {"unmarshal flag {}", self.flag},
+			))
+			.into()),
 		}
 	}
 
@@ -141,12 +144,12 @@ impl Default for OperationAbi {
 
 #[cfg(any(feature = "host", feature = "worker"))]
 impl Operation {
-	pub async fn read<R>(mut read: R, code: u8) -> Result<Result<(Self, u64, u64), u8>>
+	pub async fn read<R>(mut read: R, code: u8) -> Result<std::result::Result<(Self, u64, u64), u8>>
 	where
 		R: AsyncRead + Unpin,
 	{
-		let cid = read.read_u64_le().await?;
-		let gas = read.read_u64_le().await?;
+		let cid = read.read_u64_le().await.into_g::<Error>()?;
+		let gas = read.read_u64_le().await.into_g::<Error>()?;
 		let data_0 = read_var_bytes(&mut read).await?;
 		Ok(match OpCode::from_repr(code) {
 			Some(OpCode::Call) => {
@@ -157,7 +160,7 @@ impl Operation {
 			Some(OpCode::ReturnOk) => Ok((Self::ReturnOk { resp: data_0 }, cid, gas)),
 			Some(OpCode::ReturnErr) => Ok((
 				Self::ReturnErr {
-					error: bincode::deserialize(&data_0)?,
+					error: bincode::deserialize(&data_0).into_g::<Error>()?,
 				},
 				cid,
 				gas,
@@ -171,7 +174,7 @@ impl Operation {
 		R: AsyncRead + Unpin,
 	{
 		Ok(tokio::select! {
-			r = read.read_u8() => Some(r?),
+			r = read.read_u8() => Some(r.into_g::<Error>()?),
 			_ = tokio::time::sleep(Duration::from_secs(5)) => None,
 		})
 	}
@@ -180,34 +183,38 @@ impl Operation {
 	where
 		W: AsyncWrite + Unpin,
 	{
-		match self {
-			Operation::Call { ctx, req } => {
-				write.write_u8(OpCode::Call as _).await?;
-				write.write_u64_le(cid).await?;
-				write.write_u64_le(gas).await?;
-				write_var_bytes(&mut write, ctx).await?;
-				write_var_bytes(write, req).await?;
-			}
-			Operation::ReturnOk { resp } => {
-				write.write_u8(OpCode::ReturnOk as _).await?;
-				write.write_u64_le(cid).await?;
-				write.write_u64_le(gas).await?;
-				write_var_bytes(write, resp).await?;
-			}
-			Operation::ReturnErr { error } => {
-				write.write_u8(OpCode::ReturnErr as _).await?;
-				write.write_u64_le(cid).await?;
-				write.write_u64_le(gas).await?;
-				write_var_bytes(write, &bincode::serialize(error)?).await?;
-			}
+		async {
+			match self {
+				Operation::Call { ctx, req } => {
+					write.write_u8(OpCode::Call as _).await?;
+					write.write_u64_le(cid).await?;
+					write.write_u64_le(gas).await?;
+					write_var_bytes(&mut write, ctx).await?;
+					write_var_bytes(write, req).await?;
+				}
+				Operation::ReturnOk { resp } => {
+					write.write_u8(OpCode::ReturnOk as _).await?;
+					write.write_u64_le(cid).await?;
+					write.write_u64_le(gas).await?;
+					write_var_bytes(write, resp).await?;
+				}
+				Operation::ReturnErr { error } => {
+					write.write_u8(OpCode::ReturnErr as _).await?;
+					write.write_u64_le(cid).await?;
+					write.write_u64_le(gas).await?;
+					write_var_bytes(write, &bincode::serialize(error)?).await?;
+				}
+			};
+			Ok(()) as Result<(), Global>
 		}
+		.await?;
 		Ok(())
 	}
 }
 
 #[cfg(any(feature = "host", feature = "worker"))]
 #[allow(clippy::uninit_vec)]
-pub async fn read_var_bytes<R>(mut read: R) -> Result<Vec<u8>>
+pub async fn read_var_bytes<R>(mut read: R) -> Result<Vec<u8>, Global>
 where
 	R: AsyncRead + Unpin,
 {
@@ -221,7 +228,7 @@ where
 }
 
 #[cfg(any(feature = "host", feature = "worker"))]
-pub async fn write_var_bytes<W>(mut write: W, bytes: &[u8]) -> Result<()>
+pub async fn write_var_bytes<W>(mut write: W, bytes: &[u8]) -> Result<(), Global>
 where
 	W: AsyncWrite + Unpin,
 {

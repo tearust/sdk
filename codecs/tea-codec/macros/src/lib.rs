@@ -1,30 +1,11 @@
 use proc_macro::TokenStream;
-mod errorx;
 mod handle;
 mod pricing;
 mod serde;
 mod timeout;
 
-use errorx::emit::{emit, emit_all};
 use quote::{quote, ToTokens};
 use syn::parse_macro_input;
-
-#[proc_macro]
-pub fn define_scope_internal(input: TokenStream) -> TokenStream {
-	let ast: errorx::ast::DefineScope = syn::parse(input).unwrap();
-	emit::<true>(&ast).into()
-}
-
-#[proc_macro]
-/// Define an error handling scope for the tea error system.
-///
-/// You are supposed to define a scope for at least each crates and optionally for large modules
-///
-/// This would generate an error scope along with `Error` and `Result` type aliases associated with such scope.
-pub fn define_scope(input: TokenStream) -> TokenStream {
-	let ast: errorx::ast::DefineScopes = syn::parse(input).unwrap();
-	emit_all(&ast.0).into()
-}
 
 /// Marks the type with a generated unique type id that distinct among generics and package versions.
 ///

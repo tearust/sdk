@@ -1,46 +1,65 @@
-#[cfg(feature = "host")]
-use command_fds::FdMappingCollision;
-use tea_codec::define_scope;
-#[cfg(feature = "host")]
-use tea_sdk::errorx::{Descriptor, Scope};
-use tea_sdk::serde::error::Serde;
+use serde::{Deserialize, Serialize};
+use tea_sdk::errorx::Global;
 use thiserror::Error;
 
-use crate::core::{actor::ActorId, error::ActorXCore};
+use crate::core::actor::ActorId;
 
-define_scope! {
-	ActorX: pub ActorXCore, Serde {
-		BadWorkerOutput => BadWorkerOutput;
-		WorkerCrashed => WorkerCrashed;
-		AccessNotPermitted => AccessNotPermitted;
-		ActorNotExist => ActorNotExist;
-		NotSupported => NotSupported;
-		ActorDeactivating => ActorDeactivating;
-		GasFeeExhausted => GasFeeExhausted;
-		MissingCallingStack => MissingCallingStack;
-		ActorHostDropped => ActorHostDropped;
-		InvocationTimeout => InvocationTimeout;
-		ChannelReceivingTimeout => ChannelReceivingTimeout;
-		InvokeDeserializeError => InvokeDeserializeError;
-	}
+pub type Error = ActorX;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ActorX {
+	#[error("Wasm worker error: {0}")]
+	WasmWorkerError(String),
+
+	#[error("procfs error: {0}")]
+	ProcError(String),
+
+	#[error(transparent)]
+	Global(#[from] Global),
+
+	#[error(transparent)]
+	BadWorkerOutput(#[from] BadWorkerOutput),
+
+	#[error(transparent)]
+	WorkerCrashed(#[from] WorkerCrashed),
+
+	#[error(transparent)]
+	AccessNotPermitted(#[from] AccessNotPermitted),
+
+	#[error(transparent)]
+	ActorNotExist(#[from] ActorNotExist),
+
+	#[error(transparent)]
+	NotSupported(#[from] NotSupported),
+
+	#[error(transparent)]
+	ActorDeactivating(#[from] ActorDeactivating),
+
+	#[error(transparent)]
+	GasFeeExhausted(#[from] GasFeeExhausted),
+
+	#[error(transparent)]
+	MissingCallingStack(#[from] MissingCallingStack),
+
+	#[error(transparent)]
+	ActorHostDropped(#[from] ActorHostDropped),
+
+	#[error(transparent)]
+	InvocationTimeout(#[from] InvocationTimeout),
+
+	#[error(transparent)]
+	ChannelReceivingTimeout(#[from] ChannelReceivingTimeout),
+
+	#[error(transparent)]
+	InvokeDeserializeError(#[from] InvokeDeserializeError),
 }
 
-#[cfg(feature = "host")]
-impl Descriptor<FdMappingCollision> for ActorX {
-	fn name(_: &FdMappingCollision) -> Option<std::borrow::Cow<str>> {
-		Some(format!("{}.FdMappingCollision", ActorX::NAME).into())
-	}
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
+#[error("Gas fee is exhausted")]
+pub struct GasFeeExhausted;
 
-	fn type_id(_: &FdMappingCollision) -> Option<std::any::TypeId> {
-		Some(std::any::TypeId::of::<FdMappingCollision>())
-	}
-}
-
-#[derive(Debug, Error)]
-#[error("Gas fee is exhausted within wasm actor {0}")]
-pub struct GasFeeExhausted(pub ActorId);
-
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BadWorkerOutput {
 	#[error("Unknown MasterCommand {0} from the worker of {1}")]
 	UnknownMasterCommand(u8, ActorId),
@@ -49,23 +68,23 @@ pub enum BadWorkerOutput {
 	ChannelNotExist(u64, ActorId),
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Worker crashed: {0}")]
-pub struct WorkerCrashed(pub Error);
+pub struct WorkerCrashed(pub String);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Access to actor {0} is not permitted")]
 pub struct AccessNotPermitted(pub ActorId);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Attempting to invoke actor {0} that does not exist")]
 pub struct ActorNotExist(pub ActorId);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("{0} is not supported")]
-pub struct NotSupported(pub &'static str);
+pub struct NotSupported(pub String);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MissingCallingStack {
 	#[error("The operation must be within a current actor context")]
 	Current,
@@ -73,31 +92,29 @@ pub enum MissingCallingStack {
 	Caller,
 }
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("The actor host is dropped for the future with with_actor_host is complete")]
 pub struct ActorHostDropped;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Actor {0} is deactivating")]
 pub struct ActorDeactivating(pub ActorId);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(
 	any(feature = "host", feature = "wasm"),
-	error("The invocation is timed out, calling stack: {0}")
+	error("The invocation is timed out, calling stack: {0:?}")
 )]
 #[cfg_attr(
 	not(any(feature = "host", feature = "wasm")),
 	error("The invocation is timed out.")
 )]
-pub struct InvocationTimeout(
-	#[cfg(any(feature = "host", feature = "wasm"))] pub crate::CallingStack,
-);
+pub struct InvocationTimeout(#[cfg(any(feature = "host", feature = "wasm"))] pub Vec<u8>);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Receiving channel of actor {0} has timeout")]
 pub struct ChannelReceivingTimeout(pub ActorId);
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Failed to deserialize the invoke response to actor '{0}': {1}")]
 pub struct InvokeDeserializeError(pub ActorId, pub String);

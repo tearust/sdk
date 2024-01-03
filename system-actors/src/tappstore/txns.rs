@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use strum::Display;
-use tea_codec::ResultExt;
+use tea_codec::IntoGlobal;
 use tea_codec::{deserialize, serialize};
 use tea_runtime_codec::actor_txns::{IntoSerial, Transferable, Tsid, Txn, TxnSerial};
 use tea_runtime_codec::tapp::{
@@ -400,7 +400,7 @@ impl TryFrom<TxnSerial> for TappstoreTxn {
 	type Error = Error;
 
 	fn try_from(value: TxnSerial) -> Result<Self, Self::Error> {
-		deserialize(value.bytes()).err_into()
+		deserialize(value.bytes()).into_g()
 	}
 }
 

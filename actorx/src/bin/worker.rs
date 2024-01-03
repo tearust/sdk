@@ -1,6 +1,9 @@
 use std::panic::set_hook;
 
-use tea_actorx::worker::{error::Result, Worker};
+use tea_actorx::worker::{
+	error::{ActorXWorker, Result},
+	Worker,
+};
 use tea_codec::errorx::Global;
 use tokio::net::UnixStream;
 
@@ -31,7 +34,9 @@ async fn main() -> Result<()> {
 		}
 	};
 	if let Err(e) = Worker::init(socket).await?.serve().await {
-		if e.name() != Global::StdIo {
+		if !matches!(e, ActorXWorker::StdIo(_))
+			&& !matches!(e, ActorXWorker::Global(Global::StdIo(_)))
+		{
 			return Err(e);
 		}
 	}

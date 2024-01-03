@@ -11,7 +11,7 @@ use std::{
 #[cfg(feature = "verbose_log")]
 use ::{std::time::SystemTime, tea_sdk::serde::get_type_id};
 
-use tea_sdk::ResultExt;
+use tea_sdk::IntoGlobal;
 use tokio::{
 	io::{AsyncReadExt, AsyncWriteExt},
 	net::{
@@ -28,8 +28,9 @@ use tokio::{
 use crate::core::actor::ActorId;
 use crate::{
 	core::worker_codec::{read_var_bytes, write_var_bytes, Operation},
+	error::ActorX,
 	worker::{
-		error::Result,
+		error::{Error, Result},
 		wasm::{get_instance, instance_from_cache, Host},
 	},
 };
@@ -61,7 +62,13 @@ impl Worker {
 				let metadata = host.metadata();
 				(Ok(host), Ok(metadata))
 			}
-			Err(e) => (Err(e.clone()), Err(e)),
+			Err(e) => {
+				let err_msg = format!("{e:?}");
+				(
+					Err(Error::Unnamed(err_msg.clone())),
+					Err(ActorX::WasmWorkerError(err_msg)),
+				)
+			}
 		};
 		write_var_bytes(&mut socket, &bincode::serialize(&metadata)?).await?;
 		socket.flush().await?;
@@ -127,11 +134,13 @@ impl Worker {
 			let channel = slf.clone().channel(cid, state.clone(), rx);
 			if let Err(e) = channel.await {
 				let mut write = slf.write.lock().await;
-				let res = Operation::ReturnErr { error: e.into() }
-					.write(&mut *write, cid, gas)
-					.await;
+				let res = Operation::ReturnErr {
+					error: ActorX::WasmWorkerError(format!("{e:?}")),
+				}
+				.write(&mut *write, cid, gas)
+				.await;
 				let writing = match res {
-					Ok(_) => write.flush().await.err_into(),
+					Ok(_) => write.flush().await.into_g(),
 					e => e,
 				};
 				if let Err(e2) = writing {

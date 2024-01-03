@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
-use crate::client::{check_auth, help, request, Result};
+use crate::client::{check_auth, help, request, Error, Result};
 use crate::enclave::actors::env::tapp_payment_channel_token_id;
 use crate::enclave::actors::statemachine;
 use prost::Message;
@@ -9,6 +9,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tea_actorx::ActorId;
 use tea_runtime_codec::tapp::{Account, Balance, ChannelItem, ChannelItemStatus};
+use tea_sdk::IntoGlobal;
 use tea_system_actors::payment_channel::{
 	txns::PaymentChannelTxn, QueryChannelInfoRequest, QueryChannelInfoResponse, NAME,
 };
@@ -104,12 +105,16 @@ pub async fn open_payment_channel(payload: Vec<u8>, from_actor: String) -> Resul
 		tbu_3: None,
 		payer_address: req.address.parse()?,
 		payee_address: req.payee_address.parse()?,
-		fund_remaining: Balance::from_str_radix(&req.fund_remaining, 10)?,
+		fund_remaining: Balance::from_str_radix(&req.fund_remaining, 10)
+			.map_err(|e| Error::ParseBalance(e.to_string()))?,
 		grace_period: match req.grace_period {
 			Some(v) => Some(v),
 			None => Some(3600_u64),
 		},
-		expire_time: Some(u128::from_str_radix(&req.expire_time, 10)?),
+		expire_time: Some(
+			u128::from_str_radix(&req.expire_time, 10)
+				.map_err(|e| Error::ParseBalance(e.to_string()))?,
+		),
 		status: ChannelItemStatus::Normal,
 	};
 
@@ -192,7 +197,8 @@ pub async fn refill_fund(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
 	let txn = PaymentChannelTxn::PayerRefill {
 		channel_id: req.channel_id.parse()?,
 		auth_b64: req.auth_b64.clone(),
-		refill_amount: Balance::from_str_radix(&req.refill_amount, 10)?,
+		refill_amount: Balance::from_str_radix(&req.refill_amount, 10)
+			.map_err(|e| Error::ParseBalance(e.to_string()))?,
 	};
 
 	request::send_custom_txn(
@@ -254,7 +260,8 @@ pub async fn payee_update_payment(payload: Vec<u8>, from_actor: String) -> Resul
 	let txn = PaymentChannelTxn::UpdatePayment {
 		channel_id: req.channel_id.parse()?,
 		payment_update_sig: req.sig.to_string(),
-		new_fund_remaining: Balance::from_str_radix(&req.new_fund_remaining, 10)?,
+		new_fund_remaining: Balance::from_str_radix(&req.new_fund_remaining, 10)
+			.map_err(|e| Error::ParseBalance(e.to_string()))?,
 		close_channel: req.close_channel,
 	};
 

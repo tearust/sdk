@@ -1,4 +1,4 @@
-use crate::client::error::Result;
+use crate::client::error::{Error, Result};
 use crate::client::help;
 use crate::enclave::actors::kvp;
 // use prost::Message;
@@ -7,6 +7,7 @@ use serde_json::json;
 use std::str::FromStr;
 use tea_runtime_codec::actor_txns::tsid::Tsid;
 use tea_runtime_codec::tapp::Account;
+use tea_sdk::IntoGlobal;
 
 pub const CACHE_TXN_KEY: &str = "cache_txn_key";
 
@@ -152,7 +153,7 @@ pub async fn set_cache_instance(list: Vec<TxnCacheItem>) -> Result<()> {
 
 pub async fn get_cache_item_by_ts(ts_str: &str) -> Result<Option<(Vec<TxnCacheItem>, usize)>> {
 	let list = get_cache_instance().await?;
-	let ts = u128::from_str(ts_str)?;
+	let ts = u128::from_str(ts_str).into_g::<Error>()?;
 	let wrap_search = list.binary_search_by(|x| x.time.cmp(&ts));
 
 	if wrap_search.is_err() {

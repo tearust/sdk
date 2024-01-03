@@ -1,4 +1,4 @@
-use crate::enclave::error::Result;
+use crate::enclave::error::{Error, Result};
 #[cfg(feature = "__test")]
 use mocktopus::macros::*;
 use tea_runtime_codec::vmh::message::structs_proto::persist;
@@ -20,6 +20,7 @@ pub async fn async_persist_request(
 	use tea_actorx::ActorId;
 	use tea_runtime_codec::runtime::ops::persist::OP_ASYNC_REQUEST;
 	use tea_runtime_codec::vmh::message::encode_protobuf;
+	use tea_sdk::IntoGlobal;
 	use tea_system_actors::persist::*;
 
 	let msg = ActorId::Static(NAME)
@@ -29,7 +30,7 @@ pub async fn async_persist_request(
 			true,
 		))
 		.await?;
-	let res = persist::PersistResponse::decode(msg.0.as_slice())?;
+	let res = persist::PersistResponse::decode(msg.0.as_slice()).into_g::<Error>()?;
 	match res.msg.as_ref() {
 		Some(persist::persist_response::Msg::ErrorMessage(res)) => {
 			Err(Errors::AsyncPersistFailed(res.message.clone()).into())

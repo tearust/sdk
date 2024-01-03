@@ -5,7 +5,6 @@ use std::{
 };
 
 use crate::error::{ActorHostDropped, GasFeeExhausted};
-use tea_sdk::{errorx::IntoError, ResultExt};
 use tokio::task_local;
 
 use crate::{error::Result, host::Host};
@@ -18,7 +17,7 @@ task_local! {
 }
 
 pub(crate) fn host() -> Result<Arc<Host>> {
-	HOST.try_with(|x| x.upgrade().ok_or(ActorHostDropped).err_into())
+	HOST.try_with(|x| x.upgrade().ok_or(ActorHostDropped.into()))
 		.expect("Invoking an actor requires an actor host context set for the current task")
 }
 
@@ -67,7 +66,7 @@ pub fn cost(cost: u64) -> Result<()> {
 		Ok(())
 	} else {
 		set_gas(0);
-		Err(GasFeeExhausted.into_error())
+		Err(GasFeeExhausted.into())
 	}
 }
 

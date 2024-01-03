@@ -2,12 +2,10 @@ use std::marker::PhantomData;
 
 use futures::Future;
 
-use crate::ResultExt;
+use crate::IntoGlobal;
+use crate::{Global, Result};
 
-use super::{
-	error::{Error, Result, UnexpectedType},
-	get_type_id, FromBytes, ToBytes,
-};
+use super::{error::UnexpectedType, get_type_id, FromBytes, ToBytes};
 
 pub use tea_codec_macros::handles;
 
@@ -42,7 +40,7 @@ pub trait Handle<Req>
 where
 	Req: Request,
 {
-	async fn handle(&self, req: Req) -> Result<Req::Response, Error>;
+	async fn handle(&self, req: Req) -> Result<Req::Response, Global>;
 }
 
 pub trait HandleBytes {
@@ -68,7 +66,7 @@ where
 	fn handle_bytes<'a>(&'a self, req: &'a [u8]) -> Self::Handle<'a> {
 		async move {
 			T::List::handle(self, req).await.ok_or_else(|| {
-				Error::from(UnexpectedType(
+				Global::from(UnexpectedType(
 					match get_type_id(req) {
 						Ok(id) => id,
 						Err(e) => return e,
@@ -99,8 +97,8 @@ where
 				handler
 					.handle(req)
 					.await
-					.err_into()
-					.and_then(|x| x.to_bytes().err_into()),
+					.into_g()
+					.and_then(|x| x.to_bytes().into_g()),
 			),
 			Err(_) => Prev::handle(handler, req).await,
 		}

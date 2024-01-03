@@ -1,8 +1,9 @@
 use crate::enclave::{
 	actors::enclave::generate_random,
-	error::{Layer1Errors, Result},
+	error::{Error, Layer1Errors, Result},
 };
 use primitive_types::H160;
+use tea_sdk::IntoGlobal;
 
 use super::crypto::sha256;
 
@@ -42,7 +43,9 @@ pub fn h160_to_string(data: H160) -> Result<String> {
 
 /// Transform string to H160
 pub fn str_to_h160(data: &str) -> Result<H160> {
-	Ok(data.parse()?)
+	Ok(data
+		.parse()
+		.map_err(|e: fixed_hash::rustc_hex::FromHexError| Error::ParseAddress(e.to_string()))?)
 }
 
 /// Format and transform a base string to a H160 address.
@@ -50,7 +53,7 @@ pub fn str_to_h160(data: &str) -> Result<H160> {
 pub async fn email_to_h160(email: &str) -> Result<H160> {
 	let hash = sha256(email.to_lowercase().as_bytes().to_vec()).await?;
 
-	let bb: &[u8; 20] = &hash[0..20].try_into()?;
+	let bb: &[u8; 20] = &hash[0..20].try_into().into_g::<Error>()?;
 	let acct = H160::from(bb);
 
 	Ok(acct)

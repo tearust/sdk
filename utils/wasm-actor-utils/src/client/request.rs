@@ -11,12 +11,13 @@ use tea_codec::{
 use tea_runtime_codec::actor_txns::pre_args::Arg;
 use tea_runtime_codec::actor_txns::TxnSerial;
 use tea_runtime_codec::tapp::Hash;
+use tea_sdk::IntoGlobal;
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 
 use self::http::RequestExt;
 use crate::client::help;
 use crate::client::txn_cache;
-use crate::client::Result;
+use crate::client::{Error, Result};
 
 /// Send query to state node via libp2p
 /// Can set a custom target actor.
@@ -110,7 +111,7 @@ async fn _send_txn(
 	info!(
 		"Send custom txn from {:?} to {:?} => {:?}",
 		from_actor,
-		String::from_utf8(target.to_vec())?,
+		String::from_utf8(target.to_vec()).into_g::<Error>()?,
 		action_name
 	);
 	let ori_uuid = str::replace(uuid, "txn_", "");
@@ -217,8 +218,8 @@ pub async fn http_get(
 	if headers_vec.is_some() {
 		for (key, val) in headers_vec.unwrap() {
 			headers.insert(
-				http::HeaderName::from_str(&key)?,
-				http::HeaderValue::from_str(&val)?,
+				http::HeaderName::from_str(&key).map_err(|e| Error::HttpError(e.to_string()))?,
+				http::HeaderValue::from_str(&val).map_err(|e| Error::HttpError(e.to_string()))?,
 			);
 		}
 	}

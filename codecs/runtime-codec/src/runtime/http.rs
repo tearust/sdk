@@ -4,7 +4,7 @@ use super::error::{Error, Result};
 use http::{request, response, HeaderMap, HeaderValue, Method, StatusCode, Uri, Version};
 use prost::bytes::Bytes;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
-use tea_sdk::{serde::TypeId, ResultExt};
+use tea_sdk::serde::TypeId;
 
 #[derive(Clone, Debug, TypeId, Serialize, Deserialize)]
 pub struct HttpRequest {
@@ -28,7 +28,7 @@ where
 	B: IntoHttpBytes,
 {
 	type Error = Error;
-	fn try_from(value: http::Request<B>) -> Result<Self, Self::Error> {
+	fn try_from(value: http::Request<B>) -> std::result::Result<Self, Self::Error> {
 		let (
 			request::Parts {
 				method,
@@ -55,7 +55,7 @@ where
 	B: FromHttpBytes,
 {
 	type Error = Error;
-	fn try_from(value: HttpRequest) -> Result<Self, Self::Error> {
+	fn try_from(value: HttpRequest) -> std::result::Result<Self, Self::Error> {
 		http::Request::builder()
 			.method(value.method)
 			.uri(value.uri)
@@ -65,7 +65,7 @@ where
 				(*r.headers_mut()) = value.headers;
 				r
 			})
-			.err_into()
+			.map_err(|e| Error::HttpError(e.to_string()))
 	}
 }
 
@@ -88,7 +88,7 @@ where
 	B: IntoHttpBytes,
 {
 	type Error = Error;
-	fn try_from(value: http::Response<B>) -> Result<Self, Self::Error> {
+	fn try_from(value: http::Response<B>) -> std::result::Result<Self, Self::Error> {
 		let (
 			response::Parts {
 				status,
@@ -113,7 +113,7 @@ where
 	B: FromHttpBytes,
 {
 	type Error = Error;
-	default fn try_from(value: HttpResponse) -> Result<Self, Self::Error> {
+	default fn try_from(value: HttpResponse) -> std::result::Result<Self, Self::Error> {
 		http::Response::builder()
 			.status(value.status)
 			.version(value.version)
@@ -122,21 +122,20 @@ where
 				(*r.headers_mut()) = value.headers;
 				r
 			})
-			.err_into()
+			.map_err(|e| Error::HttpError(e.to_string()))
 	}
 }
 
 pub trait IntoHttpBytes {
-	fn into_http_bytes(self) -> Result<Vec<u8>, Error>;
+	fn into_http_bytes(self) -> std::result::Result<Vec<u8>, Error>;
 }
 
 pub trait FromHttpBytes: Sized {
-	fn from_http_bytes(input: Vec<u8>) -> Result<Self, Error>;
+	fn from_http_bytes(input: Vec<u8>) -> std::result::Result<Self, Error>;
 }
 
 struct NotBytesWrapper<T>(fn() -> T);
 auto trait NotBytes {}
-impl !NotBytes for NotBytesWrapper<Bytes> {}
 
 impl<T> IntoHttpBytes for T
 where
@@ -144,7 +143,7 @@ where
 	NotBytesWrapper<T>: NotBytes,
 {
 	default fn into_http_bytes(self) -> Result<Vec<u8>> {
-		serde_json::to_vec(&self).err_into()
+		Ok(serde_json::to_vec(&self).map_err(|e| Error::SerdeJsonError(e.to_string()))?)
 	}
 }
 impl<T> FromHttpBytes for T
@@ -153,7 +152,7 @@ where
 	NotBytesWrapper<T>: NotBytes,
 {
 	default fn from_http_bytes(input: Vec<u8>) -> Result<Self> {
-		serde_json::from_slice(&input).err_into()
+		serde_json::from_slice(&input).map_err(|e| Error::SerdeJsonError(e.to_string()))
 	}
 }
 
@@ -223,18 +222,6 @@ impl FromHttpBytes for Cow<'_, [u8]> {
 	}
 }
 
-impl IntoHttpBytes for Bytes {
-	fn into_http_bytes(self) -> Result<Vec<u8>> {
-		Ok(self.to_vec())
-	}
-}
-
-impl FromHttpBytes for Bytes {
-	fn from_http_bytes(input: Vec<u8>) -> Result<Self> {
-		Ok(input.into())
-	}
-}
-
 impl IntoHttpBytes for String {
 	fn into_http_bytes(self) -> Result<Vec<u8>> {
 		Ok(self.into_bytes())
@@ -243,7 +230,7 @@ impl IntoHttpBytes for String {
 
 impl FromHttpBytes for String {
 	fn from_http_bytes(input: Vec<u8>) -> Result<Self> {
-		Ok(String::from_utf8(input)?)
+		Ok(String::from_utf8(input).map_err(|e| Error::Utf8Error(e.to_string()))?)
 	}
 }
 
@@ -261,7 +248,9 @@ impl IntoHttpBytes for Box<str> {
 
 impl FromHttpBytes for Box<str> {
 	fn from_http_bytes(input: Vec<u8>) -> Result<Self> {
-		Ok(String::from_utf8(input)?.into_boxed_str())
+		Ok(String::from_utf8(input)
+			.map_err(|e| Error::Utf8Error(e.to_string()))?
+			.into_boxed_str())
 	}
 }
 
@@ -273,7 +262,9 @@ impl IntoHttpBytes for Rc<str> {
 
 impl FromHttpBytes for Rc<str> {
 	fn from_http_bytes(input: Vec<u8>) -> Result<Self> {
-		Ok(std::str::from_utf8(&input)?.into())
+		Ok(std::str::from_utf8(&input)
+			.map_err(|e| Error::Utf8Error(e.to_string()))?
+			.into())
 	}
 }
 
@@ -285,7 +276,9 @@ impl IntoHttpBytes for Arc<str> {
 
 impl FromHttpBytes for Arc<str> {
 	fn from_http_bytes(input: Vec<u8>) -> Result<Self> {
-		Ok(std::str::from_utf8(&input)?.into())
+		Ok(std::str::from_utf8(&input)
+			.map_err(|e| Error::Utf8Error(e.to_string()))?
+			.into())
 	}
 }
 

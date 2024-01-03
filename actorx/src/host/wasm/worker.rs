@@ -18,7 +18,7 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
-use tea_sdk::Timeout;
+use tea_sdk::{IntoGlobal, Timeout};
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
@@ -60,76 +60,62 @@ impl WorkerProcess {
 	pub async fn new(source: &[u8], #[cfg(feature = "nitro")] hash: u64) -> Result<Arc<Self>> {
 		let path = Self::create_file().await?;
 
+		#[cfg(feature = "nitro")]
+		let handle_path;
+
+		let (mut proc, mut this) = {
+			let mut cmd = Command::new(path.as_ref());
+			cmd.stdout(Stdio::piped()).kill_on_drop(true);
 			#[cfg(feature = "nitro")]
-			let handle_path;
+			{
+				let (proc, this, path) =
+					Self::generate_channel(cmd, hash).await.into_g::<Error>()?;
+				handle_path = path;
+				(proc, this)
+			}
+			#[cfg(not(feature = "nitro"))]
+			{
+				Self::generate_channel(cmd).await?
+			}
+		};
 
-			let (mut proc, mut this) = {
-				let mut cmd = Command::new(path.as_ref());
-				cmd.stdout(Stdio::piped()).kill_on_drop(true);
-				#[cfg(feature = "nitro")]
-				{
-					let path = Self::calculate_temp_path(hash);
-					let listener = tokio::net::UnixListener::bind(&path)?;
-					let mut proc = cmd.stdin(Stdio::piped()).spawn()?;
-					let stdin = unsafe { proc.stdin.as_mut().unwrap_unchecked() };
-					stdin.write_all(path.as_bytes()).await?;
-					stdin.write_u8(b'\n').await?;
-					let (this, _) = listener.accept().await?;
-					handle_path = path;
-					(proc, this)
-				}
-				#[cfg(not(feature = "nitro"))]
-				{
-					use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
-					use std::os::fd::AsRawFd;
-					let (this, other) = tokio::net::UnixStream::pair()?;
-					let proc = cmd
-						.fd_mappings(vec![FdMapping {
-							parent_fd: other.as_raw_fd(),
-							child_fd: WORKER_UNIX_SOCKET_FD,
-						}])?
-						.spawn()?;
-					(proc, this)
-				}
-			};
+		this.write_all(source).await.into_g::<Error>()?;
+		this.flush().await.into_g::<Error>()?;
+		let bytes = read_var_bytes(&mut this).await?;
+		let metadata: Result<_> = bincode::deserialize(&bytes).into_g::<Error>()?;
+		let metadata: Arc<Metadata> = metadata?;
 
-			this.write_all(source).await?;
-			this.flush().await?;
-			let bytes = read_var_bytes(&mut this).await?;
-			let metadata: Result<_> = bincode::deserialize(&bytes)?;
-			let metadata: Arc<Metadata> = metadata?;
+		let (read, write) = this.into_split();
 
-			let (read, write) = this.into_split();
+		let out = proc.stdout.take().unwrap();
+		let actor = metadata.id.clone();
 
-			let out = proc.stdout.take().unwrap();
-			let actor = metadata.id.clone();
+		let this = Arc::new(Self {
+			#[cfg(feature = "track")]
+			tracker: crate::context::tracker()?.create_worker(metadata.id.clone()),
+			_proc: proc,
+			metadata,
+			write: Mutex::new(write),
+			read: Mutex::new(read),
+			channels: Mutex::new(WorkerChannels {
+				channels: HashMap::new(),
+				current_id: 0,
+				error: None,
+			}),
+			#[cfg(feature = "nitro")]
+			handle_path,
+		});
 
-			let this = Arc::new(Self {
-				#[cfg(feature = "track")]
-				tracker: crate::context::tracker()?.create_worker(metadata.id.clone()),
-				_proc: proc,
-				metadata,
-				write: Mutex::new(write),
-				read: Mutex::new(read),
-				channels: Mutex::new(WorkerChannels {
-					channels: HashMap::new(),
-					current_id: 0,
-					error: None,
-				}),
-				#[cfg(feature = "nitro")]
-				handle_path,
-			});
+		tokio::spawn(Self::redirect_stdout(
+			out,
+			actor,
+			host()?.wasm_output_handler.clone(),
+			Arc::downgrade(&this),
+		));
 
-			tokio::spawn(Self::redirect_stdout(
-				out,
-				actor,
-				host()?.wasm_output_handler.clone(),
-				Arc::downgrade(&this),
-			));
+		tokio::spawn(Self::read_loop(Arc::downgrade(&this)));
 
-			tokio::spawn(Self::read_loop(Arc::downgrade(&this)));
-
-			Ok(this)
+		Ok(this)
 	}
 
 	#[cfg(all(feature = "nitro", not(feature = "__test")))]
@@ -137,7 +123,7 @@ impl WorkerProcess {
 		use std::{hint::unreachable_unchecked, time::SystemTime};
 
 		let Ok(time) = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) else {
-			unsafe{ unreachable_unchecked() }
+			unsafe { unreachable_unchecked() }
 		};
 		let time = time.as_millis();
 
@@ -188,7 +174,7 @@ impl WorkerProcess {
 			return Ok(path.clone());
 		}
 
-		let mut result = current_exe()?;
+		let mut result = current_exe().into_g::<Error>()?;
 
 		for i in 0..=usize::MAX {
 			result.pop();
@@ -206,14 +192,17 @@ impl WorkerProcess {
 			.write(true)
 			.create(true)
 			.open(&result)
-			.await?;
+			.await
+			.into_g::<Error>()?;
 
-		file.write_all(WORKER_BINARY).await?;
+		file.write_all(WORKER_BINARY).await.into_g::<Error>()?;
 		drop(file);
 
-		set_permissions(&result, Permissions::from_mode(0o774)).await?;
+		set_permissions(&result, Permissions::from_mode(0o774))
+			.await
+			.into_g::<Error>()?;
 
-		result = tokio::fs::canonicalize(result).await?;
+		result = tokio::fs::canonicalize(result).await.into_g::<Error>()?;
 		let result = Arc::from(result);
 		*path = Some(Arc::clone(&result));
 
@@ -291,6 +280,42 @@ impl WorkerProcess {
 		};
 		Ok(())
 	}
+
+	#[cfg(feature = "nitro")]
+	async fn generate_channel(
+		mut cmd: Command,
+		#[cfg(feature = "nitro")] hash: u64,
+	) -> std::io::Result<(Child, tokio::net::UnixStream, String)> {
+		let path = Self::calculate_temp_path(hash);
+		let listener = tokio::net::UnixListener::bind(&path)?;
+		let mut proc = cmd.stdin(Stdio::piped()).spawn()?;
+		let stdin = unsafe { proc.stdin.as_mut().unwrap_unchecked() };
+		stdin.write_all(path.as_bytes()).await?;
+		stdin.write_u8(b'\n').await?;
+		let (this, _) = listener.accept().await?;
+		Ok((proc, this, path))
+	}
+
+	#[cfg(not(feature = "nitro"))]
+	async fn generate_channel(mut cmd: Command) -> Result<(Child, tokio::net::UnixStream)> {
+		use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
+		use std::os::fd::AsRawFd;
+		let (this, other) = tokio::net::UnixStream::pair().into_g::<Error>()?;
+		let proc = cmd
+			.fd_mappings(vec![FdMapping {
+				parent_fd: other.as_raw_fd(),
+				child_fd: WORKER_UNIX_SOCKET_FD,
+			}])
+			.map_err(|e| {
+				Error::WasmWorkerError(format!(
+					"Generate channel in host side failed: {}",
+					e.to_string()
+				))
+			})?
+			.spawn()
+			.into_g::<Error>()?;
+		Ok((proc, this))
+	}
 }
 
 #[derive(Clone)]
@@ -338,7 +363,7 @@ impl Worker {
 		&self.proc.metadata
 	}
 
-	pub fn pid(&self) -> Option<u32>  {
+	pub fn pid(&self) -> Option<u32> {
 		self.proc._proc.id()
 	}
 }
@@ -355,13 +380,27 @@ impl Channel {
 	pub async fn invoke(&mut self, operation: Operation) -> Result<Operation> {
 		let mut write = self.proc.write.lock().await;
 		operation.write(&mut *write, self.id, get_gas()).await?;
-		write.flush().await?;
+		write.flush().await.into_g::<Error>()?;
 		drop(write);
 
-		let Some((result, gas)) = 
-			self.rx.recv().timeout(invoke_timeout_ms(), "invocation").await.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))? 
-		 else {
-			return Err(WorkerCrashed( self.proc.channels.lock().await.error.as_ref().expect("internal error: worker crashed without error set").clone()).into());
+		let Some((result, gas)) = self
+			.rx
+			.recv()
+			.timeout(invoke_timeout_ms(), "invocation")
+			.await
+			.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))?
+		else {
+			return Err(WorkerCrashed(
+				self.proc
+					.channels
+					.lock()
+					.await
+					.error
+					.as_ref()
+					.expect("internal error: worker crashed without error set")
+					.to_string(),
+			)
+			.into());
 		};
 		set_gas(gas);
 		Ok(result)
@@ -384,7 +423,11 @@ impl Drop for WorkerProcess {
 }
 
 #[cfg(not(feature = "__test"))]
-pub fn invoke_timeout_ms() -> u64 { 15000 }
+pub fn invoke_timeout_ms() -> u64 {
+	15000
+}
 #[cfg(feature = "__test")]
 #[mocktopus::macros::mockable]
-pub fn invoke_timeout_ms() -> u64 { 1000 }
+pub fn invoke_timeout_ms() -> u64 {
+	1000
+}

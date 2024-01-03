@@ -1,119 +1,157 @@
 use std::{
 	array::TryFromSliceError,
-	borrow::Cow,
 	char::{ParseCharError, TryFromCharError},
 	net::AddrParseError,
 	num::{ParseFloatError, ParseIntError, TryFromIntError},
-	rc::Rc,
 	str::{ParseBoolError, Utf8Error},
 	string::FromUtf8Error,
-	sync::Arc,
 	time::SystemTimeError,
 };
 
 use hex::FromHexError;
 use log::{ParseLevelError, SetLoggerError};
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-use crate::serde::error::UnexpectedType;
+use crate::serde::error::{InvalidFormat, TypeIdMismatch, UnexpectedType};
 
-use super::{DescriptableMark, Descriptor};
+#[derive(thiserror::Error, Debug)]
+pub enum Global {
+	#[error("Global error: {0}")]
+	Unnamed(String),
 
-tea_codec_macros::define_scope_internal! {
-	Global {
-		// Aggregate as v => Aggregate, "Multiple errors occurred", format!("{v:?}", ), v.0.iter().collect::<SmallVec<_>>();
-		CannotBeNone => CannotBeNone, @Display, @Debug;
-		UnexpectedType => UnexpectedType, @Display, @Debug;
-		String as s => Unknown, format!("A string is thrown: \"{s}\""), s;
-		&str as s => Unknown, format!("A string is thrown: \"{s}\""), *s;
-		Box<str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
-		// Rc<str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
-		Arc<str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
-		Cow<'_, str> as s => Unknown, format!("A string is thrown: \"{s}\""), **s;
-		// Box<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
-		// Rc<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
-		// Arc<dyn std::error::Error + '_> as e => Unknown, @Display, @Debug;
-		serde_json::Error => JsonSerde, @Display, @Debug;
-		bincode::Error => BincodeSerde, @Display, @Debug;
-		Utf8Error => Utf8, @Display, @Debug;
-		FromUtf8Error => Utf8, @Display, @Debug;
-		std::io::Error => StdIo, @Display, @Debug;
-		prost::EncodeError => ProstEncode, @Display, @Debug;
-		prost::DecodeError => ProstDecode, @Display, @Debug;
-		TryFromIntError => TryFrom, @Display, @Debug;
-		TryFromCharError => TryFrom, @Display, @Debug;
-		TryFromSliceError => TryFrom, @Display, @Debug;
-		ParseBoolError => Parse, @Display, @Debug;
-		ParseIntError => Parse, @Display, @Debug;
-		ParseCharError => Parse, @Display, @Debug;
-		ParseFloatError => Parse, @Display, @Debug;
-		AddrParseError => Parse, @Display, @Debug;
-		num_traits::ParseFloatError => Parse, @Display, @Debug;
-		SystemTimeError => SystemTime, @Display, @Debug;
-		ParseLevelError => Log, @Display, @Debug;
-		SetLoggerError => Log, @Display, @Debug;
-		base64::DecodeError => Base64Decode, @Display, @Debug;
-		FromHexError => HexDecode, @Display, @Debug;
-		std::sync::mpsc::RecvError => ChannelReceive, @Display, @Debug;
-		crossbeam_channel::RecvError => ChannelReceive, @Display, @Debug;
-		futures::channel::mpsc::TryRecvError => ChannelReceive, @Display, @Debug;
-		futures::channel::oneshot::Canceled => ChannelReceive, @Display, @Debug;
-		futures::channel::mpsc::SendError => ChannelSend, @Display, @Debug;
-		RoutineTimeout => RoutineTimeout;
-	}
+	#[error(transparent)]
+	CannotBeNone(#[from] CannotBeNone),
+
+	#[error(transparent)]
+	BadBinaryFormat(#[from] BadBinaryFormat),
+
+	#[error(transparent)]
+	RoutineTimeout(#[from] RoutineTimeout),
+
+	#[error(transparent)]
+	TypeIdMismatch(#[from] TypeIdMismatch),
+
+	#[error(transparent)]
+	UnexpectedType(#[from] UnexpectedType),
+
+	#[error(transparent)]
+	InvalidFormat(#[from] InvalidFormat),
+
+	#[error(transparent)]
+	JsonSerde(#[from] serde_json::Error),
+
+	#[error(transparent)]
+	BincodeSerde(#[from] bincode::Error),
+
+	#[error(transparent)]
+	Utf8Error(#[from] Utf8Error),
+
+	#[error(transparent)]
+	FromUtf8(#[from] FromUtf8Error),
+
+	#[error(transparent)]
+	StdIo(#[from] std::io::Error),
+
+	#[error(transparent)]
+	ProstDecode(#[from] prost::DecodeError),
+
+	#[error(transparent)]
+	ProstEncode(#[from] prost::EncodeError),
+
+	#[error(transparent)]
+	TryFromIntError(#[from] TryFromIntError),
+
+	#[error(transparent)]
+	TryFromCharError(#[from] TryFromCharError),
+
+	#[error(transparent)]
+	TryFromSliceError(#[from] TryFromSliceError),
+
+	#[error(transparent)]
+	ParseBool(#[from] ParseBoolError),
+
+	#[error(transparent)]
+	ParseInt(#[from] ParseIntError),
+
+	#[error(transparent)]
+	ParseChar(#[from] ParseCharError),
+
+	#[error(transparent)]
+	ParseFloat(#[from] ParseFloatError),
+
+	#[error(transparent)]
+	ParseAddr(#[from] AddrParseError),
+
+	#[error(transparent)]
+	SystemTime(#[from] SystemTimeError),
+
+	#[error(transparent)]
+	ParseLog(#[from] ParseLevelError),
+
+	#[error(transparent)]
+	SetLog(#[from] SetLoggerError),
+
+	#[error(transparent)]
+	Base64Decode(#[from] base64::DecodeError),
+
+	#[error(transparent)]
+	HexDecode(#[from] FromHexError),
+
+	#[error(transparent)]
+	MpscRecv(#[from] std::sync::mpsc::RecvError),
+
+	#[error(transparent)]
+	CrossbeamReceive(#[from] crossbeam_channel::RecvError),
+
+	#[error(transparent)]
+	ChannelReceive(#[from] futures::channel::mpsc::TryRecvError),
+
+	#[error(transparent)]
+	ChannelCanceled(#[from] futures::channel::oneshot::Canceled),
+
+	#[error(transparent)]
+	ChannelSend(#[from] futures::channel::mpsc::SendError),
 }
 
-macro_rules! define_send_error {
-	(no_debug, $($t:tt)*) => {
-		impl<T> DescriptableMark<$($t)*<T>> for Global {}
-
-		impl<T> Descriptor<$($t)*<T>> for Global {
-			fn name(_: &$($t)*<T>) -> Option<Cow<str>> {
-				Some("ChannelSend".into())
-			}
-
-			fn summary(v: &$($t)*<T>) -> Option<Cow<str>> {
-				Some(v.to_string().into())
-			}
-		}
-	};
-	($($t:tt)*) => {
-		impl<T> DescriptableMark<$($t)*<T>> for Global {}
-
-		impl<T> Descriptor<$($t)*<T>> for Global {
-			fn name(_: &$($t)*<T>) -> Option<Cow<str>> {
-				Some("ChannelSend".into())
-			}
-
-			fn summary(v: &$($t)*<T>) -> Option<Cow<str>> {
-				Some(v.to_string().into())
-			}
-
-			fn detail(v: &$($t)*<T>) -> Option<Cow<str>> {
-				Some(format!("{:?}", v).into())
-			}
-		}
-	};
-}
-
-define_send_error!(std::sync::mpsc::SendError);
-define_send_error!(crossbeam_channel::SendError);
-define_send_error!(futures::channel::mpsc::TrySendError);
-
-#[cfg(feature = "runtime")]
-define_send_error!(no_debug, tokio::sync::mpsc::error::TrySendError);
-
-#[cfg(feature = "runtime")]
-define_send_error!(no_debug, tokio::sync::mpsc::error::SendError);
-
-#[derive(Error, Debug, Default, PartialEq, Eq, Clone)]
+#[derive(Error, Debug, Default, PartialEq, Eq, Clone, Serialize, Deserialize)]
 #[error("Value \"{0}\" cannot be none")]
 pub struct CannotBeNone(pub String);
 
-#[derive(Error, Debug, Default, PartialEq, Eq, Clone)]
+#[derive(Error, Debug, Default, PartialEq, Eq, Clone, Serialize, Deserialize)]
 #[error("Bad binary format")]
 pub struct BadBinaryFormat;
 
-#[derive(Error, Debug, Default, PartialEq, Eq, Clone)]
+#[derive(Error, Debug, Default, PartialEq, Eq, Clone, Serialize, Deserialize)]
 #[error("Routine timeout at checkpoint {0}")]
-pub struct RoutineTimeout(pub &'static str);
+pub struct RoutineTimeout(pub String);
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn test_unnamed() {
+		let err = Global::Unnamed("test".to_owned());
+		assert_eq!(err.to_string(), "Global error: test");
+
+		let err = Global::CannotBeNone(CannotBeNone("test".to_owned()));
+		assert_eq!(err.to_string(), "Value \"test\" cannot be none");
+	}
+
+	#[test]
+	fn nested_error() {
+		#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
+		pub enum MyError {
+			#[error(transparent)]
+			Global(#[from] Global),
+
+			#[error("others error: {0}")]
+			Others(String),
+		}
+
+		let err = MyError::Global(Global::UnexpectedType(UnexpectedType("my type".to_owned())));
+		assert!(matches!(err, MyError::Global(Global::UnexpectedType(_))));
+		assert_eq!(err.to_string(), "Type id \"my type\" is not supported here");
+	}
+}

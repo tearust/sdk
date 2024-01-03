@@ -17,6 +17,7 @@ use crate::{
 		wasm::{pricing, MEMORY_LIMIT},
 		worker_codec::{read_var_bytes, write_var_bytes, Operation, OperationAbi},
 	},
+	error::ActorX,
 	sign::verify,
 	worker::{error::Result, wasm::memory::MemoryLimit},
 };
@@ -586,8 +587,9 @@ impl Instance {
 		view.read(self.0.abi_ptr as _, abi_buffer)?;
 		unsafe {
 			abi.marshal(op, |vec, ptr, _| {
-				view.write(*ptr as _, &vec)?;
-				Ok(()) as Result<_>
+				view.write(*ptr as _, &vec)
+					.map_err(|e| ActorX::WasmWorkerError(e.to_string()))?;
+				Ok(()) as Result<_, ActorX>
 			})?
 		};
 
@@ -601,8 +603,9 @@ impl Instance {
 			abi.unmarshal(|ptr, len| {
 				let mut vec = Vec::with_capacity(len as _);
 				vec.set_len(len as _);
-				view.read(ptr as _, &mut vec)?;
-				Ok(vec) as Result<_>
+				view.read(ptr as _, &mut vec)
+					.map_err(|e| ActorX::WasmWorkerError(e.to_string()))?;
+				Ok(vec) as Result<_, ActorX>
 			})?
 		};
 

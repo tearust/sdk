@@ -1,11 +1,12 @@
 use std::fs;
 use std::path::Path;
 
-use error::{InvalidSignatureFormat, Result, SignatureMismatch};
+use error::{Error, InvalidSignatureFormat, Result, SignatureMismatch};
 use openssl::sign::Signer;
 use openssl::{hash::MessageDigest, pkey::PKey, sign::Verifier};
 use primitive_types::H160;
 use serde::{Deserialize, Serialize};
+use tea_sdk::IntoGlobal;
 
 use crate::core::actor::IntoActor;
 use crate::metadata::Claim;
@@ -52,13 +53,14 @@ pub fn sign(wasm: &mut Vec<u8>, mut data: Metadata) -> Result<()> {
 
 	let mut token = &token[..];
 
-	let token = zstd::encode_all(&mut token, zstd::zstd_safe::max_c_level())?;
+	let token = zstd::encode_all(&mut token, zstd::zstd_safe::max_c_level()).into_g::<Error>()?;
 
 	let mut data_len = [0; 5];
 	let count = leb128::write::unsigned(
 		&mut &mut data_len[..],
 		(token.len() + SECTION_NAME.len()) as _,
-	)?;
+	)
+	.into_g::<Error>()?;
 	let data_len = data_len.into_iter().take(count);
 
 	let token = Some(0)
@@ -85,7 +87,7 @@ pub fn verify(wasm: &[u8]) -> Result<Metadata> {
 
 	let token = &token[SECTION_NAME.len()..];
 
-	let token = zstd::decode_all(token)?;
+	let token = zstd::decode_all(token).into_g::<Error>()?;
 
 	let token: Metatoken = tea_codec::deserialize(token)?;
 
@@ -136,7 +138,7 @@ impl Manifest {
 
 fn handle_base64(input: String) -> Result<Vec<u8>> {
 	Ok(if let [b'#', input @ ..] = input.as_bytes() {
-		base64::decode(input)?
+		base64::decode(input).into_g::<Error>()?
 	} else {
 		input.into_bytes()
 	})
@@ -147,15 +149,15 @@ pub fn sign_file(
 	manifest: impl AsRef<Path>,
 	priv_key: impl AsRef<Path>,
 ) -> Result<()> {
-	let mut wasm_file = fs::read(wasm.as_ref())?;
+	let mut wasm_file = fs::read(wasm.as_ref()).into_g::<Error>()?;
 	if verify(&wasm_file).is_ok() {
 		return Ok(());
 	}
-	let manifest = fs::File::open(manifest)?;
-	let priv_key = fs::read(priv_key)?;
+	let manifest = fs::File::open(manifest).into_g::<Error>()?;
+	let priv_key = fs::read(priv_key).into_g::<Error>()?;
 	let manifest: Manifest = serde_yaml::from_reader(manifest)?;
 	let metadata = manifest.into_metadata(priv_key)?;
 	sign(&mut wasm_file, metadata)?;
-	fs::write(wasm, wasm_file)?;
+	fs::write(wasm, wasm_file).into_g::<Error>()?;
 	Ok(())
 }

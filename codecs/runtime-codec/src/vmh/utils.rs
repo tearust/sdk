@@ -1,11 +1,14 @@
 use crate::tapp::TimestampShort;
-use crate::vmh::{error::Result, io::HostType};
+use crate::vmh::{
+	error::{Error, Result},
+	io::HostType,
+};
 use chrono::NaiveDateTime;
 use std::{
 	convert::TryInto,
 	time::{Duration, SystemTime},
 };
-use tea_sdk::OptionExt;
+use tea_sdk::{IntoGlobal, OptionExt};
 
 pub use chrono::{offset::Utc, DateTime, NaiveTime};
 
@@ -30,14 +33,15 @@ pub fn remote_url(host: &HostType, port: u32) -> String {
 
 pub fn system_time_as_nanos(time: SystemTime) -> Result<u128> {
 	Ok(time
-		.duration_since(std::time::SystemTime::UNIX_EPOCH)?
+		.duration_since(std::time::SystemTime::UNIX_EPOCH)
+		.into_g::<Error>()?
 		.as_nanos())
 }
 
 pub fn system_time_from_nanos(nanos: u128) -> Result<SystemTime> {
 	const NANOS_PER_SEC: u128 = 1_000_000_000;
-	let sub_nanos: u32 = (nanos % NANOS_PER_SEC).try_into()?;
-	let seconds: u64 = (nanos / NANOS_PER_SEC).try_into()?;
+	let sub_nanos: u32 = (nanos % NANOS_PER_SEC).try_into().into_g::<Error>()?;
+	let seconds: u64 = (nanos / NANOS_PER_SEC).try_into().into_g::<Error>()?;
 
 	let duration = Duration::new(seconds, sub_nanos);
 	Ok(std::time::SystemTime::UNIX_EPOCH
@@ -72,11 +76,9 @@ pub fn format_system_time(time: SystemTime) -> String {
 
 #[cfg(test)]
 mod tests {
+	use super::*;
 	use chrono::{DateTime, Utc};
 	use tea_sdk::OptionExt;
-
-	use super::{format_timestamp, split_once, to_short_timestamp};
-	use crate::vmh::error::Result;
 
 	#[test]
 	fn split_works() -> Result<()> {
@@ -124,7 +126,7 @@ mod tests {
 		let f = format_timestamp(short).ok_or_err("format")?;
 		assert_eq!("2023-01-15 21:09:59 UTC", f);
 
-		let utc: DateTime<Utc> = f.parse()?;
+		let utc: DateTime<Utc> = f.parse().unwrap();
 		assert_eq!(short, utc.timestamp());
 
 		Ok(())

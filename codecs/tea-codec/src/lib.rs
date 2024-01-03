@@ -46,11 +46,10 @@ use std::task::{Context, Poll};
 
 use ::serde::{de::DeserializeOwned, Serialize};
 use bincode::Options as _;
-pub use errorx::define_scope;
-use errorx::{CannotBeNone, Error};
+use errorx::{CannotBeNone, Global};
 use futures::Future;
 #[doc(hidden)]
-pub type Result<T, E = errorx::Error> = std::result::Result<T, E>;
+pub type Result<T, E = Global> = std::result::Result<T, E>;
 
 #[inline(always)]
 fn bincode_options() -> impl bincode::Options {
@@ -102,14 +101,34 @@ impl<T, E> ResultExt for std::result::Result<T, E> {
 	}
 }
 
+pub trait IntoGlobal {
+	type Value;
+	fn into_g<E>(self) -> Result<Self::Value, E>
+	where
+		E: From<Global>;
+}
+
+impl<T, E> IntoGlobal for std::result::Result<T, E>
+where
+	Global: From<E>,
+{
+	type Value = T;
+	fn into_g<E2>(self) -> Result<Self::Value, E2>
+	where
+		E2: From<Global>,
+	{
+		Ok(self.map_err(|e| e.into())?)
+	}
+}
+
 /// A helper trait to map `None` conditions to tea `Error`s
 pub trait OptionExt {
 	type Value;
 	/// Map `None` condition to an error message with a const name of some value that is expected not to be `None`.
-	fn ok_or_err(self, name: impl Into<String>) -> Result<Self::Value, Error>;
+	fn ok_or_err(self, name: impl Into<String>) -> Result<Self::Value, Global>;
 
 	/// Map `None` condition to an error message with a function generatred name of some value that is expected not to be `None`.
-	fn ok_or_err_else<N, F>(self, name_factory: F) -> Result<Self::Value, Error>
+	fn ok_or_err_else<N, F>(self, name_factory: F) -> Result<Self::Value, Global>
 	where
 		N: Into<String>,
 		F: FnOnce() -> N;
@@ -117,16 +136,16 @@ pub trait OptionExt {
 
 impl<T> OptionExt for Option<T> {
 	type Value = T;
-	fn ok_or_err(self, name: impl Into<String>) -> Result<Self::Value, Error> {
-		self.ok_or_else(move || Error::from(CannotBeNone(name.into())).into())
+	fn ok_or_err(self, name: impl Into<String>) -> Result<Self::Value, Global> {
+		self.ok_or_else(move || Global::from(CannotBeNone(name.into())).into())
 	}
 
-	fn ok_or_err_else<N, F>(self, name_factory: F) -> Result<Self::Value, Error>
+	fn ok_or_err_else<N, F>(self, name_factory: F) -> Result<Self::Value, Global>
 	where
 		N: Into<String>,
 		F: FnOnce() -> N,
 	{
-		self.ok_or_else(move || Error::from(CannotBeNone(name_factory().into())).into())
+		self.ok_or_else(move || Global::from(CannotBeNone(name_factory().into())).into())
 	}
 }
 
@@ -267,8 +286,6 @@ pub use runtime::Timeout;
 #[cfg(feature = "runtime")]
 pub use tea_codec_macros::{timeout_retry, timeout_retry_worker};
 pub mod serde;
-#[cfg(test)]
-mod tests;
 mod type_gym;
 
 pub use type_gym::ImplDefault;

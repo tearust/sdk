@@ -3,12 +3,15 @@ use crate::tapp::seat::SeatId;
 use crate::tapp::Hash;
 use crate::vmh::error::Errors;
 use crate::vmh::io::RegistryKey;
-use crate::vmh::{error::Result, utils::split_once};
+use crate::vmh::{
+	error::{Error, Result},
+	utils::split_once,
+};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::str::FromStr;
-use tea_sdk::serialize;
+use tea_sdk::{serialize, IntoGlobal};
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct EnvSettings {
@@ -119,7 +122,7 @@ pub fn hex_decode(mut tea_id: &str) -> Result<Vec<u8>> {
 	if tea_id.starts_with("0x") {
 		tea_id = tea_id.trim_start_matches("0x");
 	}
-	Ok(hex::decode(tea_id)?)
+	Ok(hex::decode(tea_id).into_g::<Error>()?)
 }
 
 impl EnvSettings {
@@ -140,7 +143,7 @@ impl GenesisConfig {
 	pub fn hash(&self) -> Result<Hash> {
 		let bytes = serialize(&self)?;
 		let hash_g_array = Sha256::digest(bytes.as_slice());
-		let hash_key: Hash = hash_g_array.as_slice().try_into()?;
+		let hash_key: Hash = hash_g_array.as_slice().try_into().into_g::<Error>()?;
 		Ok(hash_key)
 	}
 }

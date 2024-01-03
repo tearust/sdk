@@ -1,4 +1,4 @@
-use crate::client::error::{Errors, Result};
+use crate::client::error::{Error, Errors, Result};
 use crate::client::help;
 use crate::client::request;
 use crate::client::txn_cache;
@@ -13,14 +13,18 @@ use serde::Deserialize;
 use serde::Serialize;
 use serde_json::json;
 use std::str::FromStr;
+use tea_actorx::error::ActorX;
 use tea_codec::OptionExt;
 use tea_codec::{deserialize, serialize};
 use tea_runtime_codec::actor_txns::Tsid;
 use tea_runtime_codec::tapp::{Account, Balance, TokenId, DOLLARS};
+use tea_runtime_codec::vmh::error::VmhError;
 use tea_runtime_codec::vmh::message::{
 	encode_protobuf,
 	structs_proto::{replica, tappstore},
 };
+use tea_sdk::errorx::Global;
+use tea_sdk::{IntoGlobal, ResultExt};
 use tea_system_actors::tappstore::txns::TappstoreTxn;
 use tea_system_actors::tappstore::CheckUserSessionRequest;
 use tea_system_actors::tappstore::CommonSqlQueryRequest;
@@ -52,7 +56,7 @@ pub async fn txn_login(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> 
 	let txn = TappstoreTxn::GenSessionKey {
 		token_id: TokenId::from_hex(&req.tapp_id_b64)?,
 		acct: actor_util::str_to_h160(&req.address)?,
-		pk: base64::decode(&req.pk)?,
+		pk: base64::decode(&req.pk).into_g::<Error>()?,
 		data: req.data.clone(),
 		signature: req.signature.clone(),
 		tea_id: get_my_tea_id().await?,
@@ -126,7 +130,7 @@ pub async fn check_auth(tapp_id_hex: &str, address: &str, auth_b64: &str) -> Res
 		return help::result_ok();
 	}
 
-	None.ok_or_err("not_login")
+	None.ok_or_err("not_login").err_into()
 }
 
 pub async fn check_user_balance(address: &str) -> Result<()> {
@@ -227,7 +231,7 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 		return help::result_ok();
 	}
 
-	let auth_key = base64::decode(&req.auth_b64)?;
+	let auth_key = base64::decode(&req.auth_b64).into_g::<Error>()?;
 
 	let query_data = tappstore::TeaBalanceRequest {
 		account: query_account,
@@ -241,7 +245,7 @@ pub async fn query_balance(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 		None,
 	)
 	.await?;
-	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
+	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	let x = serde_json::json!({
 		"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
 		"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
@@ -260,7 +264,7 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 
 	info!("begin to query tea deposit");
 
-	let auth_key = base64::decode(&req.auth_b64)?;
+	let auth_key = base64::decode(&req.auth_b64).into_g::<Error>()?;
 	let uuid = req.uuid;
 
 	let query_account = match &req.target {
@@ -303,7 +307,7 @@ pub async fn query_deposit(payload: Vec<u8>, from_actor: String) -> Result<Vec<u
 		None,
 	)
 	.await?;
-	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice())?;
+	let r = tappstore::TeaBalanceResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	let x = serde_json::json!({
 		"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
 		"ts": help::u128_from_le_buffer(&r.ts)?.to_string(),
@@ -354,7 +358,7 @@ pub async fn query_asset(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
 
 	info!("begin to query asset => {:?}", query_account);
 
-	let auth_key = base64::decode(&req.auth_b64)?;
+	let auth_key = base64::decode(&req.auth_b64).into_g::<Error>()?;
 	let uuid = req.uuid;
 	let query_data = tappstore::AccountAssetRequest {
 		account: query_account,
@@ -368,7 +372,7 @@ pub async fn query_asset(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>
 		None,
 	)
 	.await?;
-	let r = tappstore::AccountAssetResponse::decode(res.0.as_slice())?;
+	let r = tappstore::AccountAssetResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	let x = serde_json::json!({
 		"tea_balance": deserialize::<Balance,_>(&r.tea_balance)?.to_string(),
 		"token_balance": deserialize::<Balance, _>(&r.token_balance)?.to_string(),
@@ -424,7 +428,7 @@ pub async fn query_allowance(payload: Vec<u8>, from_actor: String) -> Result<Vec
 		None,
 	)
 	.await?;
-	let r = tappstore::TokenAllowanceResponse::decode(res.0.as_slice())?;
+	let r = tappstore::TokenAllowanceResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	let x = json!({
 		"balance": deserialize::<Balance,_>(&r.balance)?.to_string(),
 		"ts": "0".to_string(),
@@ -468,7 +472,7 @@ pub async fn query_tapp_metadata(payload: Vec<u8>, from_actor: String) -> Result
 		None,
 	)
 	.await?;
-	let r = tappstore::CommonSqlQueryResponse::decode(res.0.as_slice())?;
+	let r = tappstore::CommonSqlQueryResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 	let x = if !r.err.is_empty() {
 		error!("query_tapp_metadata error: {}", &r.err);
 		json!({
@@ -527,8 +531,8 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 	info!("begin to query hash result...");
 
 	let uuid = req.uuid;
-	let txn_hash = hex::decode(req.hash.clone())?;
-	let ts = tea_codec::serialize(&u128::from_str(&req.ts)?)?;
+	let txn_hash = hex::decode(req.hash.clone()).into_g::<Error>()?;
+	let ts = tea_codec::serialize(&u128::from_str(&req.ts).into_g::<Error>()?)?;
 
 	let x_hash = req.hash.clone();
 
@@ -540,7 +544,7 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 		None,
 	)
 	.await?;
-	let r = replica::FindExecutedTxnResponse::decode(res.0.as_slice())?;
+	let r = replica::FindExecutedTxnResponse::decode(res.0.as_slice()).into_g::<Error>()?;
 
 	if r.success {
 		if r.executed_txn.is_some() {
@@ -551,9 +555,18 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 
 				let x_bytes = txn_callback(&uuid, from_actor).await;
 				if let Err(e) = x_bytes {
-					if e.name() == tea_codec::errorx::Global::UnexpectedType
-						|| e.name() == tea_codec::errorx::Global::CannotBeNone
-					{
+					// why need to check this error?
+					if matches!(e, Error::Global(Global::UnexpectedType(_)))
+						|| matches!(e, Error::Global(Global::CannotBeNone(_)))
+						|| matches!(e, Error::ActorX(ActorX::Global(Global::UnexpectedType(_))))
+						|| matches!(e, Error::ActorX(ActorX::Global(Global::CannotBeNone(_))))
+						|| matches!(
+							e,
+							Error::VmhError(VmhError::Global(Global::UnexpectedType(_)))
+						) || matches!(
+						e,
+						Error::VmhError(VmhError::Global(Global::CannotBeNone(_)))
+					) {
 						json!({
 							"status": true,
 							"ts": tsid.ts.to_string()
@@ -619,9 +632,9 @@ pub async fn query_txn_hash_result_from_all(
 	info!("begin to query hash result from all...");
 
 	let uuid = req.uuid;
-	let txn_hash = hex::decode(req.hash.clone())?;
+	let txn_hash = hex::decode(req.hash.clone()).into_g::<Error>()?;
 
-	let ts = tea_codec::serialize(&u128::from_str(&req.ts)?)?;
+	let ts = tea_codec::serialize(&u128::from_str(&req.ts).into_g::<Error>()?)?;
 	let acct: Account = req.address.parse()?;
 	let acct = tea_codec::serialize(&acct)?;
 	let query_data = replica::FindExecutedTxnFromAllRequest { txn_hash, ts, acct };

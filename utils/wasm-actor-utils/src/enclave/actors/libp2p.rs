@@ -7,20 +7,20 @@ use crate::enclave::error::{Error, Errors, Result};
 use mocktopus::macros::mockable;
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx::ActorId;
+use tea_actorx::{error::ActorX, ActorId};
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize,
 };
 use tea_runtime_codec::actor_txns::QuerySerial;
 use tea_runtime_codec::vmh::{
-	error::{VmhCodec, VmhResult},
+	error::VmhResult,
 	message::{
 		encode_protobuf,
 		structs_proto::{libp2p, tokenstate},
 	},
 };
-use tea_sdk::ResultExt;
+use tea_sdk::IntoGlobal;
 #[cfg(not(feature = "__test"))]
 use tea_system_actors::libp2p::MyConnIdRequest;
 use tea_system_actors::libp2p::{
@@ -137,7 +137,7 @@ pub async fn connected_peers() -> Result<Vec<String>> {
 	let buf = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(ListPeersRequest)
 		.await?;
-	let res = libp2p::ListPeersResponse::decode(buf.0.as_slice())?;
+	let res = libp2p::ListPeersResponse::decode(buf.0.as_slice()).into_g::<Error>()?;
 	Ok(res.peers)
 }
 
@@ -148,7 +148,7 @@ pub async fn get_random_peers(peer_count: u32) -> Result<(Vec<String>, bool)> {
 			libp2p::RandomPeersRequest { count: peer_count },
 		)?))
 		.await?;
-	let res = libp2p::RandomoPeersResponse::decode(buf.0.as_slice())?;
+	let res = libp2p::RandomoPeersResponse::decode(buf.0.as_slice()).into_g::<Error>()?;
 	Ok((res.peers, res.insufficient_peers))
 }
 
@@ -307,7 +307,7 @@ async fn to_response<C>(result: VmhResult<Vec<u8>>) -> Result<C>
 where
 	C: for<'a> FromBytes<'a>,
 {
-	C::from_bytes(&result?).err_into()
+	C::from_bytes(&result?).into_g()
 }
 
 #[doc(hidden)]
@@ -354,10 +354,7 @@ pub async fn send_to_state_receiver(
 
 #[doc(hidden)]
 pub fn can_async_error_be_ignored(e: &Error) -> bool {
-	let name = e.name();
-	name == VmhCodec::IntercomActorNotSupported
-		|| name == VmhCodec::IntercomRequestRejected
-		|| name == tea_actorx::error::ActorX::ActorNotExist
+	matches!(e, Error::ActorX(ActorX::ActorNotExist(_)))
 }
 
 #[doc(hidden)]

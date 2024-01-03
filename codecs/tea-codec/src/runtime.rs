@@ -7,7 +7,7 @@ use tokio::{
 	task::JoinHandle,
 };
 
-use crate::errorx::{Error, RoutineTimeout};
+use crate::errorx::{Global, RoutineTimeout};
 
 lazy_static! {
 	static ref RUNTIME: Arc<Runtime> = Arc::new(
@@ -48,7 +48,7 @@ pub fn enter() -> EnterGuard<'static> {
 }
 
 pub trait Timeout: Future {
-	type Timeout: Future<Output = Result<Self::Output, Error>>;
+	type Timeout: Future<Output = Result<Self::Output, Global>>;
 	fn timeout(self, ms: u64, tag: &'static str) -> Self::Timeout;
 }
 
@@ -56,12 +56,12 @@ impl<T> Timeout for T
 where
 	T: Future,
 {
-	type Timeout = impl Future<Output = Result<Self::Output, Error>>;
+	type Timeout = impl Future<Output = Result<Self::Output, Global>>;
 	fn timeout(self, ms: u64, tag: &'static str) -> Self::Timeout {
 		async move {
 			tokio::select! {
 				result = self => Ok(result),
-				_ = tokio::time::sleep(Duration::from_millis(ms)) => Err(RoutineTimeout(tag).into()),
+				_ = tokio::time::sleep(Duration::from_millis(ms)) => Err(RoutineTimeout(tag.to_string()).into()),
 			}
 		}
 	}

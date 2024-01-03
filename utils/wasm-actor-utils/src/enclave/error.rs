@@ -1,28 +1,61 @@
-use ed25519_dalek::SignatureError;
-use tea_codec::{
-	define_scope,
-	errorx::{smallvec, SmallVec},
-};
-use tea_runtime_codec::actor_txns::error::ActorTxns;
+use serde::{Deserialize, Serialize};
+use tea_actorx::error::ActorX;
+use tea_runtime_codec::actor_txns::error::ActorTxnsError;
 use tea_runtime_codec::runtime::error::RuntimeCodec;
-use tea_runtime_codec::solc::error::SolcCodec;
-use tea_runtime_codec::tapp::{error::TApp, Balance, TokenId};
-use tea_runtime_codec::vmh::error::VmhCodec;
+use tea_runtime_codec::tapp::error::RuntimeTappError;
+use tea_runtime_codec::tapp::{Balance, TokenId};
+use tea_runtime_codec::vmh::error::VmhError;
+use tea_sdk::errorx::Global;
 use thiserror::Error;
 
-define_scope! {
-	Actor: pub RuntimeCodec, VmhCodec, SolcCodec, TApp, ActorTxns {
-		Errors as v => ServiceCall, @Display, @Debug, v.inner();
-		ProviderOperationRejected => ProviderOperationRejected, @Display, @Debug;
-		AsyncNotFinished => AsyncNotFinished, @Display, @Debug;
-		Layer1Errors => Layer1, @Display, @Debug;
-		ProcessTransactionErrorFailed as v => ProcessTransactionErrorFailed, format!("process transaction error failed: {}", v.0), @Debug, [&v.0];
-		SignatureError => SignatureError, @Display, @Debug;
-		GlueSqlErrors => GlueSqlErrors, @Display, @Debug;
-	}
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum Error {
+	#[error("Global error: {0}")]
+	Global(#[from] Global),
+
+	#[error("Actor error: {0}")]
+	ActorX(#[from] ActorX),
+
+	#[error("Vmh code error: {0}")]
+	VmhCodec(#[from] VmhError),
+
+	#[error("Wasm runtime tapp error: {0}")]
+	RuntimeTapp(#[from] RuntimeTappError),
+
+	#[error("Wasm runtime codec error: {0}")]
+	RuntimeCodec(#[from] RuntimeCodec),
+
+	#[error("Actor txns error: {0}")]
+	ActorTxnsError(#[from] ActorTxnsError),
+
+	#[error("Utils general error: {0}")]
+	General(#[from] Errors),
+
+	#[error("Layer1 error: {0}")]
+	Layer1(#[from] Layer1Errors),
+
+	#[error("Glue sql error: {0}")]
+	GlueSqlErrors(#[from] GlueSqlErrors),
+
+	#[error(transparent)]
+	ProcessTransactionErrorFailed(#[from] ProcessTransactionErrorFailed),
+
+	#[error(transparent)]
+	ProviderOperationRejected(#[from] ProviderOperationRejected),
+
+	#[error(transparent)]
+	AsyncNotFinished(#[from] AsyncNotFinished),
+
+	#[error("Http request error: {0}")]
+	HttpRequest(String),
+
+	#[error("Parse address error: {0}")]
+	ParseAddress(String),
 }
 
-#[derive(Error, Debug)]
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Errors {
 	#[error("When calling request_intercom, always leave reply_to empty, because it is used for response socket")]
 	ReplyToNotEmpty,
@@ -46,7 +79,7 @@ pub enum Errors {
 	FailedToGetEnvironmentVariable(String),
 
 	#[error("Failed to parse {0} from {1}")]
-	FailedToParse(&'static str, String),
+	FailedToParse(String, String),
 
 	#[error("Reject because target conn id {0} don't exist in current peer list")]
 	ConnIdNotExist(String),
@@ -70,16 +103,16 @@ pub enum Errors {
 	NeutralizeExpectation(Balance, Balance, (Balance, Balance)),
 
 	#[error("Actor_statemachine move {0} to {1} with amount {2} failed: {3}")]
-	StateMachineMoveFailed(String, String, Balance, Error),
+	StateMachineMoveFailed(String, String, Balance, String),
 
 	#[error("Actor_statemachine cross_move failed. From token_id {0} account {1} to token_id {2} account {3} with amount {4}. Reason: {5}")]
-	StateMachineCrossMoveFailed(String, String, String, String, Balance, Error),
+	StateMachineCrossMoveFailed(String, String, String, String, Balance, String),
 
 	#[error("Unknown txn request")]
 	UnknownTxnRequest,
 
 	#[error("Handle reply actor key mismatched, expected is {0}, actual is {1}")]
-	HandleReplyActorKeyMismatch(&'static str, String),
+	HandleReplyActorKeyMismatch(String, String),
 
 	#[error("Actor not support system arg: {0}")]
 	InvalidSystemArgs(String),
@@ -103,24 +136,15 @@ pub enum Errors {
 	Libp2pAllResponseError(String),
 }
 
-impl Errors {
-	fn inner(&self) -> SmallVec<[&Error; 1]> {
-		match self {
-			Self::StateMachineMoveFailed(_, _, _, err) => smallvec![err.as_scope()],
-			Self::StateMachineCrossMoveFailed(_, _, _, _, _, err) => smallvec![err.as_scope()],
-			_ => Default::default(),
-		}
-	}
-}
-
-#[derive(Debug, Error)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[error("async not finished")]
 pub struct AsyncNotFinished;
 
-#[derive(Debug)]
-pub struct ProcessTransactionErrorFailed(pub Error);
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[error("process transaction error failed: {0}")]
+pub struct ProcessTransactionErrorFailed(pub String);
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Layer1Errors {
 	#[error("Failed to find block, the raw request is {0}")]
 	FailedToFindBlock(String),
@@ -132,7 +156,7 @@ pub enum Layer1Errors {
 	U128LengthMismatch(usize),
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum GlueSqlErrors {
 	#[error("failed to get first row")]
 	InvalidFirstRow,
@@ -156,7 +180,7 @@ pub enum GlueSqlErrors {
 	InvalidFirstPayload(String, TokenId),
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ProviderOperationRejected {
 	#[error("Failed to intelli send txn because I'm not A type cml")]
 	NotATypeCml,

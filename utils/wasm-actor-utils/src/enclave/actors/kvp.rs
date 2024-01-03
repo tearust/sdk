@@ -1,7 +1,7 @@
 use crate::enclave::error::Result;
 use serde::{de::DeserializeOwned, Serialize};
 use tea_actorx::ActorId;
-use tea_codec::{deserialize, serialize, ResultExt};
+use tea_codec::{deserialize, serialize, IntoGlobal};
 use tea_system_actors::keyvalue::actions::*;
 
 const KVP_ACTOR: ActorId = ActorId::Static(tea_system_actors::keyvalue::NAME);
@@ -14,7 +14,7 @@ pub async fn set_forever<T: Serialize + DeserializeOwned>(key: &str, value: &T) 
 		expires_s: None,
 	};
 	let r = KVP_ACTOR.call(req).await?;
-	deserialize(r.value.as_slice()).err_into()
+	deserialize(r.value.as_slice()).into_g()
 }
 
 /// Return cache value from key-value actor
@@ -48,7 +48,7 @@ pub async fn set<T: Serialize + DeserializeOwned>(
 		expires_s: Some(expires_s),
 	};
 	let r = KVP_ACTOR.call(req).await?;
-	deserialize(r.value.as_slice()).err_into()
+	deserialize(r.value.as_slice()).into_g()
 }
 
 /// Remove cache value from key-value actor

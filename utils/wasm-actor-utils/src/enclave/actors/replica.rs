@@ -31,7 +31,7 @@ use tea_runtime_codec::{
 	},
 	tapp::Ts,
 };
-use tea_sdk::ResultExt;
+use tea_sdk::{IntoGlobal, ResultExt};
 use tea_system_actors::replica::{
 	GetExecCursorRequest, ReceiveFollowupRequest, ReceiveTxnRequest, ReportTxnExecErrorRequest,
 	NAME,
@@ -111,7 +111,11 @@ async fn try_send_transaction_remotely(
 						data: serialize(&Followup {
 							ts: system_time_as_nanos().await?,
 							hash,
-							sender: get_my_tea_id().await?.as_slice().try_into()?,
+							sender: get_my_tea_id()
+								.await?
+								.as_slice()
+								.try_into()
+								.into_g::<Error>()?,
 						})?,
 					}),
 				},
@@ -126,7 +130,11 @@ async fn try_send_transaction_remotely(
 
 pub async fn calculate_txn_hash(txn_serial: &TxnSerial) -> Result<Hash> {
 	let bytes = txn_serial.hash_bytes()?;
-	Ok(sha256(bytes).await?.as_slice().try_into()?)
+	Ok(sha256(bytes)
+		.await?
+		.as_slice()
+		.try_into()
+		.into_g::<Error>()?)
 }
 
 async fn gen_command_messages(
@@ -134,7 +142,11 @@ async fn gen_command_messages(
 	pre_args: Vec<Arg>,
 ) -> Result<(tokenstate::StateCommand, Hash, String)> {
 	let txn_bytes = txn_serial.hash_bytes()?;
-	let txn_hash: Hash = sha256(txn_bytes).await?.as_slice().try_into()?;
+	let txn_hash: Hash = sha256(txn_bytes)
+		.await?
+		.as_slice()
+		.try_into()
+		.into_g::<Error>()?;
 	let uuid = generate_uuid().await?;
 
 	Ok((
@@ -172,7 +184,11 @@ pub async fn send_transaction_locally_ex(
 ) -> Result<Option<Tsid>> {
 	let txn_bytes = serialize(txn_serial)?;
 	let hash_bytes = txn_serial.hash_bytes()?;
-	let txn_hash: Hash = sha256(hash_bytes).await?.as_slice().try_into()?;
+	let txn_hash: Hash = sha256(hash_bytes)
+		.await?
+		.as_slice()
+		.try_into()
+		.into_g::<Error>()?;
 	info!(
 		"try send transaction 0x{} locally {} followup",
 		hex::encode(txn_hash),
@@ -196,7 +212,11 @@ pub async fn send_transaction_locally_ex(
 				None => system_time_as_nanos().await?,
 			},
 			hash: txn_hash,
-			sender: get_my_tea_id().await?.as_slice().try_into()?,
+			sender: get_my_tea_id()
+				.await?
+				.as_slice()
+				.try_into()
+				.into_g::<Error>()?,
 		})?;
 		let fol_rtn = ActorId::Static(NAME)
 			.call(ReceiveFollowupRequest(encode_protobuf(
@@ -216,7 +236,7 @@ pub async fn send_transaction_locally_ex(
 pub async fn report_txn_error(txn_hash: Vec<u8>, error_msg: String) -> Result<()> {
 	ActorId::Static(NAME)
 		.call(ReportTxnExecErrorRequest(
-			txn_hash.as_slice().try_into()?,
+			txn_hash.as_slice().try_into().into_g::<Error>()?,
 			error_msg,
 		))
 		.await?;
@@ -247,7 +267,7 @@ pub async fn export_round_table(tsid: &Option<Tsid>) -> Result<Vec<u8>> {
 pub async fn is_in_round_table_async(tea_id: &[u8]) -> Result<bool> {
 	let v = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::IsInRoundTableRequest(
-			tea_id.try_into()?,
+			tea_id.try_into().into_g::<Error>()?,
 		))
 		.await?;
 	Ok(v.0)
@@ -272,7 +292,7 @@ pub async fn get_validator_members_locally() -> Result<Option<Vec<(Vec<u8>, Stri
 		.call(tea_system_actors::replica_service::ValidatorsMembersRequest)
 		.await?;
 
-	let res = replica::ValidatorMembersResponse::decode(msg.0.as_slice())?;
+	let res = replica::ValidatorMembersResponse::decode(msg.0.as_slice()).into_g::<Error>()?;
 	match res.validator_members {
 		Some(validators_members) => {
 			let mut replicas = vec![];
@@ -296,7 +316,7 @@ pub async fn fetch_validator_state_async() -> Result<Option<replica::ValidatorsS
 	let buf = ActorId::Static(tea_system_actors::replica_service::NAME)
 		.call(tea_system_actors::replica_service::ValidatorsStateRequest)
 		.await?;
-	let res = replica::ValidatorsStateResponse::decode(buf.0.as_slice())?;
+	let res = replica::ValidatorsStateResponse::decode(buf.0.as_slice()).into_g::<Error>()?;
 	Ok(res.validators_state)
 }
 

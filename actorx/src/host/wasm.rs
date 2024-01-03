@@ -9,14 +9,14 @@ use crate::{
 	IntoActor,
 };
 use tea_codec::serde::{get_type_id, TypeId};
-use tea_sdk::OptionExt;
+use tea_sdk::{IntoGlobal, OptionExt};
 use tokio::{
 	sync::{Mutex, MutexGuard},
 	task::JoinHandle,
 };
 
 use crate::{
-	error::{AccessNotPermitted, Result},
+	error::{AccessNotPermitted, Error, Result},
 	sdk::{actor::Actor, context::calling_stack, hooks::Deactivate},
 };
 
@@ -222,7 +222,7 @@ impl Actor for WasmActor {
 			let ctx = calling_stack();
 			let mut result = channel
 				.invoke(Operation::Call {
-					ctx: bincode::serialize(&ctx)?,
+					ctx: bincode::serialize(&ctx).into_g::<Error>()?,
 					req: req.to_vec(),
 				})
 				.await?;
@@ -239,7 +239,7 @@ impl Actor for WasmActor {
 
 					Operation::ReturnErr { error } => {
 						tokio::spawn(channel.close());
-						return Err(error.into_scope());
+						return Err(error);
 					}
 				}
 			}
@@ -256,10 +256,17 @@ impl Actor for WasmActor {
 
 	#[cfg(target_os = "linux")]
 	async fn size(&self) -> Result<u64> {
+		use procfs::ProcResult;
+
 		let worker = self.worker::<false>().await?;
 		let pid = worker.pid().ok_or_err("worker pid")?;
-		let prc = procfs::process::Process::new(pid as i32)?;
-		let process_size = prc.stat()?.rss_bytes();
+
+		let process_size = || -> ProcResult<u64> {
+			let prc = procfs::process::Process::new(pid as i32)?;
+			let process_size = prc.stat()?.rss_bytes();
+			Ok(process_size)
+		}()
+		.map_err(|e| Error::ProcError(e.to_string()))?;
 
 		// MAX_COUNT / CACHE_COUNT is the approximate coefficient of the number of instances
 		let total_size = process_size * MAX_COUNT as u64 / CACHE_COUNT as u64;
@@ -302,9 +309,7 @@ impl WasmActor {
 		let resp = if permitted {
 			match target.invoke_raw(&req).await {
 				Ok(resp) => Operation::ReturnOk { resp },
-				Err(e) => Operation::ReturnErr {
-					error: e.into_scope(),
-				},
+				Err(e) => Operation::ReturnErr { error: e },
 			}
 		} else {
 			Operation::ReturnErr {

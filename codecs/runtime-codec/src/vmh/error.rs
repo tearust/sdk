@@ -1,49 +1,41 @@
-use crate::runtime::error::RuntimeCodec;
-use prost::{DecodeError, EncodeError};
-use tea_sdk::define_scope;
+use serde::{Deserialize, Serialize};
+use tea_sdk::errorx::Global;
 use thiserror::Error;
 
-pub type VmhResult<T> = Result<T>;
-pub type VmhError = Error;
+pub type VmhResult<T, E = VmhError> = Result<T, E>;
+pub type Error = VmhError;
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-define_scope! {
-	VmhCodec: RuntimeCodec {
-		GeneralVmh;
-		SocketSendU64;
-		SocketSendLoop;
-		SocketRecvU64;
-		SocketRecvLoop;
-		SocketClientDisconnected;
-		SocketServerClosed;
-		SocketRecvSizeMismatched;
-		SocketSendSizeMismatched;
-		SocketNix;
-		QuitReceiverLoop;
-		OperationInvalid;
-		SenderOperationExists;
-		InboundNet;
-		OutboundNet;
-		IntercomActorNotSupported;
-		IntercomRequestRejected;
-		TableAccess => TableAccess, @Display, @Debug;
-		PersistCheck => PersistCheck, @Display, @Debug;
-		EncodeError => Encode, @Display, @Debug;
-		DecodeError => Encode, @Display, @Debug;
-		Errors => VmhGeneral, @Display, @Debug;
-		InvalidASystemInvocation => InvalidASystemInvocation, @Display, @Debug;
-		InvalidBSystemInvocation => InvalidBSystemInvocation, @Display, @Debug;
-	}
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub enum VmhError {
+	#[error("Global error: {0}")]
+	Global(#[from] Global),
+
+	#[error("Table access error: {0}")]
+	TableAccess(#[from] TableAccess),
+
+	#[error("Persist check error: {0}")]
+	PersistCheck(#[from] PersistCheck),
+
+	#[error("Vmh general error: {0}")]
+	VmhGeneral(#[from] Errors),
+
+	#[error(transparent)]
+	InvalidASystemInvocation(#[from] InvalidASystemInvocation),
+
+	#[error(transparent)]
+	InvalidBSystemInvocation(#[from] InvalidBSystemInvocation),
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[error("{0} is not allowed to call A node system invocation")]
 pub struct InvalidASystemInvocation(pub String);
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[error("{0} is not allowed to call B node system invocation")]
 pub struct InvalidBSystemInvocation(pub String);
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum TableAccess {
 	#[error("Failed to get row at {0} in table {1}")]
 	GetRow(usize, String),
@@ -55,7 +47,7 @@ pub enum TableAccess {
 	GetTable(String),
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PersistCheck {
 	#[error("Prefix length to long, expect is {0} actual is {1}")]
 	PrefixTooLong(usize, usize),
@@ -65,7 +57,7 @@ pub enum PersistCheck {
 	PrefixLengthMismatch(usize, usize),
 }
 
-#[derive(Error, Debug)]
+#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Errors {
 	#[error("Unknown built-in env {0}")]
 	UnknownBuiltInEnv(String),

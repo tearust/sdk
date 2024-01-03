@@ -2919,6 +2919,7 @@ dependencies = [
  "base64",
  "bytes",
  "ed25519-dalek",
+ "fixed-hash",
  "futures",
  "gluesql-core",
  "hex",
