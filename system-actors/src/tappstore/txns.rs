@@ -314,6 +314,11 @@ pub enum TappstoreTxn {
 	CancelLastFreeze {
 		auth_b64: String,
 	},
+	AddVersionPcrs {
+		version: String,
+		pcrs: HashMap<PcrType, String>,
+		auth_b64: String,
+	},
 	RemoveVersionPcrs {
 		version: String,
 		auth_b64: String,
