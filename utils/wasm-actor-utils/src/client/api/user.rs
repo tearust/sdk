@@ -555,28 +555,10 @@ pub async fn query_txn_hash_result(payload: Vec<u8>, from_actor: String) -> Resu
 
 				let x_bytes = txn_callback(&uuid, from_actor).await;
 				if let Err(e) = x_bytes {
-					// why need to check this error?
-					if matches!(e, Error::Global(Global::UnexpectedType(_)))
-						|| matches!(e, Error::Global(Global::CannotBeNone(_)))
-						|| matches!(e, Error::ActorX(ActorX::Global(Global::UnexpectedType(_))))
-						|| matches!(e, Error::ActorX(ActorX::Global(Global::CannotBeNone(_))))
-						|| matches!(
-							e,
-							Error::VmhError(VmhError::Global(Global::UnexpectedType(_)))
-						) || matches!(
-						e,
-						Error::VmhError(VmhError::Global(Global::CannotBeNone(_)))
-					) {
-						json!({
-							"status": true,
-							"ts": tsid.ts.to_string()
-						})
-					} else {
-						json!({
-							"status": false,
-							"error": e.to_string(),
-						})
-					}
+					json!({
+						"status": false,
+						"error": e.to_string(),
+					})
 				} else {
 					let x_bytes = x_bytes.unwrap();
 					if x_bytes.is_empty() {
