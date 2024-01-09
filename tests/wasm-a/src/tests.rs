@@ -1,15 +1,14 @@
+use crate::Actor;
 use tea_sdk::actorx::{ActorExt, WithActorHost};
 use test_examples_codec::wasm_a::*;
 
-use crate::{Actor, Result};
-
-async fn init() -> Result<()> {
+async fn init() -> anyhow::Result<()> {
 	Actor::default().register().await?;
 	Ok(())
 }
 
 #[tokio::test]
-async fn add_test() -> Result<()> {
+async fn add_test() -> anyhow::Result<()> {
 	async {
 		init().await?;
 

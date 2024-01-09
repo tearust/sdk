@@ -13,9 +13,10 @@ use log::{ParseLevelError, SetLoggerError};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+use super::actorx::*;
 use crate::serde::error::{InvalidFormat, TypeIdMismatch, UnexpectedType};
 
-#[derive(thiserror::Error, Debug)]
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Global {
 	#[error("Global error: {0}")]
 	Unnamed(String),
@@ -39,79 +40,253 @@ pub enum Global {
 	InvalidFormat(#[from] InvalidFormat),
 
 	#[error(transparent)]
-	JsonSerde(#[from] serde_json::Error),
+	GasFeeExhausted(#[from] GasFeeExhausted),
 
 	#[error(transparent)]
-	BincodeSerde(#[from] bincode::Error),
+	WorkerCrashed(#[from] WorkerCrashed),
 
 	#[error(transparent)]
-	Utf8Error(#[from] Utf8Error),
+	AccessNotPermitted(#[from] AccessNotPermitted),
 
 	#[error(transparent)]
-	FromUtf8(#[from] FromUtf8Error),
+	ActorNotExist(#[from] ActorNotExist),
 
 	#[error(transparent)]
-	StdIo(#[from] std::io::Error),
+	NotSupported(#[from] NotSupported),
 
 	#[error(transparent)]
-	ProstDecode(#[from] prost::DecodeError),
+	ActorHostDropped(#[from] ActorHostDropped),
 
 	#[error(transparent)]
-	ProstEncode(#[from] prost::EncodeError),
+	ActorDeactivating(#[from] ActorDeactivating),
 
 	#[error(transparent)]
-	TryFromIntError(#[from] TryFromIntError),
+	InvocationTimeout(#[from] InvocationTimeout),
 
 	#[error(transparent)]
-	TryFromCharError(#[from] TryFromCharError),
+	ChannelReceivingTimeout(#[from] ChannelReceivingTimeout),
 
-	#[error(transparent)]
-	TryFromSliceError(#[from] TryFromSliceError),
+	#[error("Json serde error: {0}")]
+	JsonSerde(String),
 
-	#[error(transparent)]
-	ParseBool(#[from] ParseBoolError),
+	#[error("Bincode error: {0}")]
+	BincodeSerde(String),
 
-	#[error(transparent)]
-	ParseInt(#[from] ParseIntError),
+	#[error("From utf8 error: {0}")]
+	FromUtf8(String),
 
-	#[error(transparent)]
-	ParseChar(#[from] ParseCharError),
+	#[error("IO error: {0}")]
+	StdIo(String),
 
-	#[error(transparent)]
-	ParseFloat(#[from] ParseFloatError),
+	#[error("Prost decode error: {0}")]
+	ProstDecode(String),
 
-	#[error(transparent)]
-	ParseAddr(#[from] AddrParseError),
+	#[error("Prost encode error: {0}")]
+	ProstEncode(String),
 
-	#[error(transparent)]
-	SystemTime(#[from] SystemTimeError),
+	#[error("Try from int error: {0}")]
+	TryFromIntError(String),
 
-	#[error(transparent)]
-	ParseLog(#[from] ParseLevelError),
+	#[error("Try from char error: {0}")]
+	TryFromCharError(String),
 
-	#[error(transparent)]
-	SetLog(#[from] SetLoggerError),
+	#[error("Try from slice error: {0}")]
+	TryFromSliceError(String),
 
-	#[error(transparent)]
-	Base64Decode(#[from] base64::DecodeError),
+	#[error("Parse bool error: {0}")]
+	ParseBool(String),
 
-	#[error(transparent)]
-	HexDecode(#[from] FromHexError),
+	#[error("Parse int error: {0}")]
+	ParseInt(String),
 
-	#[error(transparent)]
-	MpscRecv(#[from] std::sync::mpsc::RecvError),
+	#[error("Parse char error: {0}")]
+	ParseChar(String),
 
-	#[error(transparent)]
-	CrossbeamReceive(#[from] crossbeam_channel::RecvError),
+	#[error("Parse float error: {0}")]
+	ParseFloat(String),
 
-	#[error(transparent)]
-	ChannelReceive(#[from] futures::channel::mpsc::TryRecvError),
+	#[error("Parse address error: {0}")]
+	ParseAddr(String),
 
-	#[error(transparent)]
-	ChannelCanceled(#[from] futures::channel::oneshot::Canceled),
+	#[error("System time error: {0}")]
+	SystemTime(String),
 
-	#[error(transparent)]
-	ChannelSend(#[from] futures::channel::mpsc::SendError),
+	#[error("Parse log level error: {0}")]
+	ParseLevel(String),
+
+	#[error("Set logger error: {0}")]
+	SetLog(String),
+
+	#[error("Base64 decode error: {0}")]
+	Base64Decode(String),
+
+	#[error("Hex decode error: {0}")]
+	HexDecode(String),
+
+	#[error("Mpsc receiving error: {0}")]
+	MpscRecv(String),
+
+	#[error("Crossbeam receiving error: {0}")]
+	CrossbeamReceive(String),
+
+	#[error("Channel receiving error: {0}")]
+	ChannelReceive(String),
+
+	#[error("Channel canceled error: {0}")]
+	ChannelCanceled(String),
+
+	#[error("Channel send error: {0}")]
+	ChannelSend(String),
+}
+
+impl From<serde_json::Error> for Global {
+	fn from(e: serde_json::Error) -> Self {
+		Global::JsonSerde(e.to_string())
+	}
+}
+
+impl From<bincode::Error> for Global {
+	fn from(e: bincode::Error) -> Self {
+		Global::BincodeSerde(e.to_string())
+	}
+}
+
+impl From<Utf8Error> for Global {
+	fn from(e: Utf8Error) -> Self {
+		Global::FromUtf8(e.to_string())
+	}
+}
+
+impl From<FromUtf8Error> for Global {
+	fn from(e: FromUtf8Error) -> Self {
+		Global::FromUtf8(e.to_string())
+	}
+}
+
+impl From<std::io::Error> for Global {
+	fn from(e: std::io::Error) -> Self {
+		Global::StdIo(e.to_string())
+	}
+}
+
+impl From<prost::DecodeError> for Global {
+	fn from(e: prost::DecodeError) -> Self {
+		Global::ProstDecode(e.to_string())
+	}
+}
+
+impl From<prost::EncodeError> for Global {
+	fn from(e: prost::EncodeError) -> Self {
+		Global::ProstEncode(e.to_string())
+	}
+}
+
+impl From<TryFromIntError> for Global {
+	fn from(e: TryFromIntError) -> Self {
+		Global::TryFromIntError(e.to_string())
+	}
+}
+
+impl From<TryFromCharError> for Global {
+	fn from(e: TryFromCharError) -> Self {
+		Global::TryFromCharError(e.to_string())
+	}
+}
+
+impl From<TryFromSliceError> for Global {
+	fn from(e: TryFromSliceError) -> Self {
+		Global::TryFromSliceError(e.to_string())
+	}
+}
+
+impl From<ParseBoolError> for Global {
+	fn from(e: ParseBoolError) -> Self {
+		Global::ParseBool(e.to_string())
+	}
+}
+
+impl From<ParseIntError> for Global {
+	fn from(e: ParseIntError) -> Self {
+		Global::ParseInt(e.to_string())
+	}
+}
+
+impl From<ParseCharError> for Global {
+	fn from(e: ParseCharError) -> Self {
+		Global::ParseChar(e.to_string())
+	}
+}
+
+impl From<ParseFloatError> for Global {
+	fn from(e: ParseFloatError) -> Self {
+		Global::ParseFloat(e.to_string())
+	}
+}
+
+impl From<AddrParseError> for Global {
+	fn from(e: AddrParseError) -> Self {
+		Global::ParseAddr(e.to_string())
+	}
+}
+
+impl From<SystemTimeError> for Global {
+	fn from(e: SystemTimeError) -> Self {
+		Global::SystemTime(e.to_string())
+	}
+}
+
+impl From<ParseLevelError> for Global {
+	fn from(e: ParseLevelError) -> Self {
+		Global::ParseLevel(e.to_string())
+	}
+}
+
+impl From<SetLoggerError> for Global {
+	fn from(e: SetLoggerError) -> Self {
+		Global::SetLog(e.to_string())
+	}
+}
+
+impl From<base64::DecodeError> for Global {
+	fn from(e: base64::DecodeError) -> Self {
+		Global::Base64Decode(e.to_string())
+	}
+}
+
+impl From<FromHexError> for Global {
+	fn from(e: FromHexError) -> Self {
+		Global::HexDecode(e.to_string())
+	}
+}
+
+impl From<std::sync::mpsc::RecvError> for Global {
+	fn from(e: std::sync::mpsc::RecvError) -> Self {
+		Global::MpscRecv(e.to_string())
+	}
+}
+
+impl From<crossbeam_channel::RecvError> for Global {
+	fn from(e: crossbeam_channel::RecvError) -> Self {
+		Global::CrossbeamReceive(e.to_string())
+	}
+}
+
+impl From<futures::channel::mpsc::TryRecvError> for Global {
+	fn from(value: futures::channel::mpsc::TryRecvError) -> Self {
+		Global::ChannelReceive(value.to_string())
+	}
+}
+
+impl From<futures::channel::oneshot::Canceled> for Global {
+	fn from(e: futures::channel::oneshot::Canceled) -> Self {
+		Global::ChannelCanceled(e.to_string())
+	}
+}
+
+impl From<futures::channel::mpsc::SendError> for Global {
+	fn from(e: futures::channel::mpsc::SendError) -> Self {
+		Global::ChannelSend(e.to_string())
+	}
 }
 
 #[derive(Error, Debug, Default, PartialEq, Eq, Clone, Serialize, Deserialize)]

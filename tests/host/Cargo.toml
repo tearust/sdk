@@ -18,6 +18,7 @@ tokio = { workspace = true, features = ["full"] }
 tea-actorx = { path = "../../actorx", features = ["nitro"] }
 tracing-subscriber = { workspace = true }
 mocktopus = { workspace = true, optional = true }
+thiserror = { workspace = true }
 
 [build-dependencies]
 tea-sdk = { path = "../..", features = ["sign"] }

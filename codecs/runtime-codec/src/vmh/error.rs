@@ -25,6 +25,19 @@ pub enum VmhError {
 
 	#[error(transparent)]
 	InvalidBSystemInvocation(#[from] InvalidBSystemInvocation),
+
+	#[error("Vmh error: {0}")]
+	Unnamed(String),
+}
+
+impl VmhError {
+	pub fn invalid_a_system_invocation(name: String) -> Self {
+		Self::InvalidASystemInvocation(InvalidASystemInvocation(name))
+	}
+
+	pub fn invalid_b_system_invocation(name: String) -> Self {
+		Self::InvalidBSystemInvocation(InvalidBSystemInvocation(name))
+	}
 }
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

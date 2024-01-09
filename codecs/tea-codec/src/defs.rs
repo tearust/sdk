@@ -37,7 +37,7 @@ macro_rules! impl_version {
 			async fn handle(
 				&self,
 				_: tea_sdk::defs::GetVersionRequest,
-			) -> Result<tea_sdk::defs::GetVersionResponse> {
+			) -> tea_sdk::Result<tea_sdk::defs::GetVersionResponse> {
 				let version = env!("CARGO_PKG_VERSION");
 				Ok(tea_sdk::defs::GetVersionResponse(version.to_string()))
 			}

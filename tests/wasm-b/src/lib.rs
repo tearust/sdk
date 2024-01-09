@@ -1,8 +1,6 @@
 #![feature(min_specialization)]
-#![feature(async_fn_in_trait)]
 #![allow(incomplete_features)]
 
-use crate::error::Result;
 use tea_sdk::{
 	actorx::{actor, hooks::Activate, println, ActorId, HandlerActor},
 	serde::handle::handles,
@@ -32,34 +30,34 @@ impl HandlerActor for Actor {
 
 #[handles]
 impl Actor {
-	async fn handle(&self, _: Activate) -> Result<_> {
+	async fn handle(&self, _: Activate) -> tea_sdk::Result<_> {
 		println!("Activate!");
 		Ok(())
 	}
 
-	async fn handle(&self, AddRequest(lhs, rhs): _) -> Result<_> {
+	async fn handle(&self, AddRequest(lhs, rhs): _) -> tea_sdk::Result<_> {
 		Ok(AddResponse(lhs + rhs))
 	}
 
-	async fn handle(&self, SubRequest(lhs, rhs): _) -> Result<_> {
+	async fn handle(&self, SubRequest(lhs, rhs): _) -> tea_sdk::Result<_> {
 		Ok(SubResponse(lhs - rhs))
 	}
 
-	async fn handle(&self, AddWithWaitingRequest { lhs, rhs, sleep_ms }: _) -> Result<_> {
+	async fn handle(&self, AddWithWaitingRequest { lhs, rhs, sleep_ms }: _) -> tea_sdk::Result<_> {
 		if let Some(ms) = sleep_ms {
 			NATIVE_ID.call(WaitingForRequest(ms)).await?;
 		}
 		Ok(AddWithWaitingResponse(lhs + rhs))
 	}
 
-	async fn handle(&self, SubWithWaitingRequest { lhs, rhs, sleep_ms }: _) -> Result<_> {
+	async fn handle(&self, SubWithWaitingRequest { lhs, rhs, sleep_ms }: _) -> tea_sdk::Result<_> {
 		if let Some(ms) = sleep_ms {
 			NATIVE_ID.call(WaitingForRequest(ms)).await?;
 		}
 		Ok(SubWithWaitingResponse(lhs - rhs))
 	}
 
-	async fn handle(&self, WasmSleep(ms): WasmSleep) -> Result<()> {
+	async fn handle(&self, WasmSleep(ms): WasmSleep) -> tea_sdk::Result<()> {
 		NATIVE_ID.call(WaitingForRequest(ms)).await?;
 		Ok(())
 	}
@@ -70,7 +68,7 @@ impl Actor {
 			left_count,
 			sleep_ms,
 		}: PongRequest,
-	) -> Result<_> {
+	) -> tea_sdk::Result<_> {
 		println!("PongRequest: left_count={}", left_count);
 
 		if let Some(ms) = sleep_ms {

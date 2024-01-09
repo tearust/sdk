@@ -6,17 +6,18 @@ use crate::{
 		metadata::{Claim, Metadata},
 		worker_codec::Operation,
 	},
+	error::ActorX,
 	IntoActor,
 };
 use tea_codec::serde::{get_type_id, TypeId};
-use tea_sdk::{IntoGlobal, OptionExt};
+use tea_sdk::{errorx::AccessNotPermitted, IntoGlobal, OptionExt};
 use tokio::{
 	sync::{Mutex, MutexGuard},
 	task::JoinHandle,
 };
 
 use crate::{
-	error::{AccessNotPermitted, Error, Result},
+	error::{Error, Result},
 	sdk::{actor::Actor, context::calling_stack, hooks::Deactivate},
 };
 
@@ -313,7 +314,7 @@ impl WasmActor {
 			}
 		} else {
 			Operation::ReturnErr {
-				error: AccessNotPermitted(target).into(),
+				error: ActorX::Global(AccessNotPermitted(target.to_string()).into()),
 			}
 		};
 

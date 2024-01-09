@@ -17,7 +17,9 @@ crate-type = ["cdylib"]
 [dependencies]
 tea-sdk = { path = "../..", features = ["wasm"] }
 test-examples-codec = { path = "../codec" }
+thiserror = { workspace = true }
 
 [dev-dependencies]
 tokio = { version = "1.28.0", features = ["full"] }
 tea-sdk = { path = "../..", features = ["host"] }
+anyhow = { workspace = true }

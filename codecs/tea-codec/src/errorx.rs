@@ -1,9 +1,10 @@
 //! The error messege marshalling system for tea project
 
+mod actorx;
 mod aggregate;
 mod global;
-mod serde;
 
+pub use actorx::*;
 pub use global::{BadBinaryFormat, CannotBeNone, Global, RoutineTimeout};
 
 pub use smallvec::{smallvec, SmallVec};

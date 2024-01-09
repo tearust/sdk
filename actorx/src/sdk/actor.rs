@@ -3,10 +3,11 @@ pub use crate::core::actor::*;
 use std::{borrow::Cow, future::Future, pin::Pin, sync::Arc};
 
 use tea_codec::serde::handle::HandleBytes;
+use tea_sdk::errorx::{Global, NotSupported};
 
 use crate::{
 	core::metadata::Metadata,
-	error::{Error, NotSupported, Result},
+	error::{Error, Result},
 };
 
 #[allow(async_fn_in_trait)]
@@ -14,7 +15,8 @@ pub trait Actor: 'static {
 	async fn invoke(&self, req: &[u8]) -> Result<Vec<u8>, Error>;
 
 	async fn metadata(&self) -> Result<Arc<Metadata>> {
-		Err(NotSupported("metadata".to_owned()).into())
+		let err: Global = NotSupported("metadata".to_owned()).into();
+		Err(err.into())
 	}
 
 	fn id(&self) -> Option<ActorId> {

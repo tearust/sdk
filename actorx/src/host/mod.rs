@@ -8,17 +8,17 @@ use std::{
 
 use crate::{core::actor::ActorId, error::ActorX, metadata::Metadata};
 use tea_codec::{
-	errorx::Global,
 	serde::{get_type_id, ToBytes, TypeId},
 	IntoGlobal,
 };
+use tea_sdk::errorx::{ActorDeactivating, ActorNotExist, Global};
 use tokio::{
 	sync::{RwLock, RwLockReadGuard},
 	task::JoinHandle,
 };
 
 use crate::{
-	error::{ActorDeactivating, ActorNotExist, Result},
+	error::Result,
 	sdk::{
 		actor::{ActorSend, DynActorSend},
 		context::{current, current_ref, host, WithGas, WithHost},
@@ -55,10 +55,10 @@ impl Host {
 	async fn get_actor(&self) -> Result<Arc<ActorAgent>> {
 		let actors = self.actors.read().await;
 		let actor = current_ref(|current| {
-			actors
-				.get(current)
-				.cloned()
-				.ok_or_else(|| ActorNotExist(current.clone()))
+			actors.get(current).cloned().ok_or_else(|| {
+				let e: Global = ActorNotExist(current.to_string()).into();
+				ActorX::Global(e)
+			})
 		})??;
 		Ok(actor)
 	}
@@ -132,7 +132,11 @@ impl ActorAgent {
 		match *is_active {
 			Status::Uninit => (),
 			Status::Active => return Ok(()),
-			Status::Deactivating => return Err(ActorDeactivating(current()?).into()),
+			Status::Deactivating => {
+				return Err(ActorX::Global(
+					ActorDeactivating(current()?.to_string()).into(),
+				))
+			}
 		}
 
 		drop(is_active);
@@ -141,7 +145,11 @@ impl ActorAgent {
 		match *is_active {
 			Status::Uninit => (),
 			Status::Active => return Ok(()),
-			Status::Deactivating => return Err(ActorDeactivating(current()?).into()),
+			Status::Deactivating => {
+				return Err(ActorX::Global(
+					ActorDeactivating(current()?.to_string()).into(),
+				))
+			}
 		}
 		*is_active = Status::Active;
 
@@ -281,7 +289,7 @@ impl ActorId {
 		let actors = host.actors.read().await;
 		actors
 			.get(self)
-			.ok_or(ActorNotExist(self.clone()))?
+			.ok_or(ActorX::Global(ActorNotExist(self.to_string()).into()))?
 			.metadata()
 			.await
 	}
@@ -292,7 +300,7 @@ impl ActorId {
 		let actors = host.actors.read().await;
 		actors
 			.get(self)
-			.ok_or(ActorNotExist(self.clone()))?
+			.ok_or(ActorX::Global(ActorNotExist(self.to_string()).into()))?
 			.size()
 			.await
 	}
@@ -303,7 +311,7 @@ impl ActorId {
 		let actors = host.actors.read().await;
 		actors
 			.get(self)
-			.ok_or(ActorNotExist(self.clone()))?
+			.ok_or(ActorX::Global(ActorNotExist(self.to_string()).into()))?
 			.instance_count()
 			.await
 	}

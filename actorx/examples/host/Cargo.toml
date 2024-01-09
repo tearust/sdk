@@ -17,6 +17,8 @@ tea-actorx-examples-codec = { path = "../codec" }
 tokio = { workspace = true, features = ["full"] }
 tea-actorx = { path = "../..", features = ["nitro"] }
 tracing-subscriber = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
 
 [build-dependencies]
 tea-sdk = { path = "../../..", features = ["sign"] }

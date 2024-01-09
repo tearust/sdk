@@ -15,6 +15,12 @@ pub enum ActorX {
 	#[error("procfs error: {0}")]
 	ProcError(String),
 
+	#[error("stdio error: {0}")]
+	StdIoError(String),
+
+	#[error("bincode error: {0}")]
+	BincodeSerde(String),
+
 	#[error(transparent)]
 	Global(#[from] Global),
 
@@ -22,42 +28,32 @@ pub enum ActorX {
 	BadWorkerOutput(#[from] BadWorkerOutput),
 
 	#[error(transparent)]
-	WorkerCrashed(#[from] WorkerCrashed),
-
-	#[error(transparent)]
-	AccessNotPermitted(#[from] AccessNotPermitted),
-
-	#[error(transparent)]
-	ActorNotExist(#[from] ActorNotExist),
-
-	#[error(transparent)]
-	NotSupported(#[from] NotSupported),
-
-	#[error(transparent)]
-	ActorDeactivating(#[from] ActorDeactivating),
-
-	#[error(transparent)]
-	GasFeeExhausted(#[from] GasFeeExhausted),
-
-	#[error(transparent)]
 	MissingCallingStack(#[from] MissingCallingStack),
-
-	#[error(transparent)]
-	ActorHostDropped(#[from] ActorHostDropped),
-
-	#[error(transparent)]
-	InvocationTimeout(#[from] InvocationTimeout),
-
-	#[error(transparent)]
-	ChannelReceivingTimeout(#[from] ChannelReceivingTimeout),
 
 	#[error(transparent)]
 	InvokeDeserializeError(#[from] InvokeDeserializeError),
 }
 
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("Gas fee is exhausted")]
-pub struct GasFeeExhausted;
+impl From<ActorX> for Global {
+	fn from(e: ActorX) -> Self {
+		match e {
+			ActorX::Global(g) => g,
+			_ => Global::Unnamed(e.to_string()),
+		}
+	}
+}
+
+impl From<std::io::Error> for ActorX {
+	fn from(e: std::io::Error) -> Self {
+		ActorX::StdIoError(e.to_string())
+	}
+}
+
+impl From<bincode::Error> for ActorX {
+	fn from(e: bincode::Error) -> Self {
+		ActorX::BincodeSerde(e.to_string())
+	}
+}
 
 #[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum BadWorkerOutput {
@@ -69,51 +65,12 @@ pub enum BadWorkerOutput {
 }
 
 #[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("Worker crashed: {0}")]
-pub struct WorkerCrashed(pub String);
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("Access to actor {0} is not permitted")]
-pub struct AccessNotPermitted(pub ActorId);
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("Attempting to invoke actor {0} that does not exist")]
-pub struct ActorNotExist(pub ActorId);
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("{0} is not supported")]
-pub struct NotSupported(pub String);
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MissingCallingStack {
 	#[error("The operation must be within a current actor context")]
 	Current,
 	#[error("The operation must be called with an actor caller")]
 	Caller,
 }
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("The actor host is dropped for the future with with_actor_host is complete")]
-pub struct ActorHostDropped;
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("Actor {0} is deactivating")]
-pub struct ActorDeactivating(pub ActorId);
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(
-	any(feature = "host", feature = "wasm"),
-	error("The invocation is timed out, calling stack: {0:?}")
-)]
-#[cfg_attr(
-	not(any(feature = "host", feature = "wasm")),
-	error("The invocation is timed out.")
-)]
-pub struct InvocationTimeout(#[cfg(any(feature = "host", feature = "wasm"))] pub Vec<u8>);
-
-#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
-#[error("Receiving channel of actor {0} has timeout")]
-pub struct ChannelReceivingTimeout(pub ActorId);
 
 #[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Failed to deserialize the invoke response to actor '{0}': {1}")]

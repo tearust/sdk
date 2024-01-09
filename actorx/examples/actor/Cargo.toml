@@ -15,6 +15,8 @@ publish = false
 crate-type = ["cdylib"]
 
 [dependencies]
+thiserror = { workspace = true }
+anyhow = { workspace = true }
 tea-sdk = { path = "../../..", features = ["wasm"] }
 tea-actorx-examples-codec = { path = "../codec" }
 

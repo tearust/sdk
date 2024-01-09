@@ -1,7 +1,7 @@
 use crate::{init, set_gas, Result};
 use mocktopus::mocking::{MockResult, Mockable};
-use tea_actorx::{dump_sys_usages, invoke_timeout_ms};
-use tea_sdk::actorx::WithActorHost;
+use tea_actorx::{dump_sys_usages, error::ActorX, invoke_timeout_ms};
+use tea_sdk::{actorx::WithActorHost, errorx::Global};
 use test_examples_codec::{
 	wasm_a::{WASM_ID as WASM_A, *},
 	WasmSleep,
@@ -42,7 +42,11 @@ async fn waiting_for_instance_works() -> Result<()> {
 		rx.await.unwrap();
 		assert!(r.is_err()); // should be timeout error
 		if let Err(e) = r {
-			assert_eq!(e.name(), tea_actorx::error::ActorX::ChannelReceivingTimeout);
+			// assert_eq!(e.to_string(), "ActorX: Channel receiving timeout");
+			assert!(matches!(
+				e,
+				ActorX::Global(Global::ChannelReceivingTimeout(_))
+			));
 		}
 
 		Ok(())

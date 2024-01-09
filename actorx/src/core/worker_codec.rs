@@ -3,9 +3,9 @@ use std::time::Duration;
 
 #[cfg(any(feature = "host", feature = "worker"))]
 use strum::{Display, FromRepr};
+use tea_sdk::errorx::Global;
 #[cfg(any(feature = "wasm", feature = "worker"))]
 use tea_sdk::serde::error::InvalidFormat;
-use tea_sdk::{errorx::Global, IntoGlobal};
 #[cfg(any(feature = "host", feature = "worker"))]
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 
@@ -64,7 +64,7 @@ impl OperationAbi {
 				handle_vec(resp, &mut self.data_0, &mut self.len_0)?;
 			}
 			Operation::ReturnErr { error } => {
-				let error = bincode::serialize(&error).into_g::<Error>()?;
+				let error = bincode::serialize(&error)?;
 				self.flag = 2;
 				handle_vec(error, &mut self.data_0, &mut self.len_0)?;
 			}
@@ -84,7 +84,7 @@ impl OperationAbi {
 			}),
 			1 => Ok(Operation::ReturnOk { resp: vec_0 }),
 			2 => Ok(Operation::ReturnErr {
-				error: bincode::deserialize(&vec_0).into_g::<Error>()?,
+				error: bincode::deserialize(&vec_0)?,
 			}),
 			_ => Err(Global::InvalidFormat(InvalidFormat(
 				format! {"unmarshal flag {}", self.flag},
@@ -148,8 +148,8 @@ impl Operation {
 	where
 		R: AsyncRead + Unpin,
 	{
-		let cid = read.read_u64_le().await.into_g::<Error>()?;
-		let gas = read.read_u64_le().await.into_g::<Error>()?;
+		let cid = read.read_u64_le().await?;
+		let gas = read.read_u64_le().await?;
 		let data_0 = read_var_bytes(&mut read).await?;
 		Ok(match OpCode::from_repr(code) {
 			Some(OpCode::Call) => {
@@ -160,7 +160,7 @@ impl Operation {
 			Some(OpCode::ReturnOk) => Ok((Self::ReturnOk { resp: data_0 }, cid, gas)),
 			Some(OpCode::ReturnErr) => Ok((
 				Self::ReturnErr {
-					error: bincode::deserialize(&data_0).into_g::<Error>()?,
+					error: bincode::deserialize(&data_0)?,
 				},
 				cid,
 				gas,
@@ -174,7 +174,7 @@ impl Operation {
 		R: AsyncRead + Unpin,
 	{
 		Ok(tokio::select! {
-			r = read.read_u8() => Some(r.into_g::<Error>()?),
+			r = read.read_u8() => Some(r?),
 			_ = tokio::time::sleep(Duration::from_secs(5)) => None,
 		})
 	}
@@ -183,31 +183,28 @@ impl Operation {
 	where
 		W: AsyncWrite + Unpin,
 	{
-		async {
-			match self {
-				Operation::Call { ctx, req } => {
-					write.write_u8(OpCode::Call as _).await?;
-					write.write_u64_le(cid).await?;
-					write.write_u64_le(gas).await?;
-					write_var_bytes(&mut write, ctx).await?;
-					write_var_bytes(write, req).await?;
-				}
-				Operation::ReturnOk { resp } => {
-					write.write_u8(OpCode::ReturnOk as _).await?;
-					write.write_u64_le(cid).await?;
-					write.write_u64_le(gas).await?;
-					write_var_bytes(write, resp).await?;
-				}
-				Operation::ReturnErr { error } => {
-					write.write_u8(OpCode::ReturnErr as _).await?;
-					write.write_u64_le(cid).await?;
-					write.write_u64_le(gas).await?;
-					write_var_bytes(write, &bincode::serialize(error)?).await?;
-				}
-			};
-			Ok(()) as Result<(), Global>
-		}
-		.await?;
+		match self {
+			Operation::Call { ctx, req } => {
+				write.write_u8(OpCode::Call as _).await?;
+				write.write_u64_le(cid).await?;
+				write.write_u64_le(gas).await?;
+				write_var_bytes(&mut write, ctx).await?;
+				write_var_bytes(write, req).await?;
+			}
+			Operation::ReturnOk { resp } => {
+				write.write_u8(OpCode::ReturnOk as _).await?;
+				write.write_u64_le(cid).await?;
+				write.write_u64_le(gas).await?;
+				write_var_bytes(write, resp).await?;
+			}
+			Operation::ReturnErr { error } => {
+				write.write_u8(OpCode::ReturnErr as _).await?;
+				write.write_u64_le(cid).await?;
+				write.write_u64_le(gas).await?;
+				write_var_bytes(write, &bincode::serialize(error)?).await?;
+			}
+		};
+
 		Ok(())
 	}
 }

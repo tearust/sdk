@@ -1,5 +1,9 @@
-use tea_sdk::define_scope;
+use thiserror::Error;
 
-define_scope! {
-	ActorXExamplesActor { }
+pub type Result<T, E = Error> = std::result::Result<T, E>;
+
+#[derive(Debug, Error)]
+pub enum Error {
+	#[error("example actor error")]
+	ActorXExamplesActor,
 }

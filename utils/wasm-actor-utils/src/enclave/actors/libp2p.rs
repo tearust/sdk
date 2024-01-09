@@ -20,7 +20,7 @@ use tea_runtime_codec::vmh::{
 		structs_proto::{libp2p, tokenstate},
 	},
 };
-use tea_sdk::IntoGlobal;
+use tea_sdk::{errorx::Global, IntoGlobal};
 #[cfg(not(feature = "__test"))]
 use tea_system_actors::libp2p::MyConnIdRequest;
 use tea_system_actors::libp2p::{
@@ -354,7 +354,7 @@ pub async fn send_to_state_receiver(
 
 #[doc(hidden)]
 pub fn can_async_error_be_ignored(e: &Error) -> bool {
-	matches!(e, Error::ActorX(ActorX::ActorNotExist(_)))
+	matches!(e, Error::ActorX(ActorX::Global(Global::ActorNotExist(_))))
 }
 
 #[doc(hidden)]

@@ -2,7 +2,6 @@ use std::{borrow::Cow, rc::Rc, sync::Arc};
 
 use super::error::{Error, Result};
 use http::{request, response, HeaderMap, HeaderValue, Method, StatusCode, Uri, Version};
-use prost::bytes::Bytes;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use tea_sdk::serde::TypeId;
 

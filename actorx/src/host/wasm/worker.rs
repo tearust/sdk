@@ -1,11 +1,11 @@
 use crate::context::host;
 use crate::core::{metadata::Metadata, worker_codec::*};
-use crate::error::ChannelReceivingTimeout;
+use crate::error::ActorX;
 use crate::host::OutputHandler;
 use crate::ActorId;
 use crate::{
 	context::{get_gas, set_gas},
-	error::{BadWorkerOutput, Error, Result, WorkerCrashed},
+	error::{BadWorkerOutput, Error, Result},
 };
 use std::path::PathBuf;
 use std::{
@@ -18,7 +18,8 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
-use tea_sdk::{IntoGlobal, Timeout};
+use tea_sdk::errorx::{ChannelReceivingTimeout, WorkerCrashed};
+use tea_sdk::Timeout;
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
 use tokio::process::ChildStdout;
@@ -68,8 +69,7 @@ impl WorkerProcess {
 			cmd.stdout(Stdio::piped()).kill_on_drop(true);
 			#[cfg(feature = "nitro")]
 			{
-				let (proc, this, path) =
-					Self::generate_channel(cmd, hash).await.into_g::<Error>()?;
+				let (proc, this, path) = Self::generate_channel(cmd, hash).await?;
 				handle_path = path;
 				(proc, this)
 			}
@@ -79,10 +79,10 @@ impl WorkerProcess {
 			}
 		};
 
-		this.write_all(source).await.into_g::<Error>()?;
-		this.flush().await.into_g::<Error>()?;
+		this.write_all(source).await?;
+		this.flush().await?;
 		let bytes = read_var_bytes(&mut this).await?;
-		let metadata: Result<_> = bincode::deserialize(&bytes).into_g::<Error>()?;
+		let metadata: Result<_> = bincode::deserialize(&bytes)?;
 		let metadata: Arc<Metadata> = metadata?;
 
 		let (read, write) = this.into_split();
@@ -174,7 +174,7 @@ impl WorkerProcess {
 			return Ok(path.clone());
 		}
 
-		let mut result = current_exe().into_g::<Error>()?;
+		let mut result = current_exe()?;
 
 		for i in 0..=usize::MAX {
 			result.pop();
@@ -192,17 +192,14 @@ impl WorkerProcess {
 			.write(true)
 			.create(true)
 			.open(&result)
-			.await
-			.into_g::<Error>()?;
+			.await?;
 
-		file.write_all(WORKER_BINARY).await.into_g::<Error>()?;
+		file.write_all(WORKER_BINARY).await?;
 		drop(file);
 
-		set_permissions(&result, Permissions::from_mode(0o774))
-			.await
-			.into_g::<Error>()?;
+		set_permissions(&result, Permissions::from_mode(0o774)).await?;
 
-		result = tokio::fs::canonicalize(result).await.into_g::<Error>()?;
+		result = tokio::fs::canonicalize(result).await?;
 		let result = Arc::from(result);
 		*path = Some(Arc::clone(&result));
 
@@ -300,7 +297,7 @@ impl WorkerProcess {
 	async fn generate_channel(mut cmd: Command) -> Result<(Child, tokio::net::UnixStream)> {
 		use command_fds::{tokio::CommandFdAsyncExt, FdMapping};
 		use std::os::fd::AsRawFd;
-		let (this, other) = tokio::net::UnixStream::pair().into_g::<Error>()?;
+		let (this, other) = tokio::net::UnixStream::pair()?;
 		let proc = cmd
 			.fd_mappings(vec![FdMapping {
 				parent_fd: other.as_raw_fd(),
@@ -312,8 +309,7 @@ impl WorkerProcess {
 					e.to_string()
 				))
 			})?
-			.spawn()
-			.into_g::<Error>()?;
+			.spawn()?;
 		Ok((proc, this))
 	}
 }
@@ -380,7 +376,7 @@ impl Channel {
 	pub async fn invoke(&mut self, operation: Operation) -> Result<Operation> {
 		let mut write = self.proc.write.lock().await;
 		operation.write(&mut *write, self.id, get_gas()).await?;
-		write.flush().await.into_g::<Error>()?;
+		write.flush().await?;
 		drop(write);
 
 		let Some((result, gas)) = self
@@ -388,19 +384,23 @@ impl Channel {
 			.recv()
 			.timeout(invoke_timeout_ms(), "invocation")
 			.await
-			.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.clone()))?
+			.map_err(|_| {
+				ActorX::Global(ChannelReceivingTimeout(self.proc.metadata.id.to_string()).into())
+			})?
 		else {
-			return Err(WorkerCrashed(
-				self.proc
-					.channels
-					.lock()
-					.await
-					.error
-					.as_ref()
-					.expect("internal error: worker crashed without error set")
-					.to_string(),
-			)
-			.into());
+			return Err(ActorX::Global(
+				WorkerCrashed(
+					self.proc
+						.channels
+						.lock()
+						.await
+						.error
+						.as_ref()
+						.expect("internal error: worker crashed without error set")
+						.to_string(),
+				)
+				.into(),
+			));
 		};
 		set_gas(gas);
 		Ok(result)

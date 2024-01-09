@@ -1,7 +1,7 @@
-use crate::{Actor, Result};
+use crate::Actor;
 use tea_sdk::actorx::ActorExt;
 
-async fn init() -> Result<()> {
+async fn init() -> anyhow::Result<()> {
 	Actor::default().register().await?;
 	Ok(())
 }
@@ -13,7 +13,7 @@ mod tests {
 	use test_examples_codec::wasm_b::*;
 
 	#[tokio::test]
-	async fn add_test() -> Result<()> {
+	async fn add_test() -> anyhow::Result<()> {
 		async {
 			init().await?;
 
@@ -27,7 +27,7 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn sub_test() -> Result<()> {
+	async fn sub_test() -> anyhow::Result<()> {
 		async {
 			init().await?;
 

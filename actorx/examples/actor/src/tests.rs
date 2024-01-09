@@ -1,15 +1,15 @@
 use tea_actorx_examples_codec::{AddRequest, AddResponse, WASM_ID};
 use tea_sdk::actorx::{ActorExt, WithActorHost};
 
-use crate::{Actor, Result};
+use crate::Actor;
 
-async fn init() -> Result<()> {
+async fn init() -> anyhow::Result<()> {
 	Actor::default().register().await?;
 	Ok(())
 }
 
 #[tokio::test]
-async fn add_test() -> Result<()> {
+async fn add_test() -> anyhow::Result<()> {
 	async {
 		init().await?;
 
