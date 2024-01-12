@@ -3,8 +3,6 @@ use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::tapp::Account;
 
-pub mod error;
-
 pub const KEY_TYPE_BITCOIN_MAINNET: &str = "bitcoin_mainnet";
 pub const KEY_TYPE_BITCOIN_TESTNET: &str = "bitcoin_testnet";
 pub const KEY_TYPE_ED25519: &str = "ed25519";

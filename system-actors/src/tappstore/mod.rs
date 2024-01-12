@@ -18,8 +18,6 @@ use tea_runtime_codec::tapp::{
 	Account, AuthKey, Hash, TokenId,
 };
 
-pub mod error;
-
 pub mod txns;
 
 pub type QueryCmlResultItem = (CmlIntrinsic, CmlVariable, Vec<u8>, Option<TokenId>);

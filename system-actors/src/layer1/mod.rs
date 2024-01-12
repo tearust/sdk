@@ -15,8 +15,6 @@ use tea_runtime_codec::tapp::{
 	Account, Hash,
 };
 
-pub mod error;
-
 pub const NAME: &[u8] = b"tea:layer1";
 
 #[doc(hidden)]

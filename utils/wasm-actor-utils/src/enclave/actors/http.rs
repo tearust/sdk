@@ -6,8 +6,10 @@ use crate::enclave::error::{Error, Result};
 
 pub use http::*;
 
+#[allow(async_fn_in_trait)]
 #[doc(hidden)]
 pub trait RequestExt {
+	#[allow(async_fn_in_trait)]
 	async fn request<T>(self) -> Result<Response<T>>
 	where
 		T: FromHttpBytes;

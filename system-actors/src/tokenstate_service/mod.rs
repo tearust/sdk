@@ -4,8 +4,6 @@ use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::tapp::{Hash, TimestampShort, Ts};
 
-pub mod error;
-
 pub const NAME: &[u8] = b"com.tea.tokenstate-service-actor";
 
 #[doc(hidden)]

@@ -5,8 +5,6 @@ use tea_codec::serde::TypeId;
 use tea_runtime_codec::actor_txns::{pre_args::ArgSlots, tsid::Tsid, txn::FullTxn};
 use tea_runtime_codec::tapp::{Hash, ReplicaId};
 
-pub mod error;
-
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct TxnItem {
 	pub txn: FullTxn,

@@ -6,8 +6,6 @@ use tea_runtime_codec::tapp::Hash;
 use tea_runtime_codec::vmh::error::VmhResult;
 use tea_runtime_codec::vmh::io::HostType;
 
-pub mod error;
-
 pub const NAME: &[u8] = b"tea:libp2p";
 
 #[doc(hidden)]

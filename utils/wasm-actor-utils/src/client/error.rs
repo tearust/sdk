@@ -8,6 +8,9 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, Error)]
 pub enum Errors {
+	#[error("actor utils error: {0}")]
+	Unnamed(String),
+
 	#[error("Unknown request")]
 	UnknownRequest,
 
@@ -49,4 +52,16 @@ pub enum Errors {
 
 	#[error("Http error: {0}")]
 	HttpError(String),
+
+	#[error(transparent)]
+	ProstError(#[from] prost::DecodeError),
+
+	#[error(transparent)]
+	Base64Error(#[from] base64::DecodeError),
+
+	#[error(transparent)]
+	FromUtf8Error(#[from] std::string::FromUtf8Error),
+
+	#[error(transparent)]
+	ParseIntError(#[from] std::num::ParseIntError),
 }

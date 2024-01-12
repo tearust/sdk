@@ -2,8 +2,6 @@ use crate::nitro::{AttestationDocRequest, RaPeerRequest};
 use serde::{Deserialize, Serialize};
 use tea_codec::serde::TypeId;
 
-pub mod error;
-
 pub const NAME: &[u8] = b"com.tea.ra-actor";
 
 #[doc(hidden)]

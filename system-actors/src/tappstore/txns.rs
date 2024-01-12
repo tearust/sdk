@@ -1,9 +1,8 @@
-use super::error::Error;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::convert::TryFrom;
 use strum::Display;
-use tea_codec::IntoGlobal;
+use tea_codec::errorx::Global;
 use tea_codec::{deserialize, serialize};
 use tea_runtime_codec::actor_txns::{IntoSerial, Transferable, Tsid, Txn, TxnSerial};
 use tea_runtime_codec::tapp::{
@@ -397,15 +396,15 @@ impl Transferable for TappstoreTxn {
 }
 
 impl TryFrom<TxnSerial> for TappstoreTxn {
-	type Error = Error;
+	type Error = Global;
 
 	fn try_from(value: TxnSerial) -> Result<Self, Self::Error> {
-		deserialize(value.bytes()).into_g()
+		deserialize(value.bytes())
 	}
 }
 
 impl IntoSerial for TappstoreTxn {
-	type Error = Error;
+	type Error = Global;
 
 	fn into_serial(self, nonce: u64, extra: u32, gas_limit: u64) -> Result<TxnSerial, Self::Error> {
 		Ok(TxnSerial::new(

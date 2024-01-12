@@ -61,7 +61,7 @@ impl ArgSlots {
 		//  order-deterministic (HashSet or HashMap related type should not be used)
 		let txn_bytes = serialize(self)?;
 
-		let hash_g_array = Sha256::digest(txn_bytes);
+		let hash_g_array = Sha256::digest(&txn_bytes);
 		let hash_key: Hash = hash_g_array
 			.as_slice()
 			.try_into()

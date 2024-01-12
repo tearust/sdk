@@ -10,6 +10,9 @@ use thiserror::Error;
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Error {
+	#[error("Wasm actor utils error: {0}")]
+	Unnamed(String),
+
 	#[error("Global error: {0}")]
 	Global(#[from] Global),
 

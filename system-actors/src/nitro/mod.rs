@@ -4,8 +4,6 @@ use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::tapp::ra::PcrType;
 
-pub mod error;
-
 pub const NAME: &[u8] = b"tea:nitro";
 
 #[doc(hidden)]

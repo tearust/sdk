@@ -21,6 +21,9 @@ pub enum Global {
 	#[error("Global error: {0}")]
 	Unnamed(String),
 
+	#[error("failed to get sql db for tapp id {0}")]
+	DbNotFound(String),
+
 	#[error(transparent)]
 	CannotBeNone(#[from] CannotBeNone),
 

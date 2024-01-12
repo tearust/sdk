@@ -3,8 +3,6 @@ use tea_codec::serde::TypeId;
 use tea_runtime_codec::actor_txns::tsid::Tsid;
 use tea_runtime_codec::tapp::ReplicaId;
 
-pub mod error;
-
 pub const NAME: &[u8] = b"com.tea.replica-service-actor";
 
 #[doc(hidden)]

@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 use tea_codec::{pricing::Priced, serde::TypeId};
 
-pub mod error;
-
 pub const NAME: &[u8] = b"tea:statereceiver";
 
 #[doc(hidden)]

@@ -3,8 +3,6 @@ use std::borrow::Cow;
 use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 
-pub mod error;
-
 pub const NAME: &[u8] = b"tea:persist";
 
 #[doc(hidden)]

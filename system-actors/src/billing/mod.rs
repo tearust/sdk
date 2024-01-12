@@ -4,8 +4,6 @@ use serde::{Deserialize, Serialize};
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::tapp::AccountId;
 
-pub mod error;
-
 pub const NAME: &[u8] = b"tea:billing";
 
 /// The duration for gas payment.

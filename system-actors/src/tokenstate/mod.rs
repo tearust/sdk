@@ -7,8 +7,6 @@ use tea_runtime_codec::tapp::{
 	Account, AuthKey, Balance, ChannelId, ChannelItem, PaymentInfo, TimestampShort, TokenId, Ts,
 };
 
-pub mod error;
-
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ActorExecutionArgs {

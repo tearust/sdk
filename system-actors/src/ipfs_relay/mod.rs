@@ -3,8 +3,6 @@ use tea_codec::{pricing::Priced, serde::TypeId};
 use tea_runtime_codec::tapp::TokenId;
 use tea_runtime_codec::vmh::ipfs::IpfsRequestType;
 
-pub mod error;
-
 pub const NAME: &[u8] = b"tea:ipfs";
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
