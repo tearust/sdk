@@ -43,10 +43,7 @@ async fn waiting_for_instance_works() -> Result<()> {
 		assert!(r.is_err()); // should be timeout error
 		if let Err(e) = r {
 			// assert_eq!(e.to_string(), "ActorX: Channel receiving timeout");
-			assert!(matches!(
-				e,
-				ActorX::Global(Global::ChannelReceivingTimeout(_))
-			));
+			assert!(matches!(e, Global::ChannelReceivingTimeout(_)));
 		}
 
 		Ok(())

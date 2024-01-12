@@ -7,10 +7,7 @@ use std::{
 use tea_sdk::{errorx::InvocationTimeout, serialize};
 use tokio::sync::{oneshot, Mutex};
 
-use crate::{
-	calling_stack,
-	error::{ActorX, Error},
-};
+use crate::{calling_stack, error::Error};
 
 #[cfg(feature = "track")]
 use crate::CallingStack;
@@ -72,7 +69,7 @@ impl Tracker {
 		let f2 = &mut f;
 		let result = tokio::select! {
 			r = f2 => r,
-			Ok(_) = rx => Err(ActorX::Global(InvocationTimeout(serialize(&calling_stack().expect("internal error: no calling stack"))?).into()).into()),
+			Ok(_) = rx => Err(InvocationTimeout(serialize(&calling_stack().expect("internal error: no calling stack"))?).into()),
 			else => f.await
 		};
 
@@ -113,7 +110,6 @@ impl Tracker {
 mod tests {
 	use super::*;
 	use crate::context::CALLING_STACK;
-	use crate::error::ActorX;
 	use crate::{ActorId, IntoActor};
 	use futures::stream::FuturesUnordered;
 	use futures::StreamExt;
@@ -186,10 +182,7 @@ mod tests {
 					.await;
 				assert!(result.is_err());
 				let error = result.unwrap_err();
-				assert!(matches!(
-					error,
-					ActorX::Global(Global::InvocationTimeout(_))
-				));
+				assert!(matches!(error, Global::InvocationTimeout(_)));
 			})
 			.await;
 	}

@@ -16,6 +16,8 @@ pub mod txn;
 pub use followup::Followup;
 pub use tsid::Tsid;
 
+use self::error::Error;
+
 pub trait ToHash<H> {
 	fn to_hash(&self) -> H;
 }
@@ -79,7 +81,8 @@ impl TxnSerial {
 			extra: u32::MAX,
 			gas_limit: u64::MAX,
 		};
-		let new_bytes = tea_codec::serialize(&new_entity)?;
+		let new_bytes = tea_codec::serialize(&new_entity)
+			.map_err(|e| Error::Unnamed(format!("TxnSerial hash_bytes error: {:?}", e)))?;
 		Ok(new_bytes)
 	}
 }

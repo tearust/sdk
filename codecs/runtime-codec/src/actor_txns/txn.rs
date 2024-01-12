@@ -3,6 +3,7 @@ use crate::actor_txns::{error::Result, txn_hash};
 use crate::tapp::Hash;
 use serde::{Deserialize, Serialize};
 
+use super::error::Error;
 use super::TxnSerial;
 
 #[doc(hidden)]
@@ -33,7 +34,8 @@ impl FullTxn {
 	}
 
 	pub fn txn_hash(&self) -> Result<Hash> {
-		let txn_serial: TxnSerial = tea_codec::deserialize(&self.txn_bytes)?;
+		let txn_serial: TxnSerial = tea_codec::deserialize(&self.txn_bytes)
+			.map_err(|e| Error::Unnamed(format!("FullTxn txn_hash error: {:?}", e)))?;
 		txn_hash(txn_serial.hash_bytes()?.as_slice())
 	}
 

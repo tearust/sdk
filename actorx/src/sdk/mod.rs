@@ -1,4 +1,4 @@
-pub use crate::core::{actor::ActorId, metadata};
+pub use crate::core::metadata;
 pub mod actor;
 
 #[cfg(any(feature = "host", feature = "wasm"))]

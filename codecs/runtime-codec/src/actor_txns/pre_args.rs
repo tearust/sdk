@@ -5,6 +5,8 @@ use sha2::{Digest, Sha256};
 use std::{array::TryFromSliceError, convert::TryInto};
 use tea_sdk::serialize;
 
+use super::error::Error;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Arg {
 	pub ty: Type,
@@ -59,7 +61,8 @@ impl ArgSlots {
 	pub fn hash(&self) -> Result<Hash> {
 		// Note here use serialize to calculate, that means all args related fields must be
 		//  order-deterministic (HashSet or HashMap related type should not be used)
-		let txn_bytes = serialize(self)?;
+		let txn_bytes =
+			serialize(self).map_err(|e| Error::Unnamed(format!("ArgSlots hash error: {:?}", e)))?;
 
 		let hash_g_array = Sha256::digest(&txn_bytes);
 		let hash_key: Hash = hash_g_array

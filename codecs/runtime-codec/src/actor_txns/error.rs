@@ -9,12 +9,19 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ActorTxnsError {
+	#[error("ActorTxns error: {0}")]
+	Unnamed(String),
+
 	#[error("Txn error:'{0}")]
 	TxnError(#[from] TxnError),
 	#[error("Context error:'{0}")]
 	ContextError(#[from] ContextError),
-	#[error("Global error: {0}")]
-	Global(#[from] Global),
+}
+
+impl From<ActorTxnsError> for Global {
+	fn from(e: ActorTxnsError) -> Self {
+		Global::Unnamed(format!("{e:?}"))
+	}
 }
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

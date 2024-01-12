@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use tea_actorx::error::ActorX;
 use tea_runtime_codec::actor_txns::error::ActorTxnsError;
 use tea_runtime_codec::runtime::error::RuntimeCodec;
 use tea_runtime_codec::tapp::error::RuntimeTappError;
@@ -7,6 +6,8 @@ use tea_runtime_codec::tapp::{Balance, TokenId};
 use tea_runtime_codec::vmh::error::VmhError;
 use tea_sdk::errorx::Global;
 use thiserror::Error;
+
+pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Error {
@@ -16,20 +17,17 @@ pub enum Error {
 	#[error("Global error: {0}")]
 	Global(#[from] Global),
 
-	#[error("Actor error: {0}")]
-	ActorX(#[from] ActorX),
-
 	#[error("Vmh code error: {0}")]
-	VmhCodec(#[from] VmhError),
+	VmhCodec(String),
 
 	#[error("Wasm runtime tapp error: {0}")]
-	RuntimeTapp(#[from] RuntimeTappError),
+	RuntimeTapp(String),
 
 	#[error("Wasm runtime codec error: {0}")]
-	RuntimeCodec(#[from] RuntimeCodec),
+	RuntimeCodec(String),
 
 	#[error("Actor txns error: {0}")]
-	ActorTxnsError(#[from] ActorTxnsError),
+	ActorTxnsError(String),
 
 	#[error("Utils general error: {0}")]
 	General(#[from] Errors),
@@ -56,7 +54,29 @@ pub enum Error {
 	ParseAddress(String),
 }
 
-pub type Result<T, E = Error> = std::result::Result<T, E>;
+impl From<VmhError> for Error {
+	fn from(e: VmhError) -> Self {
+		Self::VmhCodec(format!("{e:?}"))
+	}
+}
+
+impl From<RuntimeTappError> for Error {
+	fn from(e: RuntimeTappError) -> Self {
+		Self::RuntimeTapp(format!("{e:?}"))
+	}
+}
+
+impl From<RuntimeCodec> for Error {
+	fn from(e: RuntimeCodec) -> Self {
+		Self::RuntimeCodec(format!("{e:?}"))
+	}
+}
+
+impl From<ActorTxnsError> for Error {
+	fn from(e: ActorTxnsError) -> Self {
+		Self::ActorTxnsError(format!("{e:?}"))
+	}
+}
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Errors {

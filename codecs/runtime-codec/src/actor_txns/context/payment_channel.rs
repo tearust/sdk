@@ -1,5 +1,8 @@
 use super::{IsBalanceRelated, PaymentChannelContext, Result};
-use crate::tapp::{Balance, ChannelId, ChannelItem};
+use crate::{
+	actor_txns::error::Error,
+	tapp::{Balance, ChannelId, ChannelItem},
+};
 use serde::{Deserialize, Serialize};
 use sha2::digest::Update;
 use std::collections::{HashMap, HashSet};
@@ -82,21 +85,27 @@ impl PaymentChannelContextImpl {
 		new_channels.sort_by(|a, b| a.0.cmp(&b.0));
 		for (channel_id, item) in new_channels {
 			hasher.update(channel_id.as_ref());
-			hasher.update(&serialize(item)?);
+			hasher.update(&serialize(item).map_err(|e| {
+				Error::Unnamed(format!("PaymentChannelContextImpl hash error: {:?}", e))
+			})?);
 		}
 
 		let mut update_payments = self.update_payments.iter().collect::<Vec<_>>();
 		update_payments.sort_by(|a, b| a.0.cmp(&b.0));
 		for (channel_id, v) in update_payments {
 			hasher.update(channel_id.as_ref());
-			hasher.update(&serialize(v)?);
+			hasher.update(&serialize(v).map_err(|e| {
+				Error::Unnamed(format!("PaymentChannelContextImpl hash error: {:?}", e))
+			})?);
 		}
 
 		let mut payer_refills = self.payer_refills.iter().collect::<Vec<_>>();
 		payer_refills.sort_by(|a, b| a.0.cmp(&b.0));
 		for (channel_id, v) in payer_refills {
 			hasher.update(channel_id.as_ref());
-			hasher.update(&serialize(v)?);
+			hasher.update(&serialize(v).map_err(|e| {
+				Error::Unnamed(format!("PaymentChannelContextImpl hash error: {:?}", e))
+			})?);
 		}
 
 		self.hash_channels(&self.early_terminate, hasher)?;

@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use tea_sdk::errorx::Global;
 use thiserror::Error;
 
 pub type VmhResult<T, E = VmhError> = Result<T, E>;
@@ -8,9 +7,6 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum VmhError {
-	#[error("Global error: {0}")]
-	Global(#[from] Global),
-
 	#[error("Table access error: {0}")]
 	TableAccess(#[from] TableAccess),
 
@@ -28,6 +24,15 @@ pub enum VmhError {
 
 	#[error("Vmh error: {0}")]
 	Unnamed(String),
+
+	#[error("Cannot be none: {0}")]
+	CannotBeNone(String),
+}
+
+impl From<hex::FromHexError> for VmhError {
+	fn from(e: hex::FromHexError) -> Self {
+		Self::Unnamed(format!("Vmh FromHexError: {:?}", e))
+	}
 }
 
 impl VmhError {

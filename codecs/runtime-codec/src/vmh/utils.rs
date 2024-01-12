@@ -8,7 +8,6 @@ use std::{
 	convert::TryInto,
 	time::{Duration, SystemTime},
 };
-use tea_sdk::{IntoGlobal, OptionExt};
 
 pub use chrono::{offset::Utc, DateTime, NaiveTime};
 
@@ -16,10 +15,10 @@ pub fn split_once<'a>(in_string: &'a str, pattern: &'a str) -> Result<(&'a str, 
 	let mut splitter = in_string.splitn(2, pattern);
 	let first = splitter
 		.next()
-		.ok_or_err("missing first section".to_string())?;
+		.ok_or(Error::Unnamed("missing first section".to_string()))?;
 	let second = splitter
 		.next()
-		.ok_or_err("missing second section".to_string())?;
+		.ok_or(Error::Unnamed("missing second section".to_string()))?;
 	Ok((first, second))
 }
 
@@ -34,19 +33,31 @@ pub fn remote_url(host: &HostType, port: u32) -> String {
 pub fn system_time_as_nanos(time: SystemTime) -> Result<u128> {
 	Ok(time
 		.duration_since(std::time::SystemTime::UNIX_EPOCH)
-		.into_g::<Error>()?
+		.map_err(|e| Error::Unnamed(format!("system time as nanos error: {:?}", e)))?
 		.as_nanos())
 }
 
 pub fn system_time_from_nanos(nanos: u128) -> Result<SystemTime> {
 	const NANOS_PER_SEC: u128 = 1_000_000_000;
-	let sub_nanos: u32 = (nanos % NANOS_PER_SEC).try_into().into_g::<Error>()?;
-	let seconds: u64 = (nanos / NANOS_PER_SEC).try_into().into_g::<Error>()?;
+	let sub_nanos: u32 = (nanos % NANOS_PER_SEC).try_into().map_err(|e| {
+		Error::Unnamed(format!(
+			"calculate sub nanos from nanos {nanos} failed: {:?}",
+			e
+		))
+	})?;
+	let seconds: u64 = (nanos / NANOS_PER_SEC).try_into().map_err(|e| {
+		Error::Unnamed(format!(
+			"calculate seconds from nanos {nanos} failed: {:?}",
+			e
+		))
+	})?;
 
 	let duration = Duration::new(seconds, sub_nanos);
 	Ok(std::time::SystemTime::UNIX_EPOCH
 		.checked_add(duration)
-		.ok_or_err(format!("calculate system time from nanos {nanos} failed"))?)
+		.ok_or(Error::Unnamed(format!(
+			"calculate system time from nanos {nanos} failed"
+		)))?)
 }
 
 pub fn to_short_timestamp(ts: u128) -> Result<TimestampShort> {
@@ -55,7 +66,9 @@ pub fn to_short_timestamp(ts: u128) -> Result<TimestampShort> {
 }
 
 pub fn to_full_timestamp(ts: TimestampShort) -> Result<u128> {
-	let utc = datetime_from_timestamp(ts).ok_or_err("utc time")?;
+	let utc = datetime_from_timestamp(ts).ok_or(Error::Unnamed(
+		"convert timestamp to full timestamp failed".to_string(),
+	))?;
 	system_time_as_nanos(utc.into())
 }
 
@@ -121,7 +134,7 @@ mod tests {
 	}
 
 	#[test]
-	fn to_short_timestamp_works() -> Result<()> {
+	fn to_short_timestamp_works() -> anyhow::Result<()> {
 		let short = to_short_timestamp(1673816999950360000u128)?;
 		let f = format_timestamp(short).ok_or_err("format")?;
 		assert_eq!("2023-01-15 21:09:59 UTC", f);

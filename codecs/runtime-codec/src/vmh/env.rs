@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::str::FromStr;
-use tea_sdk::{serialize, IntoGlobal};
+use tea_sdk::serialize;
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct EnvSettings {
@@ -122,7 +122,7 @@ pub fn hex_decode(mut tea_id: &str) -> Result<Vec<u8>> {
 	if tea_id.starts_with("0x") {
 		tea_id = tea_id.trim_start_matches("0x");
 	}
-	Ok(hex::decode(tea_id).into_g::<Error>()?)
+	Ok(hex::decode(tea_id).map_err(|e| Error::Unnamed(format!("hex_decode error: {:?}", e)))?)
 }
 
 impl EnvSettings {
@@ -141,9 +141,13 @@ impl EnvSettings {
 
 impl GenesisConfig {
 	pub fn hash(&self) -> Result<Hash> {
-		let bytes = serialize(&self)?;
+		let bytes = serialize(&self)
+			.map_err(|e| Error::Unnamed(format!("GenesisConfig hash error: {:?}", e)))?;
 		let hash_g_array = Sha256::digest(bytes.as_slice());
-		let hash_key: Hash = hash_g_array.as_slice().try_into().into_g::<Error>()?;
+		let hash_key: Hash = hash_g_array
+			.as_slice()
+			.try_into()
+			.map_err(|e| Error::Unnamed(format!("GenesisConfig hash error: {:?}", e)))?;
 		Ok(hash_key)
 	}
 }

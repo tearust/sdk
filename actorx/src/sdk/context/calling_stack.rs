@@ -4,6 +4,8 @@ use std::sync::Arc;
 #[cfg(feature = "host")]
 use ::{std::future::Future, tokio::task_local};
 
+use tea_sdk::errorx::MissingCallingStack;
+
 #[cfg(feature = "host")]
 use crate::error::Error;
 
@@ -11,11 +13,7 @@ use crate::error::Error;
 #[cfg(feature = "timeout")]
 use crate::context::tracker::Tracker;
 
-use crate::{
-	core::actor::ActorId,
-	error::{MissingCallingStack, Result},
-	CallingStack,
-};
+use crate::{core::actor::ActorId, error::Result, CallingStack};
 
 #[cfg(feature = "host")]
 task_local! {

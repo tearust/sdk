@@ -2825,6 +2825,7 @@ dependencies = [
 name = "tea-runtime-codec"
 version = "0.3.0-dev.7"
 dependencies = [
+ "anyhow",
  "base64",
  "bincode",
  "chrono",

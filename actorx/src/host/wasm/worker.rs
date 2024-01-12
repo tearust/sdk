@@ -1,11 +1,10 @@
 use crate::context::host;
 use crate::core::{metadata::Metadata, worker_codec::*};
-use crate::error::ActorX;
 use crate::host::OutputHandler;
 use crate::ActorId;
 use crate::{
 	context::{get_gas, set_gas},
-	error::{BadWorkerOutput, Error, Result},
+	error::{Error, Result},
 };
 use std::path::PathBuf;
 use std::{
@@ -18,7 +17,7 @@ use std::{
 	sync::{Arc, Weak},
 	time::Duration,
 };
-use tea_sdk::errorx::{ChannelReceivingTimeout, WorkerCrashed};
+use tea_sdk::errorx::{BadWorkerOutput, ChannelReceivingTimeout, WorkerCrashed};
 use tea_sdk::Timeout;
 use tokio::fs::set_permissions;
 use tokio::io::{AsyncBufReadExt, BufReader};
@@ -262,7 +261,9 @@ impl WorkerProcess {
 				let channel = channels
 					.channels
 					.get(&cid)
-					.ok_or_else(|| BadWorkerOutput::ChannelNotExist(cid, self.metadata.id.clone()))?
+					.ok_or_else(|| {
+						BadWorkerOutput::ChannelNotExist(cid, self.metadata.id.to_string())
+					})?
 					.clone();
 				drop(channels);
 				if let Err(e) = channel.send((op, gas)) {
@@ -270,9 +271,11 @@ impl WorkerProcess {
 				}
 			}
 			Err(code) => {
-				return Err(
-					BadWorkerOutput::UnknownMasterCommand(code, self.metadata.id.clone()).into(),
+				return Err(BadWorkerOutput::UnknownMasterCommand(
+					code,
+					self.metadata.id.to_string(),
 				)
+				.into())
 			}
 		};
 		Ok(())
@@ -384,23 +387,19 @@ impl Channel {
 			.recv()
 			.timeout(invoke_timeout_ms(), "invocation")
 			.await
-			.map_err(|_| {
-				ActorX::Global(ChannelReceivingTimeout(self.proc.metadata.id.to_string()).into())
-			})?
+			.map_err(|_| ChannelReceivingTimeout(self.proc.metadata.id.to_string()))?
 		else {
-			return Err(ActorX::Global(
-				WorkerCrashed(
-					self.proc
-						.channels
-						.lock()
-						.await
-						.error
-						.as_ref()
-						.expect("internal error: worker crashed without error set")
-						.to_string(),
-				)
-				.into(),
-			));
+			return Err(WorkerCrashed(
+				self.proc
+					.channels
+					.lock()
+					.await
+					.error
+					.as_ref()
+					.expect("internal error: worker crashed without error set")
+					.to_string(),
+			)
+			.into());
 		};
 		set_gas(gas);
 		Ok(result)

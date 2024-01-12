@@ -4,7 +4,7 @@ use tea_sdk::ResultExt;
 
 use crate::enclave::error::{Error, Result};
 
-pub use http::*;
+pub use http::{request, HeaderName, HeaderValue, Request, Response};
 
 #[allow(async_fn_in_trait)]
 #[doc(hidden)]

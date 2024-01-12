@@ -43,3 +43,24 @@ pub struct InvocationTimeout(#[cfg(any(feature = "host", feature = "wasm"))] pub
 #[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
 #[error("Receiving channel of actor {0} has timeout")]
 pub struct ChannelReceivingTimeout(pub String);
+
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
+pub enum BadWorkerOutput {
+	#[error("Unknown MasterCommand {0} from the worker of {1}")]
+	UnknownMasterCommand(u8, String),
+
+	#[error("Non existing channel {0} from the worker of {1}")]
+	ChannelNotExist(u64, String),
+}
+
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
+pub enum MissingCallingStack {
+	#[error("The operation must be within a current actor context")]
+	Current,
+	#[error("The operation must be called with an actor caller")]
+	Caller,
+}
+
+#[derive(Debug, Clone, Error, PartialEq, Eq, Serialize, Deserialize)]
+#[error("Failed to deserialize the invoke response to actor '{0}': {1}")]
+pub struct InvokeDeserializeError(pub String, pub String);

@@ -1,5 +1,5 @@
 use super::{AssetContext, CheckConflict, IsBalanceRelated, Merge, ReadConflictMode};
-use crate::actor_txns::error::{ContextError, Result};
+use crate::actor_txns::error::{ContextError, Error, Result};
 use crate::tapp::{Account, Balance};
 use serde::{Deserialize, Serialize};
 use sha2::Digest;
@@ -220,7 +220,12 @@ impl ConcurrentBalances {
 	}
 
 	fn hash_balance_hash(&self, balance: &Balance, hasher: &mut sha2::Sha256) -> Result<()> {
-		hasher.update(serialize(balance)?);
+		hasher.update(serialize(balance).map_err(|e| {
+			Error::Unnamed(format!(
+				"ConcurrentBalances hash_balance_hash error: {:?}",
+				e
+			))
+		})?);
 		Ok(())
 	}
 }

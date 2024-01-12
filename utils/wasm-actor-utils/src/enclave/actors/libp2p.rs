@@ -7,7 +7,7 @@ use crate::enclave::error::{Error, Errors, Result};
 use mocktopus::macros::mockable;
 use prost::Message;
 use std::collections::HashSet;
-use tea_actorx::{error::ActorX, ActorId};
+use tea_actorx::ActorId;
 use tea_codec::{
 	serde::{handle::Request, FromBytes, ToBytes},
 	serialize,
@@ -354,7 +354,7 @@ pub async fn send_to_state_receiver(
 
 #[doc(hidden)]
 pub fn can_async_error_be_ignored(e: &Error) -> bool {
-	matches!(e, Error::ActorX(ActorX::Global(Global::ActorNotExist(_))))
+	matches!(e, Error::Global(Global::ActorNotExist(_)))
 }
 
 #[doc(hidden)]

@@ -9,6 +9,8 @@ use sha2::Digest;
 use std::collections::{HashMap, HashSet, VecDeque};
 use tea_sdk::{deserialize, serialize};
 
+use super::error::Error;
+
 pub mod concurrent;
 pub mod payment_channel;
 
@@ -296,7 +298,7 @@ impl CheckConflict for TokenContext {
 
 impl Context<ConcurrentBalances, PaymentChannelContextImpl> for TokenContext {
 	fn encode_bytes(&self) -> Result<Vec<u8>> {
-		Ok(tea_sdk::serialize(self)?)
+		Ok(tea_sdk::serialize(self).map_err(|e| Error::Unnamed(e.to_string()))?)
 	}
 
 	/// What token (FT/NFT) is this context associate?
@@ -443,7 +445,12 @@ impl Context<ConcurrentBalances, PaymentChannelContextImpl> for TokenContext {
 }
 
 impl TokenContext {
-	pub fn new(tsid: Tsid, base: Tsid, tid: TokenId, auth_ops_bytes: &[u8]) -> Result<Self> {
+	pub fn new(
+		tsid: Tsid,
+		base: Tsid,
+		tid: TokenId,
+		auth_ops_bytes: &[u8],
+	) -> tea_sdk::Result<Self> {
 		let auth_ops: Vec<TokenAuthOp> = if auth_ops_bytes.is_empty() {
 			//TODO: We should remove all zero length auth_ops_bytes cases
 			Vec::new()
@@ -520,11 +527,11 @@ impl TokenContext {
 		self.get_tsid()
 	}
 
-	pub fn log_from_bytes(bytes: &[u8]) -> Result<String> {
+	pub fn log_from_bytes(bytes: &[u8]) -> tea_sdk::Result<String> {
 		let ctx: Self = deserialize(bytes)?;
 		Ok(format!("{:?}", &ctx))
 	}
-	pub fn log_allowance_from_bytes(bytes: &[u8]) -> Result<String> {
+	pub fn log_allowance_from_bytes(bytes: &[u8]) -> tea_sdk::Result<String> {
 		let ctx: Self = deserialize(bytes)?;
 		Ok(format!(
 			"token_id: {:#?}, allowance: {:?}",
@@ -532,7 +539,7 @@ impl TokenContext {
 			&ctx.allowance_context()
 		))
 	}
-	pub fn log_tea_from_bytes(bytes: &[u8]) -> Result<String> {
+	pub fn log_tea_from_bytes(bytes: &[u8]) -> tea_sdk::Result<String> {
 		let ctx: Self = deserialize(bytes)?;
 		Ok(format!(
 			"token_id: {:#?}, tea: {:?}",
@@ -540,7 +547,7 @@ impl TokenContext {
 			&ctx.tea_context()
 		))
 	}
-	pub fn log_deposit_from_bytes(bytes: &[u8]) -> Result<String> {
+	pub fn log_deposit_from_bytes(bytes: &[u8]) -> tea_sdk::Result<String> {
 		let ctx: Self = deserialize(bytes)?;
 		Ok(format!(
 			"token_id: {:#?}, deposit: {:?}",
@@ -548,7 +555,7 @@ impl TokenContext {
 			&ctx.deposit_context()
 		))
 	}
-	pub fn log_bonding_from_bytes(bytes: &[u8]) -> Result<String> {
+	pub fn log_bonding_from_bytes(bytes: &[u8]) -> tea_sdk::Result<String> {
 		let ctx: Self = deserialize(bytes)?;
 		Ok(format!(
 			"token_id: {:#?}, bonding: {:?}",
@@ -557,7 +564,7 @@ impl TokenContext {
 		))
 	}
 
-	pub fn hash(&self, hasher: &mut sha2::Sha256) -> Result<()> {
+	pub fn hash(&self, hasher: &mut sha2::Sha256) -> tea_sdk::Result<()> {
 		hasher.update(serialize(&self.tid)?);
 		hasher.update(serialize(&self.tsid)?);
 		hasher.update(serialize(&self.base)?);

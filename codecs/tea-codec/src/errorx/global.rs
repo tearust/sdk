@@ -24,6 +24,9 @@ pub enum Global {
 	#[error("failed to get sql db for tapp id {0}")]
 	DbNotFound(String),
 
+	#[error("Wasm worker error: {0}")]
+	WasmWorkerError(String),
+
 	#[error(transparent)]
 	CannotBeNone(#[from] CannotBeNone),
 
@@ -68,6 +71,15 @@ pub enum Global {
 
 	#[error(transparent)]
 	ChannelReceivingTimeout(#[from] ChannelReceivingTimeout),
+
+	#[error(transparent)]
+	BadWorkerOutput(#[from] BadWorkerOutput),
+
+	#[error(transparent)]
+	MissingCallingStack(#[from] MissingCallingStack),
+
+	#[error(transparent)]
+	InvokeDeserializeError(#[from] InvokeDeserializeError),
 
 	#[error("Json serde error: {0}")]
 	JsonSerde(String),

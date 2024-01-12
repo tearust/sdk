@@ -47,8 +47,9 @@ pub use sdk::*;
 pub mod error;
 
 mod export {
+	#[allow(unused_imports)]
 	#[cfg(any(feature = "sdk", feature = "sign", feature = "worker"))]
-	pub use crate::core::metadata;
+	pub use crate::core::{actor::ActorId, metadata};
 
 	#[cfg(all(feature = "host", feature = "__test"))]
 	pub use crate::host::invoke_timeout_ms;
@@ -63,7 +64,7 @@ mod export {
 	pub use crate::wasm::abi;
 
 	#[cfg(any(feature = "host", feature = "wasm"))]
-	pub use crate::sdk::{actor::*, hooks, invoke::*};
+	pub use crate::sdk::actor::*;
 }
 
 pub use export::*;

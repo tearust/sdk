@@ -2,7 +2,7 @@ use std::fmt::{Formatter, Write};
 use tea_sdk::errorx::Global;
 use wasmer::RuntimeError;
 
-use crate::{core::error::GasFeeExhausted, error::ActorX, sign::error::Signer};
+use crate::{core::error::GasFeeExhausted, sign::error::Signer};
 
 pub type Error = ActorXWorker;
 pub type Result<T, E = Error> = std::result::Result<T, E>;
@@ -23,9 +23,6 @@ pub enum ActorXWorker {
 
 	#[error("Global error: {0}")]
 	Global(#[from] Global),
-
-	#[error("Actor error: {0}")]
-	ActorX(#[from] ActorX),
 
 	#[error("Signer error: {0}")]
 	Signer(#[from] Signer),
@@ -59,7 +56,6 @@ impl std::fmt::Debug for ActorXWorker {
 			ActorXWorker::Signer(e) => write!(f, "{}", e),
 			ActorXWorker::Global(e) => write!(f, "{}", e),
 			ActorXWorker::GasFeeExhausted(e) => write!(f, "{}", e),
-			ActorXWorker::ActorX(e) => write!(f, "{}", e),
 			ActorXWorker::DeserializeError(e) => write!(f, "{}", e),
 			ActorXWorker::HostInstantiation(e) => write!(f, "{}", e),
 			ActorXWorker::WasmCompile(e) => write!(f, "{}", e),

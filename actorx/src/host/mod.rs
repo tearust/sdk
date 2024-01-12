@@ -6,7 +6,7 @@ use std::{
 	sync::Arc,
 };
 
-use crate::{core::actor::ActorId, error::ActorX, metadata::Metadata};
+use crate::{core::actor::ActorId, metadata::Metadata};
 use tea_codec::{
 	serde::{get_type_id, ToBytes, TypeId},
 	IntoGlobal,
@@ -55,10 +55,10 @@ impl Host {
 	async fn get_actor(&self) -> Result<Arc<ActorAgent>> {
 		let actors = self.actors.read().await;
 		let actor = current_ref(|current| {
-			actors.get(current).cloned().ok_or_else(|| {
-				let e: Global = ActorNotExist(current.to_string()).into();
-				ActorX::Global(e)
-			})
+			actors
+				.get(current)
+				.cloned()
+				.ok_or_else(|| ActorNotExist(current.to_string()))
 		})??;
 		Ok(actor)
 	}
@@ -132,11 +132,7 @@ impl ActorAgent {
 		match *is_active {
 			Status::Uninit => (),
 			Status::Active => return Ok(()),
-			Status::Deactivating => {
-				return Err(ActorX::Global(
-					ActorDeactivating(current()?.to_string()).into(),
-				))
-			}
+			Status::Deactivating => return Err(ActorDeactivating(current()?.to_string()).into()),
 		}
 
 		drop(is_active);
@@ -145,16 +141,12 @@ impl ActorAgent {
 		match *is_active {
 			Status::Uninit => (),
 			Status::Active => return Ok(()),
-			Status::Deactivating => {
-				return Err(ActorX::Global(
-					ActorDeactivating(current()?.to_string()).into(),
-				))
-			}
+			Status::Deactivating => return Err(ActorDeactivating(current()?.to_string()).into()),
 		}
 		*is_active = Status::Active;
 
 		if let Err(e) = self.actor.invoke(&Activate.to_bytes()?).await {
-			if !matches!(e, ActorX::Global(Global::UnexpectedType(_))) {
+			if !matches!(e, Global::UnexpectedType(_)) {
 				return Err(e.into());
 			}
 		}
@@ -194,7 +186,7 @@ impl ActorAgent {
 		drop(is_active);
 
 		if let Err(e) = self.actor.invoke(&Deactivate.to_bytes()?).await {
-			if !matches!(e, ActorX::Global(Global::UnexpectedType(_))) {
+			if !matches!(e, Global::UnexpectedType(_)) {
 				self.remove_self().await?;
 				return Err(e.into());
 			}
@@ -289,7 +281,7 @@ impl ActorId {
 		let actors = host.actors.read().await;
 		actors
 			.get(self)
-			.ok_or(ActorX::Global(ActorNotExist(self.to_string()).into()))?
+			.ok_or(ActorNotExist(self.to_string()))?
 			.metadata()
 			.await
 	}
@@ -300,7 +292,7 @@ impl ActorId {
 		let actors = host.actors.read().await;
 		actors
 			.get(self)
-			.ok_or(ActorX::Global(ActorNotExist(self.to_string()).into()))?
+			.ok_or(ActorNotExist(self.to_string()))?
 			.size()
 			.await
 	}
@@ -311,7 +303,7 @@ impl ActorId {
 		let actors = host.actors.read().await;
 		actors
 			.get(self)
-			.ok_or(ActorX::Global(ActorNotExist(self.to_string()).into()))?
+			.ok_or(ActorNotExist(self.to_string()))?
 			.instance_count()
 			.await
 	}

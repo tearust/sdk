@@ -6,7 +6,6 @@ use crate::{
 		metadata::{Claim, Metadata},
 		worker_codec::Operation,
 	},
-	error::ActorX,
 	IntoActor,
 };
 use tea_codec::serde::{get_type_id, TypeId};
@@ -267,7 +266,7 @@ impl Actor for WasmActor {
 			let process_size = prc.stat()?.rss_bytes();
 			Ok(process_size)
 		}()
-		.map_err(|e| Error::ProcError(e.to_string()))?;
+		.map_err(|e| Error::Unnamed(format!("failed to get process size: {e:?}")))?;
 
 		// MAX_COUNT / CACHE_COUNT is the approximate coefficient of the number of instances
 		let total_size = process_size * MAX_COUNT as u64 / CACHE_COUNT as u64;
@@ -314,7 +313,7 @@ impl WasmActor {
 			}
 		} else {
 			Operation::ReturnErr {
-				error: ActorX::Global(AccessNotPermitted(target.to_string()).into()),
+				error: AccessNotPermitted(target.to_string()).into(),
 			}
 		};
 
