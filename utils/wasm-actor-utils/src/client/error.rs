@@ -1,4 +1,4 @@
-use tea_runtime_codec::{tapp::error::RuntimeTappError, vmh::error::VmhError};
+use tea_runtime_codec::tapp::error::RuntimeTappError;
 use tea_sdk::errorx::Global;
 use thiserror::Error;
 
@@ -34,9 +34,6 @@ pub enum Errors {
 	#[error("Runtime tapp error: {0}")]
 	RuntimeTappError(String),
 
-	#[error("Vmh error: {0}")]
-	VmhError(String),
-
 	#[error("Parse address error: {0}")]
 	ParseAddress(String),
 
@@ -65,12 +62,6 @@ pub enum Errors {
 impl From<RuntimeTappError> for Error {
 	fn from(e: RuntimeTappError) -> Self {
 		Error::RuntimeTappError(format!("{e:?}"))
-	}
-}
-
-impl From<VmhError> for Error {
-	fn from(e: VmhError) -> Self {
-		Error::VmhError(format!("{e:?}"))
 	}
 }
 

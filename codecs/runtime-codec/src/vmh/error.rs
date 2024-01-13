@@ -1,49 +1,52 @@
 use serde::{Deserialize, Serialize};
+use tea_sdk::errorx::Global;
 use thiserror::Error;
 
 pub type VmhResult<T, E = VmhError> = Result<T, E>;
 pub type Error = VmhError;
 pub type Result<T, E = Error> = std::result::Result<T, E>;
 
-#[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum VmhError {
-	#[error("Table access error: {0}")]
-	TableAccess(#[from] TableAccess),
+pub type VmhError = Global;
 
-	#[error("Persist check error: {0}")]
-	PersistCheck(#[from] PersistCheck),
-
-	#[error("Vmh general error: {0}")]
-	VmhGeneral(#[from] Errors),
-
-	#[error(transparent)]
-	InvalidASystemInvocation(#[from] InvalidASystemInvocation),
-
-	#[error(transparent)]
-	InvalidBSystemInvocation(#[from] InvalidBSystemInvocation),
-
-	#[error("Vmh error: {0}")]
-	Unnamed(String),
-
-	#[error("Cannot be none: {0}")]
-	CannotBeNone(String),
-}
-
-impl From<hex::FromHexError> for VmhError {
-	fn from(e: hex::FromHexError) -> Self {
-		Self::Unnamed(format!("Vmh FromHexError: {:?}", e))
+impl From<TableAccess> for Global {
+	fn from(e: TableAccess) -> Self {
+		Global::Unnamed(format!("{e:?}"))
 	}
 }
 
-impl VmhError {
-	pub fn invalid_a_system_invocation(name: String) -> Self {
-		Self::InvalidASystemInvocation(InvalidASystemInvocation(name))
-	}
-
-	pub fn invalid_b_system_invocation(name: String) -> Self {
-		Self::InvalidBSystemInvocation(InvalidBSystemInvocation(name))
+impl From<PersistCheck> for Global {
+	fn from(e: PersistCheck) -> Self {
+		Global::Unnamed(format!("{e:?}"))
 	}
 }
+
+impl From<VmhGeneralErrors> for Global {
+	fn from(e: VmhGeneralErrors) -> Self {
+		Global::Unnamed(format!("{e:?}"))
+	}
+}
+
+impl From<InvalidASystemInvocation> for Global {
+	fn from(e: InvalidASystemInvocation) -> Self {
+		Global::Unnamed(format!("{e:?}"))
+	}
+}
+
+impl From<InvalidBSystemInvocation> for Global {
+	fn from(e: InvalidBSystemInvocation) -> Self {
+		Global::Unnamed(format!("{e:?}"))
+	}
+}
+
+// impl VmhError {
+// 	pub fn invalid_a_system_invocation(name: String) -> Self {
+// 		Self::InvalidASystemInvocation(InvalidASystemInvocation(name))
+// 	}
+
+// 	pub fn invalid_b_system_invocation(name: String) -> Self {
+// 		Self::InvalidBSystemInvocation(InvalidBSystemInvocation(name))
+// 	}
+// }
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[error("{0} is not allowed to call A node system invocation")]
@@ -76,7 +79,7 @@ pub enum PersistCheck {
 }
 
 #[derive(Error, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Errors {
+pub enum VmhGeneralErrors {
 	#[error("Unknown built-in env {0}")]
 	UnknownBuiltInEnv(String),
 

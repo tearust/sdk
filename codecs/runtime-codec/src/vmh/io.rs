@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{collections::HashSet, fmt::Display, str::FromStr};
 use strum::Display;
 
-use crate::vmh::error::Errors;
+use crate::vmh::error::VmhGeneralErrors;
 
 pub const REGISTRY_SOCKET_NAME: &str = "/tmp/registry.socket";
 pub const COMMAND_SOCKET_NAME: &str = "/tmp/command.socket";
@@ -96,7 +96,7 @@ impl FromStr for UpgradeType {
 		match s {
 			"client" => Ok(UpgradeType::Client),
 			"provider" => Ok(UpgradeType::Provider),
-			_ => Err(Errors::UnknownUpgradeType(s.to_string()).into()),
+			_ => Err(VmhGeneralErrors::UnknownUpgradeType(s.to_string()).into()),
 		}
 	}
 }

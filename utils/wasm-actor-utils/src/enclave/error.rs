@@ -3,7 +3,6 @@ use tea_runtime_codec::actor_txns::error::ActorTxnsError;
 use tea_runtime_codec::runtime::error::RuntimeCodec;
 use tea_runtime_codec::tapp::error::RuntimeTappError;
 use tea_runtime_codec::tapp::{Balance, TokenId};
-use tea_runtime_codec::vmh::error::VmhError;
 use tea_sdk::errorx::Global;
 use thiserror::Error;
 
@@ -16,9 +15,6 @@ pub enum Error {
 
 	#[error("Global error: {0}")]
 	Global(#[from] Global),
-
-	#[error("Vmh code error: {0}")]
-	VmhCodec(String),
 
 	#[error("Wasm runtime tapp error: {0}")]
 	RuntimeTapp(String),
@@ -52,12 +48,6 @@ pub enum Error {
 
 	#[error("Parse address error: {0}")]
 	ParseAddress(String),
-}
-
-impl From<VmhError> for Error {
-	fn from(e: VmhError) -> Self {
-		Self::VmhCodec(format!("{e:?}"))
-	}
 }
 
 impl From<RuntimeTappError> for Error {

@@ -1,7 +1,7 @@
 use crate::solc::ContractAddresses;
 use crate::tapp::seat::SeatId;
 use crate::tapp::Hash;
-use crate::vmh::error::Errors;
+use crate::vmh::error::VmhGeneralErrors;
 use crate::vmh::io::RegistryKey;
 use crate::vmh::{
 	error::{Error, Result},
@@ -113,7 +113,7 @@ impl FromStr for AppCommand {
 			"Shutdown" => Ok(AppCommand::Shutdown),
 			"DeactiveAll" => Ok(AppCommand::DeactiveAll),
 			"Export" => Ok(AppCommand::Export),
-			_ => Err(Errors::UnknownAppCommand(s.to_string()).into()),
+			_ => Err(VmhGeneralErrors::UnknownAppCommand(s.to_string()).into()),
 		}
 	}
 }
