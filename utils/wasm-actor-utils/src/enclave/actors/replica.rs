@@ -380,7 +380,14 @@ pub fn validators_sort_by_tsid(
 		})
 		.collect();
 
-	indicators.sort_by(|(a, _, _), (b, _, _)| a.cmp(b));
+	indicators.sort_by(|(a, a_k, _), (b, b_k, _)| {
+		let res = a.cmp(b);
+		if res == std::cmp::Ordering::Equal {
+			a_k.cmp(b_k)
+		} else {
+			res
+		}
+	});
 	indicators
 		.into_iter()
 		.map(|(_, k, v)| (k, v))
