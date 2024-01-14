@@ -180,7 +180,7 @@ impl From<FromUtf8Error> for Global {
 
 impl From<std::io::Error> for Global {
 	fn from(e: std::io::Error) -> Self {
-		Global::StdIo(e.to_string())
+		Global::StdIo(format!("{e:?}"))
 	}
 }
 
