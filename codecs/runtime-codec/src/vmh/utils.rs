@@ -3,7 +3,7 @@ use crate::vmh::{
 	error::{Error, Result},
 	io::HostType,
 };
-use chrono::NaiveDateTime;
+use chrono::{NaiveDateTime, TimeZone};
 use std::{
 	convert::TryInto,
 	time::{Duration, SystemTime},
@@ -74,7 +74,7 @@ pub fn to_full_timestamp(ts: TimestampShort) -> Result<u128> {
 
 pub fn datetime_from_timestamp(ts: TimestampShort) -> Option<DateTime<Utc>> {
 	let local = NaiveDateTime::from_timestamp_opt(ts, 0)?;
-	Some(DateTime::<Utc>::from_local(local, Utc))
+	Utc.from_local_datetime(&local).single()
 }
 
 pub fn format_timestamp(ts: TimestampShort) -> Option<String> {
@@ -141,6 +141,9 @@ mod tests {
 
 		let utc: DateTime<Utc> = f.parse().unwrap();
 		assert_eq!(short, utc.timestamp());
+
+		let datetime = datetime_from_timestamp(short);
+		assert_eq!(utc, datetime.unwrap());
 
 		Ok(())
 	}
