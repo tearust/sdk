@@ -11,14 +11,14 @@ use tea_actorx::IntoActor;
 use serde::{Deserialize, Serialize};
 use tea_codec::serde::TypeId;
 
-#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-#[response(Vec<u8>)]
-pub struct ClientTxnCbRequest {
-	pub action: String,
-	pub payload: Vec<u8>,
-	pub from_actor: String,
-	pub uuid: String,
-}
+// #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+// #[response(Vec<u8>)]
+// pub struct ClientTxnCbRequest {
+// 	pub action: String,
+// 	pub payload: Vec<u8>,
+// 	pub from_actor: String,
+// 	pub uuid: String,
+// }
 
 type CBD = Pin<Box<dyn Future<Output = Result<Vec<u8>>> + Send>>;
 pub type CallbackCB = dyn Fn(Vec<u8>, String) -> CBD + Sync + Send + 'static;
@@ -71,26 +71,26 @@ pub async fn map_cb_handler(action: &str, _arg: Vec<u8>, _from_actor: String) ->
 }
 
 #[doc(hidden)]
-pub async fn txn_callback(uuid: &str, from_actor: String) -> Result<Vec<u8>> {
-	info!("txn_callback => {:?}", uuid);
-	let target_actor = Box::leak(from_actor.clone().into_boxed_str());
-	let ori_uuid = str::replace(uuid, "hash_", "");
-	let action_key = uuid_cb_key(&ori_uuid, "action_name");
-	let req_key = uuid_cb_key(&ori_uuid, "action_req");
+pub async fn txn_callback(_uuid: &str, _from_actor: String) -> Result<Vec<u8>> {
+	// info!("txn_callback => {:?}", uuid);
+	// let target_actor = Box::leak(from_actor.clone().into_boxed_str());
+	// let ori_uuid = str::replace(uuid, "hash_", "");
+	// let action_key = uuid_cb_key(&ori_uuid, "action_name");
+	// let req_key = uuid_cb_key(&ori_uuid, "action_req");
 
-	let tmp = help::get_mem_cache(&action_key).await?;
-	let action_name: String = tea_codec::deserialize(tmp)?;
-	let req_bytes = help::get_mem_cache(&req_key).await?;
+	// let tmp = help::get_mem_cache(&action_key).await?;
+	// let action_name: String = tea_codec::deserialize(tmp)?;
+	// let req_bytes = help::get_mem_cache(&req_key).await?;
 
-	let req = ClientTxnCbRequest {
-		from_actor: from_actor,
-		action: action_name,
-		payload: req_bytes,
-		uuid: ori_uuid,
-	};
-	let actor_id = target_actor.as_bytes().to_vec().into_actor();
-	let rs = actor_id.call(req).await?;
-	Ok(rs)
+	// let req = ClientTxnCbRequest {
+	// 	from_actor: from_actor,
+	// 	action: action_name,
+	// 	payload: req_bytes,
+	// 	uuid: ori_uuid,
+	// };
+	// let actor_id = target_actor.as_bytes().to_vec().into_actor();
+	// let rs = actor_id.call(req).await?;
+	Ok(vec![])
 }
 
 #[doc(hidden)]
