@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use std::convert::TryFrom;
 use strum::Display;
 use tea_codec::errorx::Global;
@@ -283,8 +282,8 @@ pub enum TappstoreTxn {
 	UpgradeEnclaveVersion {
 		url: String,
 		version: String,
-		modules: HashMap<String, String>,
-		pcrs: HashMap<PcrType, String>,
+		modules: Vec<(String, String)>,
+		pcrs: Vec<(PcrType, String)>,
 		auth_b64: String,
 		expire_at: TimestampShort,
 	},
@@ -315,7 +314,7 @@ pub enum TappstoreTxn {
 	},
 	AddVersionPcrs {
 		version: String,
-		pcrs: HashMap<PcrType, String>,
+		pcrs: Vec<(PcrType, String)>,
 		auth_b64: String,
 	},
 	RemoveVersionPcrs {
