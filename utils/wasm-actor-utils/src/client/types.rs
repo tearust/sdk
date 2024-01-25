@@ -1,24 +1,9 @@
 use crate::client::api;
 use crate::client::error::Result;
-use crate::client::help;
-use crate::client::request::uuid_cb_key;
 use crate::client::txn_cache;
 pub use crate::enclave::action::HttpRequest;
 use futures::Future;
 use std::pin::Pin;
-use tea_actorx::IntoActor;
-
-use serde::{Deserialize, Serialize};
-use tea_codec::serde::TypeId;
-
-// #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-// #[response(Vec<u8>)]
-// pub struct ClientTxnCbRequest {
-// 	pub action: String,
-// 	pub payload: Vec<u8>,
-// 	pub from_actor: String,
-// 	pub uuid: String,
-// }
 
 type CBD = Pin<Box<dyn Future<Output = Result<Vec<u8>>> + Send>>;
 pub type CallbackCB = dyn Fn(Vec<u8>, String) -> CBD + Sync + Send + 'static;
