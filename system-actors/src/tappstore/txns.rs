@@ -383,6 +383,18 @@ pub enum TappstoreTxn {
 		acct: Account,
 		amt: Balance,
 	},
+	AirdropAddTask {
+		token_id: TokenId,
+		owner: Account,
+		name: String,
+		task_type: String,
+		reward_type: String,
+		reward_text: String,
+	},
+	AirdropRemoveTask {
+		token_id: TokenId,
+		owner: Account,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

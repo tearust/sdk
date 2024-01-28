@@ -82,6 +82,7 @@ message CommonSqlQueryRequest {
     QueryDevTappItemByNameRequest QueryDevTappItemByNameRequest = 15;
     QueryDevTappErrorLog QueryDevTappErrorLog = 16;
     QueryReferenceRewardAccountRequest QueryReferenceRewardAccountRequest = 17;
+    QueryAirdropTaskRequest QueryAirdropTaskRequest = 18;
   }
 }
 
@@ -130,6 +131,9 @@ message QueryDevTappErrorLog {
   string token_id = 1;
 }
 message QueryReferenceRewardAccountRequest {
+  string acct = 1;
+}
+message QueryAirdropTaskRequest {
   string acct = 1;
 }
 
