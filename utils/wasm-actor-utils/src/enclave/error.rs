@@ -118,6 +118,9 @@ pub enum Errors {
 	#[error("Actor_statemachine move {0} to {1} with amount {2} failed: {3}")]
 	StateMachineMoveFailed(String, String, Balance, String),
 
+	#[error("Actor_statemachine bonding_move {0} to {1} with amount {2} failed: {3}")]
+	StateMachineBondingMoveFailed(String, String, Balance, String),
+
 	#[error("Actor_statemachine cross_move failed. From token_id {0} account {1} to token_id {2} account {3} with amount {4}. Reason: {5}")]
 	StateMachineCrossMoveFailed(String, String, String, String, Balance, String),
 

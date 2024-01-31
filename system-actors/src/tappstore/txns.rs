@@ -395,6 +395,20 @@ pub enum TappstoreTxn {
 		token_id: TokenId,
 		owner: Account,
 	},
+	AirdropLoadTokenWithCredit {
+		token_id: TokenId,
+		from: Account,
+	},
+	AirdropLoadToken {
+		token_id: TokenId,
+		from: Account,
+		token_amount: Balance,
+	},
+	AirdropUnloadToken {
+		token_id: TokenId,
+		to: Account,
+		token_amount: Balance,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]

@@ -703,6 +703,15 @@ pub struct BondingMintResponse(pub Vec<u8>);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
+pub struct BondingTransferRequest(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct BondingTransferResponse(pub Vec<u8>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct BondingBurnRequest(pub Vec<u8>);
 
 #[doc(hidden)]

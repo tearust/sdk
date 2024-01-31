@@ -2,6 +2,7 @@ use crate::client::{Errors, Result};
 use crate::enclave::actors::kvp;
 use serde::Serialize;
 use tea_codec::OptionExt;
+use tea_runtime_codec::tapp::Balance;
 
 /// Set a cache value for 1800 senond.
 pub async fn set_mem_cache(key: &str, val: Vec<u8>) -> Result<()> {
@@ -129,4 +130,10 @@ pub async fn remove_query_cache(key: &str) -> Result<()> {
 	let key = format!("cache_{key}");
 	kvp::del(&key).await?;
 	Ok(())
+}
+
+pub fn string_to_balance(balance_str: &str) -> Result<Balance> {
+	let balance = Balance::from_str_radix(&balance_str, 10)
+		.map_err(|_| Errors::Unnamed(format!("Balance_string parse error.")))?;
+	Ok(balance)
 }

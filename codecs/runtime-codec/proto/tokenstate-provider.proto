@@ -464,6 +464,16 @@ message BondingMintResponse {
   bytes ctx = 1;
 }
 
+message BondingTransferRequest {
+  bytes ctx = 1;
+  bytes from = 2;
+  bytes to = 3;
+  bytes amount = 4;
+}
+message BondingTransferResponse {
+  bytes ctx = 1;
+}
+
 message BondingBurnRequest {
   bytes ctx = 1;
   bytes account = 2;
