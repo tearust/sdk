@@ -8,6 +8,7 @@ message AdapterServerRequest {
     oneof msg {
         AdapterHttpRequest AdapterHttpRequest = 2;
         AdapterSocketioHttpRequest AdapterSocketioHttpRequest = 3;
+        AdapterSocketioRequest AdapterSocketioRequest = 4;
     }
 }
 
@@ -23,6 +24,7 @@ message HttpGeneralRequest {
 message SocketioClientRequest {
     oneof msg {
         SocketioHttpRequest SocketioHttpRequest = 4;
+        SocketioRequest SocketioRequest = 5;
     }
 }
 
@@ -31,6 +33,12 @@ message SocketioClientResponse {
         HttpExecutionResponse HttpExecutionResponse = 5;
         HttpExecutionError HttpExecutionError = 6;
     }
+}
+
+message SocketioRequest {
+    string path = 1;
+    string key = 2;
+    bytes value = 3; // serde_json encoded
 }
 
 message SocketioHttpRequest {
@@ -104,4 +112,12 @@ message AdapterSocketioHttpRequest {
     string action = 2;
     bytes payload = 3;
     string actor = 4;
+}
+
+message AdapterSocketioRequest {
+    string path = 1;
+    string key = 2;
+    bytes value = 3; // serde_json encoded
+    repeated bytes params = 4;
+    optional int64 ack_id = 5;
 }
