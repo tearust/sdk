@@ -31,4 +31,5 @@ pub struct AirdropTaskInfo {
 	pub reward_text: String,
 	pub r#type: String,
 	pub balance: Option<Balance>,
+	pub description: String,
 }

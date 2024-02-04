@@ -390,6 +390,7 @@ pub enum TappstoreTxn {
 		task_type: String,
 		reward_type: String,
 		reward_text: String,
+		description: String,
 	},
 	AirdropRemoveTask {
 		token_id: TokenId,
