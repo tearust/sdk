@@ -10,6 +10,11 @@ pub async fn set_mem_cache(key: &str, val: Vec<u8>) -> Result<()> {
 	Ok(())
 }
 
+pub async fn set_mem_cache_with_time(key: &str, val: Vec<u8>, time: i32) -> Result<()> {
+	kvp::set(key, &val, time).await?;
+	Ok(())
+}
+
 /// Return a cache value.
 pub async fn get_mem_cache(key: &str) -> Result<Vec<u8>> {
 	let rs: Vec<u8> = kvp::get(key).await?.ok_or_err_else(|| "")?;
