@@ -191,6 +191,33 @@ pub async fn mov(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Resu
 	Ok(res.0)
 }
 
+pub async fn mov_token(from: Account, to: Account, amt: Balance, ctx: Vec<u8>) -> Result<Vec<u8>> {
+	if amt.is_zero() {
+		info!("Mov 0 unit, ignored.");
+		return Ok(ctx);
+	}
+
+	let req = tokenstate::BondingTransferRequest {
+		from: serialize(&from)?,
+		to: serialize(&to)?,
+		amount: serialize(&amt)?,
+		ctx,
+	};
+
+	let res = ActorId::Static(NAME)
+		.call(BondingTransferRequest(encode_protobuf(req)?))
+		.await
+		.map_err(|e| {
+			Errors::StateMachineBondingMoveFailed(
+				from.to_string(),
+				to.to_string(),
+				amt,
+				e.to_string(),
+			)
+		})?;
+	Ok(res.0)
+}
+
 /// Move TEA value from one token_id balance to another token_id balance.
 /// Most likely a move between TAppStore balance and a TAppToken balance due to buying/selling a token.
 pub async fn cross_move(

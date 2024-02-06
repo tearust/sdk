@@ -32,6 +32,7 @@ pub enum RegistryKey {
 	IpfsOutbound,
 
 	AdapterInbound,
+	AdapterOutbond,
 
 	HttpOutbound,
 	HttpProxy,

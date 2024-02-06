@@ -18,11 +18,32 @@ pub struct RegisterHttp(pub Vec<String>);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
+#[response(())]
+pub struct RegisterSocketio(pub Vec<String>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 #[response(Vec<u8>)]
 pub struct HttpRequest {
 	pub action: String,
 	pub payload: Vec<u8>,
 }
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(Vec<u8>)]
+pub struct SocketioRequest {
+	pub action: String,
+	pub payload: Vec<u8>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(Vec<u8>)]
+pub struct SocketioClientRequest(pub Vec<u8>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
