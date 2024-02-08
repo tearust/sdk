@@ -45,11 +45,17 @@ pub async fn my_conn_id() -> Result<String> {
 }
 
 #[doc(hidden)]
-pub async fn is_connection_healthy() -> Result<bool> {
+pub async fn has_libp2p_cooldown() -> Result<bool> {
 	let cooldown = ActorId::Static(tea_system_actors::libp2p::NAME)
 		.call(HasCooldownRequest)
 		.await?;
-	if !cooldown.0 {
+	Ok(cooldown.0)
+}
+
+#[doc(hidden)]
+pub async fn is_connection_healthy() -> Result<bool> {
+	let cooldown = has_libp2p_cooldown().await?;
+	if !cooldown {
 		return Ok(false);
 	}
 	match connected_peers().await {

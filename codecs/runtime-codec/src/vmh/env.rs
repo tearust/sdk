@@ -21,6 +21,7 @@ pub struct EnvSettings {
 	pub replica_test_mode: bool,
 	pub apply_validator: bool,
 	pub test_mode: bool,
+	pub first_startup_init_mode: bool,
 	pub lastest_topup_height: u64,
 	pub startup_proof: Option<String>,
 	pub settings: HashMap<String, String>,

@@ -267,6 +267,15 @@ pub struct IsMainNetResponse(pub bool);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
 #[price(10000)]
+pub struct IsFirstStartupInitModeRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct IsFirstStartupInitModeResponse(pub bool);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
 pub struct GetStartupProofRequest;
 
 #[doc(hidden)]

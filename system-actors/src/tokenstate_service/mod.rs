@@ -16,6 +16,14 @@ pub struct IsOutdatedResponse(pub bool);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct HasStateInitRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct HasStateInitResponse(pub bool);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 #[response(Vec<u8>)]
 pub struct SaveToBufferRequest;
 
