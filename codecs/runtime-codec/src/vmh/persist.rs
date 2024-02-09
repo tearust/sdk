@@ -105,6 +105,8 @@ pub trait Persist {
 		end_time: TimestampShort,
 	) -> Result<Vec<(TxnHashFileNumber, TxnHashFileNumber)>>;
 
+	fn clean_miss_txn_hash_files(&self) -> Result<()>;
+
 	fn read_txn_hash_file(&self, num: TxnHashFileNumber) -> Result<Vec<u8>>;
 
 	fn write_txn_hash_file(&mut self, num: TxnHashFileNumber, data: &[u8]) -> Result<()>;

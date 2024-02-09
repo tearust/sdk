@@ -25,6 +25,7 @@ message PersistRequest {
 		ReadTxnGenesisRequest ReadTxnGenesisRequest = 22;
 		WriteTxnGenesisRequest WriteTxnGenesisRequest = 23;
 		CanTxnHashesSyncRequest CanTxnHashesSyncRequest = 24;
+		CleanMissTxnHashFilesRequest CleanMissTxnHashFilesRequest = 25;
 	}
 }
 
@@ -115,6 +116,9 @@ message FindTxnHashesResponse {
 message FindMissTxnHashFilesRequest {
 	int64 startTime = 1;
 	int64 endTime = 2;
+}
+
+message CleanMissTxnHashFilesRequest {
 }
 
 message FindMissTxnHashFilesResponse {
