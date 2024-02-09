@@ -32,4 +32,6 @@ pub struct AirdropTaskInfo {
 	pub r#type: String,
 	pub balance: Option<Balance>,
 	pub description: String,
+	pub game_url: String,
+	pub doc_url: String,
 }

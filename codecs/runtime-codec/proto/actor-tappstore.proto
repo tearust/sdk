@@ -135,6 +135,7 @@ message QueryReferenceRewardAccountRequest {
 }
 message QueryAirdropTaskRequest {
   string acct = 1;
+  bytes teaId = 2;
 }
 
 message CommonSqlQueryResponse {
