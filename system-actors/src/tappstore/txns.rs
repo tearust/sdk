@@ -425,6 +425,11 @@ pub enum TappstoreTxn {
 		to: Account,
 		token_amount: Balance,
 	},
+	AirdropUnloadBatchToken {
+		token_id: TokenId,
+		to_list: Vec<Account>,
+		amount_list: Vec<Balance>,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
