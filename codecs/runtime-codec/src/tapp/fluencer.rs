@@ -25,6 +25,7 @@ pub struct CreditSystemInfo {
 pub struct AirdropTaskInfo {
 	pub id: String,
 	pub token_id: TokenId,
+	pub token_ticker: String,
 	pub owner: Account,
 	pub name: String,
 	pub reward_type: String,
