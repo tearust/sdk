@@ -33,6 +33,7 @@ pub enum TappstoreTxn {
 		from: Account,
 		to: Account,
 		amount: Balance,
+		all: bool,
 	},
 	Topup {
 		item: TopupEventItem,
@@ -41,6 +42,7 @@ pub enum TappstoreTxn {
 		token_id: TokenId,
 		acct: Account,
 		amount: Balance,
+		all: bool,
 	},
 	PayToApp {
 		token_id: TokenId,
