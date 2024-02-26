@@ -298,11 +298,13 @@ message StatePing {
   Checkpoint checkpoint = 1;
   ExecCursor execCursor = 2;
   replica.ValidatorsState validatorsState = 3;
+  bytes indicatorsData = 4;
 }
 message StatePong {
   Checkpoint checkpoint = 1;
   ExecCursor execCursor = 2;
   replica.ValidatorsState validatorsState = 3;
+  bytes indicatorsData = 4;
 }
 message Checkpoint {
   int64 timestamp = 1;

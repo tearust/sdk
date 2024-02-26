@@ -47,6 +47,8 @@ pub enum RegistryKey {
 	ThirdApiOutbound,
 
 	NitroOutbound,
+
+	EnvInbound,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

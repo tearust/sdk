@@ -6,6 +6,7 @@ use tea_codec::pricing::Priced;
 use tea_codec::serde::TypeId;
 use tea_runtime_codec::solc::{BlockNumber, ContractAddresses};
 use tea_runtime_codec::tapp::Hash;
+use tea_runtime_codec::vmh::env::ChronyTracking;
 use tea_runtime_codec::vmh::io::VersionInfo;
 
 /// Actor name for env native actor.
@@ -227,6 +228,15 @@ pub struct RuntimeInitializedRequest;
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct RuntimeInitializedResponse(pub bool);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct ChronyTrackingRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ChronyTrackingResponse(pub Option<ChronyTracking>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]

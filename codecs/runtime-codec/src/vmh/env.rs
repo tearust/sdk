@@ -1,6 +1,6 @@
 use crate::solc::ContractAddresses;
 use crate::tapp::seat::SeatId;
-use crate::tapp::Hash;
+use crate::tapp::{Hash, TimestampShort};
 use crate::vmh::error::VmhGeneralErrors;
 use crate::vmh::io::RegistryKey;
 use crate::vmh::{
@@ -91,6 +91,30 @@ pub enum AppCommand {
 	Import(Vec<u8>),
 	LoadActor(String, Vec<u8>),
 	Version,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum EnvIndication {
+	Chrony(ChronyTracking),
+}
+
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct ChronyTracking {
+	pub reference_id: u32,
+	pub ip_addr: String,
+	pub stratum: u16,
+	pub ref_time: String,
+	/// system time relative to NTP server
+	pub system_time: f64,
+	pub last_offset: f64,
+	pub rms_offset: f64,
+	pub frequency_ppm: f64,
+	pub residual_freq: f64,
+	pub skew_ppm: f64,
+	pub root_delay: f64,
+	pub root_dispersion: f64,
+	pub last_update_interval: f64,
+	pub leap_status: String,
 }
 
 impl std::fmt::Display for AppCommand {
