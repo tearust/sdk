@@ -432,6 +432,13 @@ pub enum TappstoreTxn {
 		to_list: Vec<Account>,
 		amount_list: Vec<Balance>,
 	},
+	TransferToken {
+		token_id: TokenId,
+		from: Account,
+		to: Account,
+		amount: Balance,
+		all: bool,
+	},
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Hash)]
