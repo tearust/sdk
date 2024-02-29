@@ -130,13 +130,13 @@ pub async fn check_auth(tapp_id_hex: &str, address: &str, auth_b64: &str) -> Res
 	None.ok_or_err("not_login").err_into()
 }
 
-pub async fn check_user_balance(address: &str) -> Result<()> {
-	let tid = tappstore_id().await?;
-	let (_, balance) = state::fetch_tea_balance(tid, address.parse()?).await?;
-	let (_, credit) = state::fetch_credit(tid, address.parse()?).await?;
-	if balance < DOLLARS / 1000 && credit < DOLLARS / 1000 {
-		return Err(Errors::NotEnoughBalanceForTxn.into());
-	}
+pub async fn check_user_balance(_address: &str) -> Result<()> {
+	// let tid = tappstore_id().await?;
+	// let (_, balance) = state::fetch_tea_balance(tid, address.parse()?).await?;
+	// let (_, credit) = state::fetch_credit(tid, address.parse()?).await?;
+	// if balance < DOLLARS / 1000 && credit < DOLLARS / 1000 {
+	// 	return Err(Errors::NotEnoughBalanceForTxn.into());
+	// }
 	Ok(())
 }
 
