@@ -245,7 +245,7 @@ pub struct IsMalformedSyncRequest;
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
-pub struct IsMalformedSyncResponse(pub bool);
+pub struct IsMalformedSyncResponse(pub Option<Tsid>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]

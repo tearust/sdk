@@ -322,7 +322,7 @@ message ExecCursor {
 message SyncStateRequest {
   Checkpoint checkpoint = 1;
   ExecCursor execCursor = 2;
-  bool isMalformed = 3;
+  optional bytes isMalformed = 3;
 }
 
 message SyncStateResponse {
