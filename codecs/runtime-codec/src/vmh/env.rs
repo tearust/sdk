@@ -1,6 +1,6 @@
 use crate::solc::ContractAddresses;
 use crate::tapp::seat::SeatId;
-use crate::tapp::{Hash, TimestampShort};
+use crate::tapp::Hash;
 use crate::vmh::error::VmhGeneralErrors;
 use crate::vmh::io::RegistryKey;
 use crate::vmh::{
