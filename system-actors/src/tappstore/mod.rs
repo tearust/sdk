@@ -2,10 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tea_actorx::ActorId;
 use tea_codec::serde::TypeId;
-use tea_runtime_codec::actor_txns::{
-	pre_args::{Arg, ArgSlots},
-	tsid::Tsid,
-};
 use tea_runtime_codec::tapp::{
 	cml::{CmlId, CmlIntrinsic, CmlVariable},
 	fluencer::CreditSystemInfo,
@@ -16,6 +12,13 @@ use tea_runtime_codec::tapp::{
 	sys::FreezeRequest,
 	version::SystemVersions,
 	Account, AuthKey, Hash, TokenId,
+};
+use tea_runtime_codec::{
+	actor_txns::{
+		pre_args::{Arg, ArgSlots},
+		tsid::Tsid,
+	},
+	tapp::ra::VersionPcrs,
 };
 
 pub mod txns;
@@ -276,6 +279,14 @@ pub struct ListAvailablePcrsRequest(pub EnclaveType);
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ListAvailablePcrsResponse(pub Vec<HashMap<PcrType, Vec<u8>>>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListAvailablePcrsExRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct ListAvailablePcrsExResponse(pub Vec<VersionPcrs>);
 
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
