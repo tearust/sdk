@@ -264,3 +264,18 @@ pub struct ImportExecutedTxnsRequest(pub Vec<(TxnItem, Vec<u8>)>);
 #[price(10000)]
 #[response(())]
 pub struct UpdateDeterministicCursorRequest(pub Tsid);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+pub struct IsBatchApplyingRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct IsBatchApplyingResponse(pub bool);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(10000)]
+#[response(())]
+pub struct SetBatchApplyingRequest(pub bool);
