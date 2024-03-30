@@ -1,7 +1,9 @@
 use super::enclave::random_u64;
 use crate::enclave::{
 	actors::{
-		env::tappstore_id, persist::async_persist_request, replica::send_transaction_locally,
+		env::tappstore_id,
+		persist::{async_persist_request, async_persist_request_silently},
+		replica::send_transaction_locally,
 	},
 	error::{Error, Errors, Result},
 };
@@ -184,7 +186,7 @@ impl CommitContextList {
 		}
 
 		if !global_statements.is_empty() {
-			let res = async_persist_request(persist::PersistRequest {
+			let res = async_persist_request_silently(persist::PersistRequest {
 				msg: Some(persist::persist_request::Msg::AppendStatements(
 					persist::AppendStatements {
 						statements_serial: serialize(&global_statements)?,
@@ -192,12 +194,9 @@ impl CommitContextList {
 				)),
 				..Default::default()
 			})
-			.await?;
-			if let Some(persist::persist_response::Msg::ErrorMessage(e)) = res.msg.as_ref() {
-				warn!(
-					"persist statements with tsid {:?} failed: {}",
-					tsid, e.message
-				);
+			.await;
+			if let Err(e) = res {
+				warn!("persist statements with tsid {:?} failed: {}", tsid, e);
 			}
 		}
 
