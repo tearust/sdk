@@ -10,7 +10,7 @@ use tea_runtime_codec::tapp::{
 	seat::SeatMaintainer,
 	statement::TypedStatement,
 	sys::FreezeRequest,
-	version::SystemVersions,
+	version::{GlobalVersionsReadable, SystemVersions},
 	Account, AuthKey, Hash, TokenId,
 };
 use tea_runtime_codec::{
@@ -339,3 +339,11 @@ pub struct ListActorVersionsRequest;
 #[doc(hidden)]
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct ListActorVersionsResponse(pub HashMap<String, String>);
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GlobalVersionsReadableRequest;
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct GlobalVersionsReadableResponse(pub GlobalVersionsReadable);
