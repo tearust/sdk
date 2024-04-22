@@ -321,6 +321,7 @@ pub enum TappstoreTxn {
 		version: String,
 		pcrs: Vec<(PcrType, String)>,
 		auth_b64: String,
+		expire_at: Option<TimestampShort>,
 	},
 	RemoveVersionPcrs {
 		version: String,
