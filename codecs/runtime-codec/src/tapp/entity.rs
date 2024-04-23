@@ -20,4 +20,5 @@ pub struct EntitySettings {
 	pub init_amount: Balance,
 	pub hosting_amount: Balance,
 	pub cml_id: Option<CmlId>,
+	pub from_token_id: Option<TokenId>,
 }
