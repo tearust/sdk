@@ -297,12 +297,26 @@ pub struct ListPaymentChannelsResponse {
 pub struct QueryPaymentChannelListWithAccountRequest {
 	pub token_id: TokenId,
 	pub acct: Account,
+	pub expire_time: Option<Ts>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
 pub struct QueryPaymentChannelListWithAccountResponse {
 	pub payer_list: Vec<PaymentInfo>,
 	pub payee_list: Vec<PaymentInfo>,
+}
+
+#[doc(hidden)]
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId, Priced)]
+#[price(1000000)]
+pub struct QueryPaymentChannelListWithChannelIdListRequest {
+	pub token_id: TokenId,
+	pub channel_id_list: Vec<ChannelId>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TypeId)]
+pub struct QueryPaymentChannelListWithChannelIdListResponse {
+	pub list: Vec<PaymentInfo>,
 }
 
 #[doc(hidden)]

@@ -8,7 +8,7 @@ use prost::Message;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use tea_actorx::ActorId;
-use tea_runtime_codec::tapp::{Account, Balance, ChannelItem, ChannelItemStatus};
+use tea_runtime_codec::tapp::{Account, Balance, ChannelId, ChannelItem, ChannelItemStatus};
 use tea_sdk::IntoGlobal;
 use tea_system_actors::payment_channel::{
 	txns::PaymentChannelTxn, QueryChannelInfoRequest, QueryChannelInfoResponse, NAME,
@@ -88,6 +88,17 @@ pub struct QueryChannelListWithAccountRequest {
 	pub address: String,
 	pub tapp_id_b64: String,
 	pub auth_b64: String,
+	pub expire_time: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct QueryChannelListWithChannelIdRequest {
+	pub uuid: String,
+	pub address: String,
+	pub tapp_id_b64: String,
+	pub auth_b64: String,
+	pub channel_id: Vec<String>,
 }
 
 pub async fn open_payment_channel(payload: Vec<u8>, from_actor: String) -> Result<Vec<u8>> {
@@ -231,8 +242,18 @@ pub async fn query_channel_list_with_account(
 
 	let token_id = tapp_payment_channel_token_id()?;
 	let acct = req.address.parse()?;
+	let expire_time: Option<u128> = if req.expire_time.is_some() {
+		let val = u128::from_str_radix(&req.expire_time.unwrap(), 10)?;
+		Some(val)
+	} else {
+		None
+	};
 	let res = ActorId::Static(tokenstate::NAME)
-		.call(tokenstate::QueryPaymentChannelListWithAccountRequest { acct, token_id })
+		.call(tokenstate::QueryPaymentChannelListWithAccountRequest {
+			acct,
+			token_id,
+			expire_time,
+		})
 		.await?;
 	let latest_tsid = statemachine::query_state_tsid().await?;
 
@@ -243,6 +264,46 @@ pub async fn query_channel_list_with_account(
 	});
 	info!(
 		"query query_channel_list_with_account from local_state => {:?}",
+		x
+	);
+
+	help::cache_json_with_uuid(&uuid, x).await?;
+
+	help::result_ok()
+}
+
+pub async fn query_channel_list_with_channel_id(
+	payload: Vec<u8>,
+	_from_actor: String,
+) -> Result<Vec<u8>> {
+	let req: QueryChannelListWithChannelIdRequest = serde_json::from_slice(&payload)?;
+	// check_auth(&req.tapp_id_b64, &req.address, &req.auth_b64).await?;
+
+	info!("query_channel_list_with_channel_id from local_state ...");
+	let uuid = req.uuid;
+
+	let token_id = tapp_payment_channel_token_id()?;
+	let mut channel_id_list: Vec<ChannelId> = Vec::new();
+	for id_str in req.channel_id {
+		let id = id_str.parse()?;
+		channel_id_list.push(id);
+	}
+	let res = ActorId::Static(tokenstate::NAME)
+		.call(
+			tokenstate::QueryPaymentChannelListWithChannelIdListRequest {
+				token_id,
+				channel_id_list,
+			},
+		)
+		.await?;
+	let latest_tsid = statemachine::query_state_tsid().await?;
+
+	let x = serde_json::json!({
+		"list": res.list,
+		"ts": latest_tsid.ts.to_string(),
+	});
+	info!(
+		"query query_channel_list_with_channel_id from local_state => {:?}",
 		x
 	);
 

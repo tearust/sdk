@@ -40,6 +40,9 @@ pub async fn map_handler(action: &str, arg: Vec<u8>, from_actor: String) -> Resu
 		"query_channel_list_with_account" => {
 			api::channel::query_channel_list_with_account(arg, from_actor).await?
 		}
+		"query_channel_list_with_channel_id" => {
+			api::channel::query_channel_list_with_channel_id(arg, from_actor).await?
+		}
 		"payee_update_payment" => api::channel::payee_update_payment(arg, from_actor).await?,
 
 		_ => vec![],
@@ -103,6 +106,7 @@ pub fn map_fn_list() -> Vec<&'static str> {
 		"terminate",
 		"payer_refill_fund",
 		"query_channel_list_with_account",
+		"query_channel_list_with_channel_id",
 		"payee_update_payment",
 	]
 }
