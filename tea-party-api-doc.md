@@ -45,8 +45,12 @@ pub struct PayerOpenChannelRequest {
   address:  // 当前用户的登录地址
   tappIdB64: // 当前登录对应的tapp ID，这里需要和之前用户登录时候传入的id一致
   authB64: // 在登录请求中返回的用户授权信息
+  expireTime: // 需要查询的过期时间，此参数为可选的，如果不传就默认返回所有的，如果传输就只会返回在此时间会过期的channel，此参数格式为ts，是系统共识时间标识，单位是纳秒。
 ```
 此query会返回一个json数据结构，里面包含了所在payer_list, payee_list, 已经最新的ts（TEA系统的最新时间戳）
+
+注意一般逻辑是第一次请求不需要传输expireTime，等返回中提取返回中的ts，就是共识的最新时间，然后根据此时间拼装需要的expireTime参数。
+e.g. (parseInt(ts)+(3600*1000000000)).toString(); 此表达式可以标识最新ts一小时后的ts。
 
 此请求在Rust端的参数定义如下
 ```
@@ -55,8 +59,32 @@ pub struct QueryChannelListWithAccountRequest {
 	pub address: String,
 	pub tapp_id_b64: String,
 	pub auth_b64: String,
+	pub expire_time: Option<String>,
 }
 ```
+
+### query_channel_list_with_channel_id
+根据传入的channel id返回对应的数据，这是QUERY
+
+```
+  address:  // 当前用户的登录地址
+  tappIdB64: // 当前登录对应的tapp ID，这里需要和之前用户登录时候传入的id一致
+  authB64: // 在登录请求中返回的用户授权信息
+  channelId: // 需要查询的channel id的字符串列表， 如 ['channel_id_1', 'channel_id_2']
+```
+此query会返回一个json数据结构，里面包含了所在list, 最新的ts.
+
+此请求在Rust端的参数定义如下
+```
+pub struct QueryChannelListWithChannelIdRequest {
+	pub uuid: String,
+	pub address: String,
+	pub tapp_id_b64: String,
+	pub auth_b64: String,
+	pub channel_id: Vec<String>,
+}
+```
+
 
 ### payer_early_terminate
 payer提前终止channel，这是TXN
