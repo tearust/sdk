@@ -28,6 +28,7 @@ pub enum PaymentChannelTxn {
 		payment_update_sig: String,
 		new_fund_remaining: Balance,
 		close_channel: bool,
+		auth_b64: String,
 	},
 	ScheduledGasPayment {
 		timestamp: TimestampShort,
